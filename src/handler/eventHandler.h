@@ -13,6 +13,8 @@
 #include "nextcloud.h"
 #include "listView.h"
 
+const string CONFIG_PATH = "/mnt/ext1/system/config/nextcloud";
+
 class EventHandler 
 {
     public:

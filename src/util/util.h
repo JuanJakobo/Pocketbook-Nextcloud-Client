@@ -1,10 +1,13 @@
 //------------------------------------------------------------------
-// util.cpp
+// util.h
 //
 // Author:           JuanJakobo          
 // Date:             04.08.2020
-//   
+// Description:      Various utility methods
 //-------------------------------------------------------------------
+
+#ifndef UTIL
+#define UTIL
 
 #include "inkview.h"
 
@@ -40,3 +43,4 @@ public:
 private:
     Util() {}
 };
+#endif

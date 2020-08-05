@@ -9,7 +9,6 @@
 #include "inkview.h"
 
 #include <string>
-#include <math.h>
 #include <sstream>
 
 string Util::intToString(int value)
