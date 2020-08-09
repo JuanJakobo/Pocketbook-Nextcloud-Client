@@ -27,4 +27,5 @@ void Log::writeLog(const string& text)
 
 	log << buffer << ":" << text << "\n";
 
+    log.close();
 }

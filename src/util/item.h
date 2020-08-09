@@ -16,22 +16,45 @@
 using namespace std;
 
 enum Itemtype {IFILE,IFOLDER};
+
 class Item
 {
     public:
 
-        Item(const string& Path);
+        Item(const string& xmlItem);
 
-        string getPath() const {return path;};
         void setPath(const string& Path) {path=Path;};
-
-        string getTitle() const {return title;};
+        string getPath() const {return path;};
 
         Itemtype getType() const {return type;};
+
+        void setTitle(const string& Title) {title=Title;};
+        string getTitle() const {return title;};
+
+        bool isDownloaded() const {return downloaded;};
+
+        string getLastEditDate() const {return lastEdithDate;};
+
+        string getSize() const {return size;};
+
+        string getFiletype() const {return fileType;};
+
+        /**
+        * downloads a file from WEBDAV and saves it 
+        *         
+        * @return true - sucessfull, false - error
+        */
+        string isClicked();
 
     private:
         string  path;
         Itemtype type;   
         string  title;
+        bool downloaded;
+        string lastEdithDate;
+        string size;
+        string fileType;
+
+
 };
 #endif

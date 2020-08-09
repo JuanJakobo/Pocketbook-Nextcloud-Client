@@ -29,7 +29,7 @@ Nextcloud::Nextcloud()
 
 void Nextcloud::setUsername(const string& Username)
 {
-    iconfigedit* temp = nullptr;
+    iconfigedit *temp = nullptr;
     iconfig  *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(),temp);
     WriteString(nextcloudConfig,"username",Username.c_str());
     CloseConfig(nextcloudConfig);
@@ -37,7 +37,7 @@ void Nextcloud::setUsername(const string& Username)
 
 void Nextcloud::setPassword(const string& Pass)
 {
-    iconfigedit* temp = nullptr;
+    iconfigedit *temp = nullptr;
     iconfig  *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(),temp);
     WriteSecret(nextcloudConfig,"password",Pass.c_str());
     CloseConfig(nextcloudConfig);
@@ -45,7 +45,7 @@ void Nextcloud::setPassword(const string& Pass)
 
 string Nextcloud::getUsername()
 {
-    iconfigedit* temp = nullptr;
+    iconfigedit *temp = nullptr;
     iconfig  *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(),temp);
     string user = ReadString(nextcloudConfig,"username","");
     CloseConfigNoSave(nextcloudConfig);
@@ -54,7 +54,7 @@ string Nextcloud::getUsername()
 
 string Nextcloud::getPassword()
 {
-    iconfigedit* temp = nullptr;
+    iconfigedit *temp = nullptr;
     iconfig  *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(),temp);
     string pass = ReadSecret(nextcloudConfig,"password","");
     CloseConfigNoSave(nextcloudConfig);
@@ -122,19 +122,23 @@ bool Nextcloud::getDataStructure(const string& pathUrl, const string& Username, 
             {
             case 207:
                 {
-                    size_t found;
-                    string searchString = "<d:href>";            
-                    do
+                    size_t begin;
+                    size_t end;
+                    string beginItem = "<d:response>";
+                    string endItem = "</d:response>";
+
+                    begin = readBuffer.find(beginItem);
+
+                    while(begin!=std::string::npos)
                     {
-                        found = std::string::npos;
-                        found = readBuffer.find(searchString);
-                        if (found!=std::string::npos)
-                        {
-                            readBuffer = readBuffer.substr(found+searchString.length());
-                            found = readBuffer.find("</d:href>");
-                            this->items.push_back(Item(readBuffer.substr(0,found)));
-                        }
-                    } while (found!=std::string::npos);
+                        end = readBuffer.find(endItem);
+
+                        this->items.push_back(Item(readBuffer.substr(begin,end)));
+
+                        readBuffer = readBuffer.substr(end+endItem.length());
+
+                        begin = readBuffer.find(beginItem);
+                    }
 
                     if(items.size() < 1)
                         return false;
@@ -143,6 +147,8 @@ bool Nextcloud::getDataStructure(const string& pathUrl, const string& Username, 
                     tes = tes.substr(0,tes.find_last_of("/"));
                     tes = tes.substr(0,tes.find_last_of("/")+1);
                     items[0].setPath(tes);
+                    items[0].setTitle("...");
+
                     if(items[0].getPath().compare(NEXTCLOUD_ROOT_PATH) == 0)
                         items.erase(items.begin());
 
