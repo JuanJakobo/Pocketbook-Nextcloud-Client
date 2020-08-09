@@ -36,6 +36,12 @@ class ListView
         ~ListView();
 
         /**
+        * draws the header including an item to navigate a page up
+        * 
+        */
+        void drawHeader(const string &headerText);
+
+        /**
         * draws the footer including a page changer 
         * 
         */
@@ -68,6 +74,7 @@ class ListView
         int shownPage;
         irect pageButton;
         int footerHeight;
+        int headerHeight;
 
 };
 #endif

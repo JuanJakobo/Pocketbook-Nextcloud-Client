@@ -29,7 +29,8 @@ ListView::ListView(irect* ContentRect, const vector<Item>& Items): contentRect(C
 
     int itemCount = 7;
     footerHeight =  100;
-    int entrySize = (contentRect->h-footerHeight)/itemCount;
+    headerHeight = 40;
+    int entrySize = (contentRect->h-footerHeight-headerHeight)/itemCount;
 
     shownPage = 1;
     page = 1;
@@ -45,7 +46,7 @@ ListView::ListView(irect* ContentRect, const vector<Item>& Items): contentRect(C
             z=0;
         }
 
-        irect rect = iRect(contentRect->x,z*entrySize+contentRect->y,contentRect->w,entrySize,0);
+        irect rect = iRect(contentRect->x,z*entrySize+headerHeight+contentRect->y,contentRect->w,entrySize,0);
         this->entries.push_back(ListViewEntry(page, rect));
         i--;
         z++;
@@ -61,6 +62,17 @@ ListView::ListView(irect* ContentRect, const vector<Item>& Items): contentRect(C
 ListView::~ListView()
 {
     delete font;
+}
+
+void ListView::drawHeader(const string &headerText)
+{
+    font = OpenFont("LiberationMono",35,1);
+    SetFont(font,BLACK);  
+
+    DrawTextRect(contentRect->x,contentRect->y,contentRect->w,headerHeight-1,headerText.c_str(),ALIGN_LEFT);
+
+    int line = (contentRect->y+headerHeight)-2;
+    DrawLine(0,line,ScreenWidth(),line,BLACK);
 }
 
 void ListView::drawFooter()

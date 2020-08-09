@@ -79,21 +79,16 @@ int EventHandler::pointerHandler(int type, int par1, int par2)
             int itemID = listView->listClicked(par1,par2);
             if(itemID!=-1)
             {
-                if(nextcloud->getItems()[itemID].getType()==IFILE)
-                {
-                    Message(MSG_INFO,"Info","Downloadmethod",1200);
-                }
-                else
-                {
-                    string tempPath = nextcloud->getItems()[itemID].getPath();
+                string tempPath = nextcloud->getItems()[itemID].isClicked();
+
+                if(!tempPath.empty())
                     nextcloud->getDataStructure(tempPath);
-                }
-                
+
                 delete listView;
                 listView = new ListView(menu->getContentRect(),nextcloud->getItems());
-                
+                listView->drawHeader(tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
+            }
 
-            }      
             PartialUpdate(menu->getContentRect()->x,menu->getContentRect()->y,menu->getContentRect()->w,menu->getContentRect()->h);
             return 1;
         }
