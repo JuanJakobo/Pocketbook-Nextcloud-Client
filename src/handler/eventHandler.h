@@ -14,7 +14,7 @@
 #include "listView.h"
 #include "loginView.h"
 
-const string CONFIG_PATH = "/mnt/ext1/system/config/nextcloud";
+const string LOG_PATH = "/mnt/ext1/system/config/nextcloud";
 
 class EventHandler
 {
