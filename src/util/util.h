@@ -1,7 +1,7 @@
 //------------------------------------------------------------------
 // util.h
 //
-// Author:           JuanJakobo          
+// Author:           JuanJakobo
 // Date:             04.08.2020
 // Description:      Various utility methods
 //-------------------------------------------------------------------
@@ -13,50 +13,49 @@
 
 #include <string>
 
-using namespace std;
+using std::string;
 
 class Util
 {
 public:
-
     /**
     * Converts an int to an string, as C++11 command is not supported
     * 
     * @param value the int value that shall be converted
     * @return same value in string format
     */
-    static string   intToString(int value);
+    static string intToString(const int value);
 
     /**
     * Handles the return of curl command
     * 
     */
-    static size_t  writeCallback(void *contents, size_t size, size_t nmemb, void *userp);
+    static size_t writeCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
     /**
     * Saves the return of curl command
     * 
     */
-    static size_t   writeData(void *ptr, size_t size, size_t nmemb, FILE *stream);
+    static size_t writeData(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
     /**
     * Checks if a network connection can be established
     * 
     * @return true - network access succeeded, false - network access failed
     */
-    static bool     connectToNetwork();
+    static bool connectToNetwork();
 
     /**
     * Returns an integer representing the download progress
     * 
     */
-    static int      progress_callback(void *clientp,   double dltotal,   double dlnow,   double ultotal,   double ulnow);
+    static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow);
 
     /**
     * Returns an integer representing the download progress
     * 
     */
-    static string getXMLAttribute(const string& buffer, const string& name);
+    static string getXMLAttribute(const string &buffer, const string &name);
 
 private:
     Util() {}

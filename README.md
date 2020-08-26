@@ -1,10 +1,21 @@
-# Pocketbook Nextcloud
+# Pocketbook Nextcloud Client
+
+
+
 
 
 ### Tested on
 * Pocketbook HD3 (PB623) (V. U623.6.0.926)
 
 ## Screenshots
+
+### Installation
+
+
+### Usage
+
+
+
 
 
 ## Disclamer

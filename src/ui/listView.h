@@ -1,7 +1,7 @@
 //------------------------------------------------------------------
 // listView.h
 //
-// Author:           JuanJakobo          
+// Author:           JuanJakobo
 // Date:             04.08.2020
 // Description:      An UI class to display items in a listview
 //-------------------------------------------------------------------
@@ -16,65 +16,64 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+using std::string;
+using std::vector;
 
 class ListView
 {
-    public:
-
-        /**
+public:
+    /**
         * Displays a list view 
         * 
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         */
-        ListView(irect* ContentRect, const vector<Item> &Items);
+    ListView(irect *contentRect, const vector<Item> &items);
 
-        /**
+    /**
         * Destructor 
         */
-        ~ListView();
+    ~ListView();
 
-        /**
+    /**
         * draws the header including an item to navigate a page up
         * 
         */
-        void drawHeader(const string &headerText);
+    void drawHeader(const string &headerText);
 
-        /**
+    /**
         * draws the footer including a page changer 
         * 
         */
-        void drawFooter();
+    void drawFooter();
 
-        /**
+    /**
         * iterates through the items and sends them to the listViewEntry Class for drawing
         * 
         */
-        void drawEntries();
+    void drawEntries();
 
-        /**
+    /**
         * Checkes if the listview has been clicked and either changes the page or returns item ID
         * 
         * @param x x-coordinate
         * @param y y-coordinate
         * @return int Item ID that has been clicked, -1 if no Item was clicked
         */
-        int listClicked(int x, int y);
+    int listClicked(int x, int y);
 
-    private:
-        irect* contentRect;
-        const vector<Item> &items;
-        
-        irect  loadingScreenRect;
-        ifont* font;
+private:
+    irect *_contentRect;
+    const vector<Item> _items;
 
-        vector<ListViewEntry>   entries;
-        int page;
-        int shownPage;
-        irect pageButton;
-        int footerHeight;
-        int headerHeight;
+    irect _loadingScreenRect;
+    ifont *_font;
 
+    vector<ListViewEntry> _entries;
+    int _page;
+    int _shownPage;
+    irect _pageButton;
+    int _footerHeight;
+    int _headerHeight;
 };
 #endif

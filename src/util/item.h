@@ -1,7 +1,7 @@
 //------------------------------------------------------------------
 // item.h
 //
-// Author:           JuanJakobo          
+// Author:           JuanJakobo
 // Date:             04.08.2020
 // Description:      Describes an WEBDAV item
 //-------------------------------------------------------------------
@@ -13,48 +13,49 @@
 
 #include <string>
 
-using namespace std;
+using std::string;
 
-enum Itemtype {IFILE,IFOLDER};
+enum Itemtype
+{
+    IFILE,
+    IFOLDER
+};
 
 class Item
 {
-    public:
+public:
+    Item(const string &xmlItem);
 
-        Item(const string& xmlItem);
+    void setPath(const string &path) { _path = path; };
+    string getPath() const { return _path; };
 
-        void setPath(const string& Path) {path=Path;};
-        string getPath() const {return path;};
+    Itemtype getType() const { return _type; };
 
-        Itemtype getType() const {return type;};
+    void setTitle(const string &title) { _title = title; };
+    string getTitle() const { return _title; };
 
-        void setTitle(const string& Title) {title=Title;};
-        string getTitle() const {return title;};
+    bool isDownloaded() const { return _downloaded; };
 
-        bool isDownloaded() const {return downloaded;};
+    string getLastEditDate() const { return _lastEditDate; };
 
-        string getLastEditDate() const {return lastEdithDate;};
+    int getSize() const { return _size; };
 
-        string getSize() const {return size;};
+    string getFiletype() const { return _fileType; };
 
-        string getFiletype() const {return fileType;};
-
-        /**
+    /**
         * downloads a file from WEBDAV and saves it 
         *         
         * @return true - sucessfull, false - error
         */
-        string isClicked();
+    string isClicked();
 
-    private:
-        string  path;
-        Itemtype type;   
-        string  title;
-        bool downloaded;
-        string lastEdithDate;
-        string size;
-        string fileType;
-
-
+private:
+    string _path;
+    Itemtype _type;
+    string _title;
+    bool _downloaded;
+    string _lastEditDate;
+    int _size;
+    string _fileType;
 };
 #endif

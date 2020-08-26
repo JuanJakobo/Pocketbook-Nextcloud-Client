@@ -1,7 +1,7 @@
 //------------------------------------------------------------------
 // log.h
 //
-// Author:           JuanJakobo          
+// Author:           JuanJakobo
 // Date:             05.08.2020
 // Description:      Deals with log entries
 //-------------------------------------------------------------------
@@ -13,21 +13,19 @@
 
 #include <string>
 
-using namespace std;
-
+using std::string;
 
 class Log
 {
-    public:
-
-        /**
+public:
+    /**
         * Writes a log entry to the log file
         * 
         * @param text that shall be written to the log
         */
-        static void writeLog(const string& text);
+    static void writeLog(const string &text);
 
-    private:
-        Log() {}
+private:
+    Log() {}
 };
 #endif

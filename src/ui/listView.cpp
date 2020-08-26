@@ -1,9 +1,9 @@
 //------------------------------------------------------------------
 // listView.cpp
 //
-// Author:           JuanJakobo          
+// Author:           JuanJakobo
 // Date:             04.08.2020
-// 
+//
 //-------------------------------------------------------------------
 
 #include "inkview.h"
@@ -15,100 +15,101 @@
 #include <string>
 #include <vector>
 
+using std::string;
+using std::vector;
 
-
-ListView::ListView(irect* ContentRect, const vector<Item>& Items): contentRect(ContentRect), items(Items)
+ListView::ListView(irect *contentRect, const vector<Item> &items) : _contentRect(contentRect), _items(items)
 {
-    loadingScreenRect = iRect(contentRect->w/2-100,contentRect->h/2-50,200,100,ALIGN_CENTER);
+    _loadingScreenRect = iRect(_contentRect->w / 2 - 100, _contentRect->h / 2 - 50, 200, 100, ALIGN_CENTER);
+    _font = OpenFont("LiberationMono", 30, 1);
+    SetFont(_font, BLACK);
+    FillAreaRect(_contentRect, WHITE);
 
-    font = OpenFont("LiberationMono",30,1);
-    SetFont(font,BLACK);   
-    FillAreaRect(contentRect,WHITE);
-
-    entries.clear();
+    _entries.clear();
 
     int itemCount = 7;
-    footerHeight =  100;
-    headerHeight = 40;
-    int entrySize = (contentRect->h-footerHeight-headerHeight)/itemCount;
+    _footerHeight = 100;
+    _headerHeight = 40;
+    int entrySize = (_contentRect->h - _footerHeight - _headerHeight) / itemCount;
 
-    shownPage = 1;
-    page = 1;
+    _shownPage = 1;
+    _page = 1;
 
-    auto i = items.size();
+    auto i = _items.size();
     auto z = 0;
 
-    while(i > 0)
-    {   
-        if(z>=itemCount)
+    _entries.reserve(i);
+
+    while (i > 0)
+    {
+        if (z >= itemCount)
         {
-            page++;
-            z=0;
+            _page++;
+            z = 0;
         }
 
-        irect rect = iRect(contentRect->x,z*entrySize+headerHeight+contentRect->y,contentRect->w,entrySize,0);
-        this->entries.push_back(ListViewEntry(page, rect));
+        irect rect = iRect(_contentRect->x, z * entrySize + _headerHeight + _contentRect->y, _contentRect->w, entrySize, 0);
+        this->_entries.emplace_back(_page, rect);
         i--;
         z++;
     }
 
-    pageButton = iRect(contentRect->w-100,contentRect->h+contentRect->y-footerHeight,100,footerHeight,ALIGN_CENTER);
+    _pageButton = iRect(_contentRect->w - 100, _contentRect->h + _contentRect->y - _footerHeight, 100, _footerHeight, ALIGN_CENTER);
 
     drawEntries();
     drawFooter();
-
 }
 
 ListView::~ListView()
 {
-    delete font;
+    delete _font;
 }
 
 void ListView::drawHeader(const string &headerText)
 {
-    font = OpenFont("LiberationMono",35,1);
-    SetFont(font,BLACK);  
+    _font = OpenFont("LiberationMono", 35, 1);
+    SetFont(_font, BLACK);
 
-    DrawTextRect(contentRect->x,contentRect->y,contentRect->w,headerHeight-1,headerText.c_str(),ALIGN_LEFT);
+    DrawTextRect(_contentRect->x, _contentRect->y, _contentRect->w, _headerHeight - 1, headerText.c_str(), ALIGN_LEFT);
 
-    int line = (contentRect->y+headerHeight)-2;
-    DrawLine(0,line,ScreenWidth(),line,BLACK);
+    int line = (_contentRect->y + _headerHeight) - 2;
+    DrawLine(0, line, ScreenWidth(), line, BLACK);
 }
 
 void ListView::drawFooter()
 {
-    string footer = Util::intToString(shownPage) + "/" + Util::intToString(page);
-    SetFont(font, WHITE);
-    FillAreaRect(&pageButton, BLACK);
-    DrawTextRect2(&pageButton,footer.c_str());
+    string footer = Util::intToString(_shownPage) + "/" + Util::intToString(_page);
+    SetFont(_font, WHITE);
+    FillAreaRect(&_pageButton, BLACK);
+    DrawTextRect2(&_pageButton, footer.c_str());
 }
 
 void ListView::drawEntries()
 {
-    for(auto i = 0; i < entries.size(); i++)
+    for (auto i = 0; i < _entries.size(); i++)
     {
-        if(entries[i].getPage()==shownPage)
-            entries[i].draw(items[i]);
+        if (_entries[i].getPage() == _shownPage)
+            _entries[i].draw(_items[i]);
     }
 }
 
 int ListView::listClicked(int x, int y)
 {
-    SetFont(font,BLACK);   
+    SetFont(_font, BLACK);
 
-    if(IsInRect(x,y,&pageButton))
+    if (IsInRect(x, y, &_pageButton))
     {
-        if(page>1)
+        if (_page > 1)
         {
-            FillAreaRect(contentRect,WHITE);
+            FillAreaRect(_contentRect, WHITE);
 
-            if(shownPage>=page)
+            if (_shownPage >= _page)
             {
-                shownPage = 1;
+                _shownPage = 1;
             }
             else
             {
-                shownPage++;
+                _shownPage++;
             }
 
             drawEntries();
@@ -117,14 +118,14 @@ int ListView::listClicked(int x, int y)
     }
     else
     {
-        FillAreaRect(contentRect,WHITE);
+        FillAreaRect(_contentRect, WHITE);
 
-        for(unsigned int i = 0; i < entries.size(); i++)
+        for (unsigned int i = 0; i < _entries.size(); i++)
         {
-            if(entries[i].getPage()==shownPage && IsInRect(x,y,entries[i].getRect())==1)
+            if (_entries[i].getPage() == _shownPage && IsInRect(x, y, _entries[i].getPosition()) == 1)
             {
-                DrawTextRect2(&loadingScreenRect,"Loading...");
-                PartialUpdate(loadingScreenRect.x,loadingScreenRect.y,loadingScreenRect.w,loadingScreenRect.h);
+                DrawTextRect2(&_loadingScreenRect, "Loading...");
+                PartialUpdate(_loadingScreenRect.x, _loadingScreenRect.y, _loadingScreenRect.w, _loadingScreenRect.h);
                 return i;
             }
         }

@@ -1,9 +1,9 @@
 //------------------------------------------------------------------
 // item.cpp
 //
-// Author:           JuanJakobo          
+// Author:           JuanJakobo
 // Date:             04.08.2020
-//  
+//
 //-------------------------------------------------------------------
 
 #include "item.h"
@@ -17,38 +17,38 @@
 
 using namespace std;
 
-Item::Item(const string& xmlItem)
+Item::Item(const string &xmlItem)
 {
-        path = Util::getXMLAttribute(xmlItem,"d:href");
-        lastEdithDate = Util::getXMLAttribute(xmlItem,"d:getlastmodified");
-        title = path;
+    _path = Util::getXMLAttribute(xmlItem, "d:href");
+    _lastEditDate = Util::getXMLAttribute(xmlItem, "d:getlastmodified");
+    _title = _path;
 
-        if(path.back()=='/')
-        {
-            type=IFOLDER;
-            title = title.substr(0,path.length()-1);
-            size = Util::getXMLAttribute(xmlItem,"d:quota-used-bytes");
-        }
-        else
-        {
-            type=IFILE;
-            size = Util::getXMLAttribute(xmlItem,"d:getcontentlength");
-            fileType = Util::getXMLAttribute(xmlItem,"d:getcontenttype");
-            downloaded = false;
-        }
+    if (_path.back() == '/')
+    {
+        _type = IFOLDER;
+        _title = _title.substr(0, _path.length() - 1);
+        _size = atoi(Util::getXMLAttribute(xmlItem, "d:quota-used-bytes").c_str());
+    }
+    else
+    {
+        _type = IFILE;
+        _size = atoi(Util::getXMLAttribute(xmlItem, "d:getcontentlength").c_str());
+        _fileType = Util::getXMLAttribute(xmlItem, "d:getcontenttype");
+        _downloaded = false;
+    }
 
-        title = title.substr(title.find_last_of("/")+1,title.length());
+    _title = _title.substr(_title.find_last_of("/") + 1, _title.length());
 }
 
 string Item::isClicked()
 {
-    if(type==IFILE)
+    if (_type == IFILE)
     {
         //downloadFile();
     }
     else
     {
-        return path;
+        return _path;
     }
 
     return "";
