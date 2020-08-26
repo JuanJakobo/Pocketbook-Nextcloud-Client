@@ -13,7 +13,7 @@ A basic client to access an existing nextcloud instance via Pocketbook.
 
 
 ### Usage
-Download and unzip the .app file from https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/releases and place it into the "applications" folder of your pocketbook. Once you disconnect the Pocketbook, the application should be visibile.
+Download and unzip the file from https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/releases and place the nextcloud.app into the "applications" folder of your pocketbook. Once you disconnect the Pocketbook from the PC, the application should be visibile.
 
 ## Disclamer
 
