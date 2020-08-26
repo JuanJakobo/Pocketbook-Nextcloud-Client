@@ -1,9 +1,9 @@
 //------------------------------------------------------------------
 // eventHandler.cpp
 //
-// Author:           JuanJakobo          
+// Author:           JuanJakobo
 // Date:             04.08.2020
-//   
+//
 //-------------------------------------------------------------------
 
 #include "inkview.h"
@@ -13,84 +13,116 @@
 #include "item.h"
 
 #include <string>
+#include <memory>
 
-EventHandler * EventHandler::eventHandlerStatic;
+using std::string;
+
+EventHandler *EventHandler::_eventHandlerStatic;
 
 EventHandler::EventHandler()
 {
     //create a event to create handlers
-    eventHandlerStatic = this;
+    _eventHandlerStatic = this;
 
-    menu = new MenuHandler("Nextcloud");
+    _menu = new MenuHandler("nextcloud");
+    _nextcloud = new Nextcloud();
+    _loginView = nullptr;
+    _listView = nullptr;
 
-    nextcloud = new Nextcloud();
-    //TODO SET USER, PASSWORD
-    nextcloud->login("USER", "PASSWORD");
+    if (iv_access(NEXTCLOUD_CONFIG_PATH.c_str(), W_OK) == 0)
+    {
+        if (_nextcloud->login())
+        {
+            _listView = new ListView(_menu->getContentRect(), _nextcloud->getItems());
+            FullUpdate();
+            return;
+        }
+    }
 
-    listView = new ListView(menu->getContentRect(),nextcloud->getItems());
-
+    _loginView = new LoginView(_menu->getContentRect());
+    _loginView->drawLoginView();
     FullUpdate();
 }
-
 EventHandler::~EventHandler()
 {
-    delete nextcloud;
-    delete menu;
-    delete listView;
+    delete _nextcloud;
+    delete _listView;
+    delete _menu;
 }
 
-int EventHandler::eventDistributor(int type, int par1, int par2)
+int EventHandler::eventDistributor(const int type, const int par1, const int par2)
 {
     if (ISPOINTEREVENT(type))
-	    return EventHandler::pointerHandler(type,par1,par2);
+        return EventHandler::pointerHandler(type, par1, par2);
 
     return 0;
 }
 
-void EventHandler::mainMenuHandlerStatic(int index)
+void EventHandler::mainMenuHandlerStatic(const int index)
 {
-    eventHandlerStatic->mainMenuHandler(index);
+    _eventHandlerStatic->mainMenuHandler(index);
 }
 
-void EventHandler::mainMenuHandler(int index)
+void EventHandler::mainMenuHandler(const int index)
 {
-    switch(index)
- 	{ 
-        //Exit	 
-        case 101:
-            CloseApp();
-            break;
-        default:
-            break;
- 	}
-}
-
-int EventHandler::pointerHandler(int type, int par1, int par2)
-{
-
-    if(type==EVT_POINTERDOWN)
+    switch (index)
     {
-        if(IsInRect(par1,par2,menu->getMenuButtonRect())==1)
+    //Logout
+    case 101:
+        _nextcloud->logout();
+        delete _listView;
+        _listView = nullptr;
+        _loginView = new LoginView(_menu->getContentRect());
+        _loginView->drawLoginView();
+        FullUpdate();
+        break;
+    //Exit
+    case 102:
+        CloseApp();
+        break;
+    default:
+        break;
+    }
+}
+
+int EventHandler::pointerHandler(const int type, const int par1, const int par2)
+{
+    if (type == EVT_POINTERDOWN)
+    {
+        if (IsInRect(par1, par2, _menu->getMenuButtonRect()) == 1)
         {
-            return menu->createMenu(true,EventHandler::mainMenuHandlerStatic);
+            return _menu->createMenu(_nextcloud->isLoggedIn(), EventHandler::mainMenuHandlerStatic);
         }
-        else if(listView!= NULL)
+        else if (_listView != nullptr)
         {
-            int itemID = listView->listClicked(par1,par2);
-            if(itemID!=-1)
+            int itemID = _listView->listClicked(par1, par2);
+            if (itemID != -1)
             {
-                string tempPath = nextcloud->getItems()[itemID].isClicked();
+                string tempPath = _nextcloud->getItems()[itemID].isClicked();
 
-                if(!tempPath.empty())
-                    nextcloud->getDataStructure(tempPath);
+                if (!tempPath.empty())
+                    _nextcloud->getDataStructure(tempPath);
 
-                delete listView;
-                listView = new ListView(menu->getContentRect(),nextcloud->getItems());
-                listView->drawHeader(tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
+                delete _listView;
+                _listView = new ListView(_menu->getContentRect(), _nextcloud->getItems());
+                _listView->drawHeader(tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
             }
 
-            PartialUpdate(menu->getContentRect()->x,menu->getContentRect()->y,menu->getContentRect()->w,menu->getContentRect()->h);
+            PartialUpdate(_menu->getContentRect()->x, _menu->getContentRect()->y, _menu->getContentRect()->w, _menu->getContentRect()->h);
             return 1;
+        }
+        else if (_loginView != nullptr)
+        {
+            if (_loginView->logginClicked(par1, par2) == 2)
+            {
+                if (_nextcloud->login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
+                {
+                    _listView = new ListView(_menu->getContentRect(), _nextcloud->getItems());
+                    delete _loginView;
+                    FullUpdate();
+                }
+                return 1;
+            }
         }
     }
     return 0;

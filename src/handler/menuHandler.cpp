@@ -52,13 +52,15 @@ int MenuHandler::createMenu(bool loggedIn, iv_menuhandler handler)
     imenu mainMenu[] =
         {
             {ITEM_HEADER, 0, "Menu", NULL},
+            //show logged in
+            {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 101, "Logout", NULL},
             //show always
-            {ITEM_ACTIVE, 101, "Exit"},
+            {ITEM_ACTIVE, 102, "Exit"},
             {0, 0, NULL, NULL}};
 
     if (loggedIn)
     {
-        mainMenu[1].type = ITEM_ACTIVE;
+        mainMenu[2].type = ITEM_ACTIVE;
     }
     else
     {
