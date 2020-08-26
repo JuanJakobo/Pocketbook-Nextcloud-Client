@@ -66,7 +66,6 @@ private:
     irect *_contentRect;
     const vector<Item> _items;
 
-    irect _loadingScreenRect;
     ifont *_font;
 
     vector<ListViewEntry> _entries;

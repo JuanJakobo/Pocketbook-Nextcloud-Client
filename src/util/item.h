@@ -29,11 +29,14 @@ public:
     void setPath(const string &path) { _path = path; };
     string getPath() const { return _path; };
 
+    string getLocalPath() const { return _localPath; };
+
     Itemtype getType() const { return _type; };
 
     void setTitle(const string &title) { _title = title; };
     string getTitle() const { return _title; };
 
+    void setDownloaded(bool downloaded) { _downloaded = downloaded; };
     bool isDownloaded() const { return _downloaded; };
 
     string getLastEditDate() const { return _lastEditDate; };
@@ -42,18 +45,12 @@ public:
 
     string getFiletype() const { return _fileType; };
 
-    /**
-        * downloads a file from WEBDAV and saves it 
-        *         
-        * @return true - sucessfull, false - error
-        */
-    string isClicked();
-
 private:
     string _path;
     Itemtype _type;
     string _title;
     bool _downloaded;
+    string _localPath;
     string _lastEditDate;
     int _size;
     string _fileType;

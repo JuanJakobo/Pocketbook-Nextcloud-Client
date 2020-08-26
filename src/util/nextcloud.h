@@ -21,7 +21,7 @@ using std::vector;
 
 const string NEXTCLOUD_PATH = "/mnt/ext1/system/config/nextcloud";
 const string NEXTCLOUD_CONFIG_PATH = NEXTCLOUD_PATH + "/nextcloud.cfg";
-const string NEXTCLOUD_FILE_PATH = "/mnt/ext1/nextcloud/";
+const string NEXTCLOUD_FILE_PATH = "/mnt/ext1/nextcloud";
 const string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
 
 class Nextcloud
@@ -41,6 +41,8 @@ public:
     bool login();
     
     void logout();
+
+    bool downloadItem(int itemID);
 
     /**
         * gets the dataStructure of the given URL and writes its WEBDAV items to the items vector, reads Userdata from configfile

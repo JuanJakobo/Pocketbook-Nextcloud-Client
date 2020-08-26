@@ -98,17 +98,32 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             int itemID = _listView->listClicked(par1, par2);
             if (itemID != -1)
             {
-                string tempPath = _nextcloud->getItems()[itemID].isClicked();
+                if (_nextcloud->getItems()[itemID].getType() == Itemtype::IFOLDER)
+                {
+                    FillAreaRect(_menu->getContentRect(), WHITE);
+                        irect loadingScreenRect = iRect(_menu->getContentRect()->w / 2 - 100, _menu->getContentRect()->h / 2 - 50, 200, 100, ALIGN_CENTER);
+                    DrawTextRect2(&loadingScreenRect, "Loading...");
+                    PartialUpdate(loadingScreenRect.x, loadingScreenRect.y, loadingScreenRect.w, loadingScreenRect.h);
 
-                if (!tempPath.empty())
-                    _nextcloud->getDataStructure(tempPath);
+                    string tempPath = _nextcloud->getItems()[itemID].getPath();
 
-                delete _listView;
-                _listView = new ListView(_menu->getContentRect(), _nextcloud->getItems());
-                _listView->drawHeader(tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
+                    if (!tempPath.empty())
+                        _nextcloud->getDataStructure(tempPath);
+
+                    delete _listView;
+                    _listView = new ListView(_menu->getContentRect(), _nextcloud->getItems());
+                    _listView->drawHeader(tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
+
+                    PartialUpdate(_menu->getContentRect()->x, _menu->getContentRect()->y, _menu->getContentRect()->w, _menu->getContentRect()->h);
+                }
+                else
+                {
+                    //TODO  --> download in new thread and show progress and when back on the site show progress... pop up if not on site and download finshed
+                    //warning if downloading and leaving programm
+                    _nextcloud->downloadItem(itemID);
+                }
             }
 
-            PartialUpdate(_menu->getContentRect()->x, _menu->getContentRect()->y, _menu->getContentRect()->w, _menu->getContentRect()->h);
             return 1;
         }
         else if (_loginView != nullptr)

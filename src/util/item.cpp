@@ -34,22 +34,23 @@ Item::Item(const string &xmlItem)
         _type = IFILE;
         _size = atoi(Util::getXMLAttribute(xmlItem, "d:getcontentlength").c_str());
         _fileType = Util::getXMLAttribute(xmlItem, "d:getcontenttype");
-        _downloaded = false;
+
+        //set local path and test if exists
+        _localPath = _path;
+        if (_localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
+            _localPath = _localPath.substr(NEXTCLOUD_ROOT_PATH.length());
+
+        _localPath = NEXTCLOUD_FILE_PATH + "/" + _localPath;
+
+        if (iv_access(_localPath.c_str(), W_OK) != 0)
+        {
+            _downloaded = false;
+        }
+        else
+        {
+            _downloaded = true;
+        }
     }
 
     _title = _title.substr(_title.find_last_of("/") + 1, _title.length());
-}
-
-string Item::isClicked()
-{
-    if (_type == IFILE)
-    {
-        //downloadFile();
-    }
-    else
-    {
-        return _path;
-    }
-
-    return "";
 }

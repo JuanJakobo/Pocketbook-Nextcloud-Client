@@ -10,6 +10,7 @@
 #include "nextcloud.h"
 #include "util.h"
 #include "item.h"
+#include "log.h"
 
 #include <string>
 #include <curl/curl.h>
@@ -83,6 +84,68 @@ void Nextcloud::logout()
     remove(NEXTCLOUD_CONFIG_PATH.c_str());
     _url.clear();
     _loggedIn = false;
+    //TODO remove files
+}
+
+bool Nextcloud::downloadItem(int itemID)
+{
+    Log::writeLog("started download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath());
+
+    if (!Util::connectToNetwork())
+        return false;
+
+    //create neccesary subfolders
+
+    if (iv_access(_items[itemID].getLocalPath().c_str(), W_OK) != 0)
+    {
+        iv_buildpath(_items[itemID].getLocalPath().c_str());
+        Log::writeLog("Created new path " + _items[itemID].getLocalPath());
+    }
+
+    CURLcode res;
+    CURL *curl = curl_easy_init();
+
+    if (curl)
+    {
+        string post = this->getUsername() + std::string(":") + this->getPassword();
+
+        FILE *fp;
+        fp = iv_fopen(_items[itemID].getLocalPath().c_str(), "wb");
+
+        curl_easy_setopt(curl, CURLOPT_URL, (_url + _items[itemID].getPath()).c_str());
+        curl_easy_setopt(curl, CURLOPT_USERPWD, post.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeData);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, Util::progress_callback);
+
+        res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+        iv_fclose(fp);
+
+        if (res == CURLE_OK)
+        {
+            long response_code;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+
+            switch (response_code)
+            {
+            case 200:
+                //TEMP
+                Message(ICON_INFORMATION, "Information", ("finished download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath()).c_str(), 1200);
+                Log::writeLog("finished download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath());
+                _items[itemID].setDownloaded(true);
+                return true;
+            case 401:
+                Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
+                break;
+            default:
+                Message(ICON_ERROR, "Error", "An unknown error occured.", 1200);
+                break;
+            }
+        }
+    }
+    return false;
 }
 
 bool Nextcloud::getDataStructure(string &pathUrl)

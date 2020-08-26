@@ -20,7 +20,6 @@ using std::vector;
 
 ListView::ListView(irect *contentRect, const vector<Item> &items) : _contentRect(contentRect), _items(items)
 {
-    _loadingScreenRect = iRect(_contentRect->w / 2 - 100, _contentRect->h / 2 - 50, 200, 100, ALIGN_CENTER);
     _font = OpenFont("LiberationMono", 30, 1);
     SetFont(_font, BLACK);
     FillAreaRect(_contentRect, WHITE);
@@ -118,14 +117,10 @@ int ListView::listClicked(int x, int y)
     }
     else
     {
-        FillAreaRect(_contentRect, WHITE);
-
         for (unsigned int i = 0; i < _entries.size(); i++)
         {
             if (_entries[i].getPage() == _shownPage && IsInRect(x, y, _entries[i].getPosition()) == 1)
             {
-                DrawTextRect2(&_loadingScreenRect, "Loading...");
-                PartialUpdate(_loadingScreenRect.x, _loadingScreenRect.y, _loadingScreenRect.w, _loadingScreenRect.h);
                 return i;
             }
         }
