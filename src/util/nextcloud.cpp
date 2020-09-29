@@ -14,12 +14,19 @@
 
 #include <string>
 #include <curl/curl.h>
+#include <fstream>
+#include <sstream>
 
+using std::ifstream;
+using std::ofstream;
 using std::string;
+
+//neccesary to use Dialog method
+Nextcloud *Nextcloud::nextcloudStatic;
 
 Nextcloud::Nextcloud()
 {
-    _loggedIn = false;
+    nextcloudStatic = this;
 
     if (iv_access(NEXTCLOUD_PATH.c_str(), W_OK) != 0)
         iv_mkdir(NEXTCLOUD_PATH.c_str(), 0777);
@@ -82,6 +89,7 @@ bool Nextcloud::login(const string &Url, const string &Username, const string &P
 void Nextcloud::logout()
 {
     remove(NEXTCLOUD_CONFIG_PATH.c_str());
+    remove((NEXTCLOUD_CONFIG_PATH + ".back.").c_str());
     _url.clear();
     _loggedIn = false;
     //TODO remove files
@@ -91,15 +99,12 @@ bool Nextcloud::downloadItem(int itemID)
 {
     Log::writeLog("started download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath());
 
+    //TODO if is working offline ask if switch to online modus
+
     if (!Util::connectToNetwork())
-        return false;
-
-    //create neccesary subfolders
-
-    if (iv_access(_items[itemID].getLocalPath().c_str(), W_OK) != 0)
     {
-        iv_buildpath(_items[itemID].getLocalPath().c_str());
-        Log::writeLog("Created new path " + _items[itemID].getLocalPath());
+        Message(3, "Warning", "cannot connect to Internet.", 200);
+        return false;
     }
 
     CURLcode res;
@@ -131,7 +136,6 @@ bool Nextcloud::downloadItem(int itemID)
             switch (response_code)
             {
             case 200:
-                //TEMP
                 Message(ICON_INFORMATION, "Information", ("finished download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath()).c_str(), 1200);
                 Log::writeLog("finished download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath());
                 _items[itemID].setDownloaded(true);
@@ -153,10 +157,47 @@ bool Nextcloud::getDataStructure(string &pathUrl)
     return getDataStructure(pathUrl, this->getUsername(), this->getPassword());
 }
 
+
 bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, const string &Pass)
 {
-    if (!Util::connectToNetwork())
-        return false;
+
+    //could not connect to internet, therefore offline modus
+    //while (!Util::connectToNetwork())
+    if(!Util::connectToNetwork())
+    {
+        //Dialog(2, "Warning", "Cannot connect to the internet.", "Try again", "Work offline", Nextcloud::DialogHandlerStatic);
+        _workOffline = true;
+        //TODO show in menu "working offline"
+        //TODO add to menu
+
+        if (_workOffline)
+        {
+            string localPath = this->getLocalPath(pathUrl) + NEXTCLOUD_STRUCTURE_EXTENSION;
+            if (iv_access(localPath.c_str(), W_OK) == 0)
+            {
+                ifstream inFile(localPath);
+                std::stringstream buffer;
+                buffer << inFile.rdbuf();
+
+                if (!readInXML(buffer.str()))
+                    return false;
+            }
+            else
+            {
+                if (localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
+                {
+                    //TODO what to display if ROOT_PATH is not available offline?
+                    return false;
+                }
+                else
+                {
+                    //Structure is not available offline, stay at the tree
+                    Message(ICON_ERROR, "Error", "The selected structure is offline not available.", 1200);
+                }
+            }
+            return true;
+        }
+    }
 
     if (_url.empty())
         _url = this->getUrl();
@@ -167,7 +208,6 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
         return false;
     }
 
-    _items.clear();
     string readBuffer;
     CURLcode res;
     CURL *curl = curl_easy_init();
@@ -197,35 +237,42 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
             {
             case 207:
             {
-                size_t begin;
-                size_t end;
-                string beginItem = "<d:response>";
-                string endItem = "</d:response>";
-
-                begin = readBuffer.find(beginItem);
-
-                while (begin != std::string::npos)
-                {
-                    end = readBuffer.find(endItem);
-
-                    this->_items.push_back(Item(readBuffer.substr(begin, end)));
-
-                    readBuffer = readBuffer.substr(end + endItem.length());
-
-                    begin = readBuffer.find(beginItem);
-                }
-
-                if (_items.size() < 1)
+                if (!readInXML(readBuffer))
                     return false;
 
-                string tes = _items[0].getPath();
-                tes = tes.substr(0, tes.find_last_of("/"));
-                tes = tes.substr(0, tes.find_last_of("/") + 1);
-                _items[0].setPath(tes);
-                _items[0].setTitle("...");
+                string localPath = this->getLocalPath(pathUrl);
 
-                if (_items[0].getPath().compare(NEXTCLOUD_ROOT_PATH) == 0)
-                    _items.erase(_items.begin());
+                //create neccesary subfolders
+                if (iv_access(localPath.c_str(), W_OK) != 0)
+                    iv_buildpath(localPath.c_str());
+
+                localPath = localPath + NEXTCLOUD_STRUCTURE_EXTENSION;
+
+                //check for difference local and server
+                if (iv_access(localPath.c_str(), R_OK) != 0)
+                {
+                    Log::writeLog("Local structure of " + localPath + " found.");
+
+                    //TODO get items from local path
+                    //compare local and online, if online no longer availaible delete
+                    //if is in old .structure --> delete from pocketbook and check for last edit date
+                    //delete old structure file
+                }
+
+                //TODO if local file is newer than of old structure --> upload
+                //if is not in old file and not in new, ask if should be uploaded
+
+                //save xml to make the structure available offline
+                ofstream outFile(localPath);
+                if (outFile)
+                {
+                    outFile << readBuffer;
+                    Log::writeLog("Saved local copy of tree structure to " + localPath);
+                }
+                else
+                {
+                    Log::writeLog(localPath + "Couldnt save copy of tree structure locally.");
+                }
 
                 return true;
                 break;
@@ -267,4 +314,60 @@ string Nextcloud::getPassword()
     string pass = ReadSecret(nextcloudConfig, "password", "");
     CloseConfigNoSave(nextcloudConfig);
     return pass;
+}
+
+void Nextcloud::DialogHandlerStatic(int Button)
+{
+    if (Button == 2)
+    {
+        nextcloudStatic->_workOffline = true;
+    }
+}
+
+bool Nextcloud::readInXML(string xml)
+{
+    size_t begin;
+    size_t end;
+    string beginItem = "<d:response>";
+    string endItem = "</d:response>";
+
+    _items.clear();
+
+    begin = xml.find(beginItem);
+
+    while (begin != std::string::npos)
+    {
+        end = xml.find(endItem);
+
+        //TODO copy array and here only temp
+        this->_items.push_back(Item(xml.substr(begin, end)));
+
+        xml = xml.substr(end + endItem.length());
+
+        begin = xml.find(beginItem);
+    }
+
+    if (_items.size() < 1)
+        return false;
+
+    //resize item 1
+    string header = _items[0].getPath();
+    header = header.substr(0, header.find_last_of("/"));
+    header = header.substr(0, header.find_last_of("/") + 1);
+    _items[0].setPath(header);
+    _items[0].setTitle("...");
+    _items[0].setLastEditDate("");
+
+    if (_items[0].getPath().compare(NEXTCLOUD_ROOT_PATH) == 0)
+        _items.erase(_items.begin());
+
+    return true;
+}
+
+string Nextcloud::getLocalPath(string path)
+{
+    if (path.find(NEXTCLOUD_ROOT_PATH) != string::npos)
+        path = path.substr(NEXTCLOUD_ROOT_PATH.length());
+
+    return NEXTCLOUD_FILE_PATH + "/" + path;
 }

@@ -23,6 +23,7 @@ const string NEXTCLOUD_PATH = "/mnt/ext1/system/config/nextcloud";
 const string NEXTCLOUD_CONFIG_PATH = NEXTCLOUD_PATH + "/nextcloud.cfg";
 const string NEXTCLOUD_FILE_PATH = "/mnt/ext1/nextcloud";
 const string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
+const string NEXTCLOUD_STRUCTURE_EXTENSION = ".structure";
 
 class Nextcloud
 {
@@ -59,11 +60,20 @@ public:
     vector<Item> getItems() { return _items; };
     bool isLoggedIn() { return _loggedIn; };
 
+    static string getLocalPath(string path);
+
+
 private:
+    static Nextcloud *nextcloudStatic;
+
     vector<Item> _items;
-    bool _loggedIn;
+    bool _loggedIn{false};
     string _url;
-    //make username and password local variables or get each time? --> it cant change during login??
+    bool _workOffline{false};
+
+
+
+    //TODO make username and password local variables or get each time? --> it cant change during login??
 
     /**
         * gets the dataStructure of the given URL and writes its WEBDAV items to the items vector
@@ -78,6 +88,17 @@ private:
     string getUsername();
     string getPassword();
     string getUrl();
+
+    /**
+    * Handles the end of the game dialog and lets the user
+    * choose inbetween starting a new game or closing the app
+    * 
+    * @param Button id of the button that was pressed
+    * @return void
+    */
+    static void DialogHandlerStatic(int Button);
+
+    bool readInXML(string xml);
 };
 
 #endif

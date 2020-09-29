@@ -36,11 +36,7 @@ Item::Item(const string &xmlItem)
         _fileType = Util::getXMLAttribute(xmlItem, "d:getcontenttype");
 
         //set local path and test if exists
-        _localPath = _path;
-        if (_localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
-            _localPath = _localPath.substr(NEXTCLOUD_ROOT_PATH.length());
-
-        _localPath = NEXTCLOUD_FILE_PATH + "/" + _localPath;
+        _localPath = Nextcloud::getLocalPath(_path);
 
         if (iv_access(_localPath.c_str(), W_OK) != 0)
         {

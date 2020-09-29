@@ -40,6 +40,7 @@ public:
     bool isDownloaded() const { return _downloaded; };
 
     string getLastEditDate() const { return _lastEditDate; };
+    void setLastEditDate(const string &date){ _lastEditDate = date;};
 
     int getSize() const { return _size; };
 

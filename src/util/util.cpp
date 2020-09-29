@@ -45,7 +45,6 @@ bool Util::connectToNetwork()
     int result = NetConnect2(network_name, 1);
     if (result != 0)
     {
-        Message(3, "Warning", "cannot connect to Internet.", 200);
         return false;
     }
 
@@ -53,7 +52,6 @@ bool Util::connectToNetwork()
     if (netinfo->connected)
         return true;
 
-    Message(3, "Warning", "cannot connect to Internet.", 200);
     return false;
 }
 
