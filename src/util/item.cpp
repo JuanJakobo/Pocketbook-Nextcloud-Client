@@ -50,3 +50,26 @@ Item::Item(const string &xmlItem)
 
     _title = _title.substr(_title.find_last_of("/") + 1, _title.length());
 }
+
+void Item::open() const
+{
+    if (_fileType.find("application/epub+zip") != string::npos ||
+        _fileType.find("application/pdf") != string::npos)
+    {
+        OpenBook(_localPath.c_str(), "", 0);
+    }
+    /*
+    else if (_fileType.find("image/jpeg") != string::npos)
+    {
+        Message(3, "Info", "Opening image", 600);
+    }
+    else if (_fileType.find("text") != string::npos)
+    {
+        Message(3, "Info", "Opening image", 600);
+    }
+    */
+    else
+    {
+        Message(3, "Warning", "The filetype is currently not supported. :/", 600);
+    }
+}

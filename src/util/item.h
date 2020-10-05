@@ -46,6 +46,8 @@ public:
 
     string getFiletype() const { return _fileType; };
 
+    void open() const;
+
 private:
     string _path;
     Itemtype _type;
