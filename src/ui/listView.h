@@ -39,7 +39,7 @@ public:
         * draws the header including an item to navigate a page up
         * 
         */
-    void drawHeader(const string &headerText);
+    void drawHeader(string headerText);
 
     /**
         * draws the footer including a page changer 

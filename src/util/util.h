@@ -57,6 +57,8 @@ public:
     */
     static string getXMLAttribute(const string &buffer, const string &name);
 
+    static string replaceString(string item,const string& find,const string& to);
+
 private:
     Util() {}
 };

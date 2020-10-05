@@ -82,3 +82,13 @@ string Util::getXMLAttribute(const string &buffer, const string &name)
 
     return NULL;
 }
+
+string Util::replaceString(string item, const string& find, const string& to)
+{
+    for (size_t pos = item.find(find); pos != string::npos; pos = item.find(find, pos))
+    {
+        item.replace(pos, find.length(), to);
+    }
+
+    return item;
+}

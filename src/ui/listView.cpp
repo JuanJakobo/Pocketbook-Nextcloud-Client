@@ -64,8 +64,10 @@ ListView::~ListView()
     delete _font;
 }
 
-void ListView::drawHeader(const string &headerText)
+void ListView::drawHeader(string headerText)
 {
+    headerText = Util::replaceString(headerText,"%20"," ");
+
     _font = OpenFont("LiberationMono", 35, 1);
     SetFont(_font, BLACK);
 
