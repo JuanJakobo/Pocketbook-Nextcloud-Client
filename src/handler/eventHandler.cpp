@@ -69,6 +69,16 @@ void EventHandler::mainMenuHandler(const int index)
     {
     //Logout
     case 101:
+    {
+        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to delete local files?", "Yes", "No", "Cancel");
+        if (dialogResult == 1)
+        {
+            remove(NEXTCLOUD_FILE_PATH.c_str());
+        }
+        else if (dialogResult == 3)
+        {
+            return;
+        }
         _nextcloud->logout();
         delete _listView;
         _listView = nullptr;
@@ -76,6 +86,7 @@ void EventHandler::mainMenuHandler(const int index)
         _loginView->drawLoginView();
         FullUpdate();
         break;
+    }
     //Exit
     case 102:
         CloseApp();
