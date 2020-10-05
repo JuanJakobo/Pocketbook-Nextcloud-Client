@@ -74,3 +74,9 @@ void Item::open() const
         Message(3, "Warning", "The filetype is currently not supported. :/", 600);
     }
 }
+
+void Item::removeFile()
+{
+    remove(_localPath.c_str());
+    _downloaded = false;
+}

@@ -116,16 +116,36 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 }
                 else
                 {
-                    if (_nextcloud->getItems()[itemID].isDownloaded())
+
+                    int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Download/Sync", "Open", "Remove");
+
+                    switch (dialogResult)
                     {
-                        _nextcloud->getItems()[itemID].open();
-                    }
-                    else
-                    {
+                    case 1:
                         if (!_nextcloud->downloadItem(itemID))
                         {
-                            Message(3, "Warning", "Could not download the file, please try again.", 600);
+                            Message(ICON_WARNING, "Warning", "Could not download the file, please try again.", 600);
                         }
+                        break;
+                    case 2:
+                        if (_nextcloud->getItems()[itemID].isDownloaded())
+                        {
+                            _nextcloud->getItems()[itemID].open();
+                        }
+                        else
+                        {
+                            if (!_nextcloud->downloadItem(itemID))
+                            {
+                                Message(ICON_WARNING, "Warning", "Could not download the file, please try again.", 600);
+                            }
+                        }
+                        break;
+                    case 3:
+                        _nextcloud->getItems()[itemID].removeFile();
+                        break;
+
+                    default:
+                        break;
                     }
                 }
             }

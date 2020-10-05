@@ -48,6 +48,8 @@ public:
 
     void open() const;
 
+    void removeFile();
+
 private:
     string _path;
     Itemtype _type;
