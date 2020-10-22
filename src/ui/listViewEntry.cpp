@@ -27,7 +27,7 @@ void ListViewEntry::draw(const Item &item)
     {
         FillAreaRect(&pageButton, BLACK);
         DrawTextRect2(&pageButton, "bitmap");
-        DrawTextRect(pageButton.w, _position.y + 2 * fontHeight, _position.w, fontHeight, item.getFiletype().c_str(), ALIGN_LEFT);
+        DrawTextRect(pageButton.w, _position.y + fontHeight, _position.w, fontHeight, item.getFiletype().c_str(), ALIGN_LEFT);
         if (item.isDownloaded())
         {
             DrawTextRect(_position.x, _position.y + 3 * fontHeight, _position.w, fontHeight, "Synced", ALIGN_RIGHT);
@@ -44,9 +44,9 @@ void ListViewEntry::draw(const Item &item)
     }
 
     DrawTextRect(pageButton.w, _position.y, _position.w, fontHeight, item.getTitle().c_str(), ALIGN_LEFT);
+    DrawTextRect(pageButton.w, _position.y + 2 * fontHeight, _position.w, fontHeight, item.getLastEditDate().c_str(), ALIGN_LEFT);
     DrawTextRect(pageButton.w, _position.y + 3 * fontHeight, _position.w, fontHeight, Util::intToString(item.getSize()).c_str(), ALIGN_LEFT);
 
-    DrawTextRect(_position.x, _position.y + 2 * fontHeight, _position.w, fontHeight, item.getLastEditDate().c_str(), ALIGN_RIGHT);
 
     int line = (_position.y + _position.h) - 1;
     DrawLine(0, line, ScreenWidth(), line, BLACK);
