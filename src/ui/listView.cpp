@@ -102,7 +102,7 @@ int ListView::listClicked(int x, int y)
     {
         if (_page > 1)
         {
-            FillAreaRect(_contentRect, WHITE);
+            FillArea(_contentRect->x,_contentRect->y+_headerHeight, _contentRect->w, _contentRect->h, WHITE);
 
             if (_shownPage >= _page)
             {
