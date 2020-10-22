@@ -47,15 +47,20 @@ void MenuHandler::panelHandlerStatic()
     SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
 }
 
-int MenuHandler::createMenu(bool loggedIn, iv_menuhandler handler)
+int MenuHandler::createMenu(bool loggedIn, bool workOffline, iv_menuhandler handler)
 {
+    char *text = "Work offline";
+    if(workOffline)
+        text = "Work online";
+
     imenu mainMenu[] =
         {
             {ITEM_HEADER, 0, "Menu", NULL},
             //show logged in
-            {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 101, "Logout", NULL},
+            {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 101, text , NULL},
+            {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 102, "Logout", NULL},
             //show always
-            {ITEM_ACTIVE, 102, "Exit"},
+            {ITEM_ACTIVE, 103, "Exit"},
             {0, 0, NULL, NULL}};
 
     if (loggedIn)

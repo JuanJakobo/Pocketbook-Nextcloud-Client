@@ -38,7 +38,7 @@ public:
         * @param handler handles the clicks on the menu 
         * @return int returns if the event was handled
         */
-    int createMenu(bool loggedIn, iv_menuhandler handler);
+    int createMenu(bool loggedIn, bool workOffline, iv_menuhandler handler);
 
 private:
     ifont *_menuFont;
