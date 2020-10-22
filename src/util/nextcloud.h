@@ -40,7 +40,7 @@ public:
     bool login(const string &Url, const string &Username, const string &Pass);
 
     bool login();
-    
+
     void logout();
 
     bool downloadItem(int itemID);
@@ -59,9 +59,10 @@ public:
 
     vector<Item> getItems() { return _items; };
     bool isLoggedIn() { return _loggedIn; };
+    bool isWorkOffline() { return _workOffline; };
+    void switchWorkOffline() { _workOffline = !_workOffline; };
 
     static string getLocalPath(string path);
-
 
 private:
     static Nextcloud *nextcloudStatic;
@@ -70,10 +71,6 @@ private:
     bool _loggedIn{false};
     string _url;
     bool _workOffline{false};
-
-
-
-    //TODO make username and password local variables or get each time? --> it cant change during login??
 
     /**
         * gets the dataStructure of the given URL and writes its WEBDAV items to the items vector
@@ -99,6 +96,8 @@ private:
     static void DialogHandlerStatic(int Button);
 
     bool readInXML(string xml);
+
+    bool getOfflineStructure(const string &pathUrl);
 };
 
 #endif

@@ -11,6 +11,7 @@
 #include "menuHandler.h"
 #include "listView.h"
 #include "item.h"
+#include "util.h"
 
 #include <string>
 #include <memory>
@@ -67,8 +68,29 @@ void EventHandler::mainMenuHandler(const int index)
 {
     switch (index)
     {
-    //Logout
+    //offlineModus
     case 101:
+    {
+        if (_nextcloud->isWorkOffline())
+        {
+            if (Util::connectToNetwork())
+            {
+                _nextcloud->switchWorkOffline();
+            }
+            else
+            {
+                Message(ICON_WARNING, "Warning", "Could not connect to the internet.", 600);
+            }
+        }
+        else
+        {
+            _nextcloud->switchWorkOffline();
+        }
+
+        break;
+    }
+    //Logout
+    case 102:
     {
         int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to delete local files?", "Yes", "No", "Cancel");
         if (dialogResult == 1)
@@ -88,7 +110,7 @@ void EventHandler::mainMenuHandler(const int index)
         break;
     }
     //Exit
-    case 102:
+    case 103:
         CloseApp();
         break;
     default:
@@ -102,7 +124,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     {
         if (IsInRect(par1, par2, _menu->getMenuButtonRect()) == 1)
         {
-            return _menu->createMenu(_nextcloud->isLoggedIn(), EventHandler::mainMenuHandlerStatic);
+            return _menu->createMenu(_nextcloud->isLoggedIn(), _nextcloud->isWorkOffline(), EventHandler::mainMenuHandlerStatic);
         }
         else if (_listView != nullptr)
         {
@@ -127,8 +149,15 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 }
                 else
                 {
-
-                    int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Download/Sync", "Open", "Remove");
+                    int dialogResult = 4;
+                    if (_nextcloud->getItems()[itemID].isDownloaded())
+                    {
+                        dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Sync and open", "Remove", "Cancel");
+                    }
+                    else
+                    {
+                        dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Download and open", "Remove", "Cancel");
+                    }
 
                     switch (dialogResult)
                     {
@@ -137,22 +166,17 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         {
                             Message(ICON_WARNING, "Warning", "Could not download the file, please try again.", 600);
                         }
-                        break;
-                    case 2:
-                        if (_nextcloud->getItems()[itemID].isDownloaded())
+                        else
                         {
                             _nextcloud->getItems()[itemID].open();
                         }
-                        else
-                        {
-                            if (!_nextcloud->downloadItem(itemID))
-                            {
-                                Message(ICON_WARNING, "Warning", "Could not download the file, please try again.", 600);
-                            }
-                        }
+
+                        break;
+                    case 2:
+                        _nextcloud->getItems()[itemID].removeFile();
                         break;
                     case 3:
-                        _nextcloud->getItems()[itemID].removeFile();
+                        CloseDialog();
                         break;
 
                     default:

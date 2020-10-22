@@ -92,18 +92,24 @@ void Nextcloud::logout()
     remove((NEXTCLOUD_CONFIG_PATH + ".back.").c_str());
     _url.clear();
     _loggedIn = false;
-    //TODO remove files
 }
 
 bool Nextcloud::downloadItem(int itemID)
 {
     Log::writeLog("started download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath());
 
-    //TODO if is working offline ask if switch to online modus
+    if (_workOffline)
+    {
+        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "You are in offline modus. Go back online?", "Yes", "No", "Cancel");
+
+        if (dialogResult == 2 || dialogResult == 3)
+            return false;
+    }
 
     if (!Util::connectToNetwork())
     {
-        Message(3, "Warning", "cannot connect to Internet.", 200);
+        Message(3, "Warning", "Can not connect to the Internet. Switching to offline modus.", 200);
+        _workOffline = true;
         return false;
     }
 
@@ -157,46 +163,17 @@ bool Nextcloud::getDataStructure(string &pathUrl)
     return getDataStructure(pathUrl, this->getUsername(), this->getPassword());
 }
 
-
 bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, const string &Pass)
 {
-
     //could not connect to internet, therefore offline modus
-    //while (!Util::connectToNetwork())
-    if(!Util::connectToNetwork())
+    if (_workOffline)
+        return getOfflineStructure(pathUrl);
+
+    if (!Util::connectToNetwork())
     {
-        //Dialog(2, "Warning", "Cannot connect to the internet.", "Try again", "Work offline", Nextcloud::DialogHandlerStatic);
+        Message(3, "Warning", "Cannot connect to the internet. Switching to offline modus. To work online turn on online modus in the menu.", 200);
         _workOffline = true;
-        //TODO show in menu "working offline"
-        //TODO add to menu
-
-        if (_workOffline)
-        {
-            string localPath = this->getLocalPath(pathUrl) + NEXTCLOUD_STRUCTURE_EXTENSION;
-            if (iv_access(localPath.c_str(), W_OK) == 0)
-            {
-                ifstream inFile(localPath);
-                std::stringstream buffer;
-                buffer << inFile.rdbuf();
-
-                if (!readInXML(buffer.str()))
-                    return false;
-            }
-            else
-            {
-                if (localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
-                {
-                    //TODO what to display if ROOT_PATH is not available offline?
-                    return false;
-                }
-                else
-                {
-                    //Structure is not available offline, stay at the tree
-                    Message(ICON_ERROR, "Error", "The selected structure is offline not available.", 1200);
-                }
-            }
-            return true;
-        }
+        return getOfflineStructure(pathUrl);
     }
 
     if (_url.empty())
@@ -370,4 +347,33 @@ string Nextcloud::getLocalPath(string path)
         path = path.substr(NEXTCLOUD_ROOT_PATH.length());
 
     return NEXTCLOUD_FILE_PATH + "/" + path;
+}
+
+bool Nextcloud::getOfflineStructure(const string &pathUrl)
+{
+    string localPath = this->getLocalPath(pathUrl) + NEXTCLOUD_STRUCTURE_EXTENSION;
+    if (iv_access(localPath.c_str(), W_OK) == 0)
+    {
+        ifstream inFile(localPath);
+        std::stringstream buffer;
+        buffer << inFile.rdbuf();
+
+        if (!readInXML(buffer.str()))
+            return false;
+    }
+    else
+    {
+        if (localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
+        {
+            Message(ICON_ERROR, "Error", "The root structure is not available offline. To try again to connect turn on online modus in the menu.", 1200);
+
+        }
+        else
+        {
+            //Structure is not available offline, stay at the tree
+            Message(ICON_ERROR, "Error", "The selected structure is not available offline.", 1200);
+
+            return true;
+        }
+    }
 }
