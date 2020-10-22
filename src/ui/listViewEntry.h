@@ -31,10 +31,12 @@ public:
         * 
         * @param item item that shall be drawn
         */
-    void draw(const Item &item) const;
+    void draw(const Item &item);
 
 private:
     int _page;
+    ifont *_font;
+
     irect _position;
 };
 #endif

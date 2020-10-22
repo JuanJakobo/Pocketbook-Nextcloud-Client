@@ -15,9 +15,11 @@ ListViewEntry::ListViewEntry(int page, irect rect) : _page(page), _position(rect
 {
 }
 
-void ListViewEntry::draw(const Item &item) const
+void ListViewEntry::draw(const Item &item) 
 {
     int fontHeight = 30;
+    _font = OpenFont("LiberationMono", fontHeight, 1);
+    SetFont(_font, BLACK);
 
     irect pageButton = iRect(_position.x, _position.y, 100, _position.h - 30, ALIGN_LEFT);
 
