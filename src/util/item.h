@@ -42,7 +42,7 @@ public:
     string getLastEditDate() const { return _lastEditDate; };
     void setLastEditDate(const string &date){ _lastEditDate = date;};
 
-    int getSize() const { return _size; };
+    string getSize() const { return _size; };
 
     string getFiletype() const { return _fileType; };
 
@@ -57,7 +57,9 @@ private:
     bool _downloaded;
     string _localPath;
     string _lastEditDate;
-    int _size;
+    string _size;
     string _fileType;
+
+    void setSize(double tempSize);
 };
 #endif

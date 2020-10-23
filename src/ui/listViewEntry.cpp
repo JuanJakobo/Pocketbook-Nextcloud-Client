@@ -45,7 +45,7 @@ void ListViewEntry::draw(const Item &item)
 
     DrawTextRect(pageButton.w, _position.y, _position.w, fontHeight, item.getTitle().c_str(), ALIGN_LEFT);
     DrawTextRect(pageButton.w, _position.y + 2 * fontHeight, _position.w, fontHeight, item.getLastEditDate().c_str(), ALIGN_LEFT);
-    DrawTextRect(pageButton.w, _position.y + 3 * fontHeight, _position.w, fontHeight, Util::intToString(item.getSize()).c_str(), ALIGN_LEFT);
+    DrawTextRect(pageButton.w, _position.y + 3 * fontHeight, _position.w, fontHeight, item.getSize().c_str(), ALIGN_LEFT);
 
 
     int line = (_position.y + _position.h) - 1;

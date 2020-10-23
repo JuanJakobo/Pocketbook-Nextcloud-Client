@@ -12,6 +12,7 @@
 #include "nextcloud.h"
 #include "log.h"
 
+#include <math.h>
 #include <string>
 #include <curl/curl.h>
 
@@ -27,12 +28,13 @@ Item::Item(const string &xmlItem)
     {
         _type = IFOLDER;
         _title = _title.substr(0, _path.length() - 1);
-        _size = atoi(Util::getXMLAttribute(xmlItem, "d:quota-used-bytes").c_str());
+        //TODO whatfor do i need the size as double?
+        setSize(atof(Util::getXMLAttribute(xmlItem, "d:quota-used-bytes").c_str()));
     }
     else
     {
         _type = IFILE;
-        _size = atoi(Util::getXMLAttribute(xmlItem, "d:getcontentlength").c_str());
+        setSize(atof(Util::getXMLAttribute(xmlItem, "d:getcontentlength").c_str()));
         _fileType = Util::getXMLAttribute(xmlItem, "d:getcontenttype");
 
         //set local path and test if exists
@@ -49,7 +51,7 @@ Item::Item(const string &xmlItem)
     }
 
     _title = _title.substr(_title.find_last_of("/") + 1, _title.length());
-    _title = Util::replaceString(_title,"%20"," ");
+    _title = Util::replaceString(_title, "%20", " ");
 }
 
 void Item::open() const
@@ -79,4 +81,38 @@ void Item::removeFile()
 {
     remove(_localPath.c_str());
     _downloaded = false;
+}
+
+void Item::setSize(double tempSize)
+{
+
+    if (tempSize < 1024)
+    {
+        _size = "< 1 KB";
+        return;
+    }
+
+    double departBy;
+    string unit;
+    
+    if (tempSize < 1048576)
+    {
+        departBy = 1024;
+        unit = "KB";
+    }
+    else if (tempSize < 1073741824)
+    {
+        departBy = 1048576;
+        unit = "MB";
+    }
+    else
+    {
+        departBy = 1073741824;
+        unit = "GB";
+    }
+
+    tempSize = round((tempSize / departBy) * 10.0) / 10.0;
+    _size = Util::valueToString(tempSize) + " " + unit;
+
+
 }
