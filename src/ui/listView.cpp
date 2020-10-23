@@ -79,7 +79,7 @@ void ListView::drawHeader(string headerText)
 
 void ListView::drawFooter()
 {
-    string footer = Util::intToString(_shownPage) + "/" + Util::intToString(_page);
+    string footer = Util::valueToString<int>(_shownPage) + "/" + Util::valueToString<int>(_page);
     SetFont(_font, WHITE);
     FillAreaRect(&_pageButton, BLACK);
     DrawTextRect2(&_pageButton, footer.c_str());

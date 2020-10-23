@@ -25,7 +25,7 @@ EventHandler::EventHandler()
     //create a event to create handlers
     _eventHandlerStatic = this;
 
-    _menu = new MenuHandler("nextcloud");
+    _menu = new MenuHandler("Nextcloud");
     _nextcloud = new Nextcloud();
     _loginView = nullptr;
     _listView = nullptr;

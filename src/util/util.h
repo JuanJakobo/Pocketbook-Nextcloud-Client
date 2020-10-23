@@ -12,6 +12,10 @@
 #include "inkview.h"
 
 #include <string>
+#include <fstream>
+#include <sstream>
+
+using std::ostringstream;
 
 using std::string;
 
@@ -19,12 +23,18 @@ class Util
 {
 public:
     /**
-    * Converts an int to an string, as C++11 command is not supported
+    * Converts an value to an string, as C++11 command is not supported
     * 
     * @param value the int value that shall be converted
     * @return same value in string format
     */
-    static string intToString(const int value);
+    template <typename T>
+    static string valueToString(const T value)
+    {
+        ostringstream stm;
+        stm << value;
+        return stm.str();
+    };
 
     /**
     * Handles the return of curl command
@@ -57,7 +67,7 @@ public:
     */
     static string getXMLAttribute(const string &buffer, const string &name);
 
-    static string replaceString(string item,const string& find,const string& to);
+    static string replaceString(string item, const string &find, const string &to);
 
 private:
     Util() {}

@@ -9,19 +9,9 @@
 #include "inkview.h"
 
 #include <string>
-#include <sstream>
 #include <math.h>
-#include <fstream>
 
-using std::ostringstream;
 using std::string;
-
-string Util::intToString(const int value)
-{
-    ostringstream stm;
-    stm << value;
-    return stm.str();
-}
 
 size_t Util::writeCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
