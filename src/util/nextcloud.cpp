@@ -142,7 +142,6 @@ bool Nextcloud::downloadItem(int itemID)
             switch (response_code)
             {
             case 200:
-                Message(ICON_INFORMATION, "Information", ("finished download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath()).c_str(), 1200);
                 Log::writeLog("finished download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath());
                 _items[itemID].setDownloaded(true);
                 return true;

@@ -14,7 +14,6 @@
 #include "util.h"
 
 #include <string>
-#include <memory>
 
 using std::string;
 
@@ -143,8 +142,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     if (!tempPath.empty())
                         _nextcloud->getDataStructure(tempPath);
 
-                    delete _listView;
-                    _listView = new ListView(_menu->getContentRect(), _nextcloud->getItems());
                     _listView->drawHeader(tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
                 }
                 else
@@ -152,31 +149,34 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     int dialogResult = 4;
                     if (_nextcloud->getItems()[itemID].isDownloaded())
                     {
-                        dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Sync and open", "Remove", "Cancel");
+                        dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Open", "Sync", "Remove");
                     }
                     else
                     {
-                        dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Download and open", "Remove", "Cancel");
+                        dialogResult = 2;
                     }
 
                     switch (dialogResult)
                     {
                     case 1:
+                        _nextcloud->getItems()[itemID].open();
+
+                        break;
+                    case 2:
+                        OpenProgressbar(1, "Downloading...", "Check network connection", 0, EventHandler::DialogHandlerStatic);
+
                         if (!_nextcloud->downloadItem(itemID))
                         {
+                            CloseProgressbar();
                             Message(ICON_WARNING, "Warning", "Could not download the file, please try again.", 600);
                         }
                         else
                         {
-                            _nextcloud->getItems()[itemID].open();
+                            CloseProgressbar();
                         }
-
-                        break;
-                    case 2:
-                        _nextcloud->getItems()[itemID].removeFile();
                         break;
                     case 3:
-                        CloseDialog();
+                        _nextcloud->getItems()[itemID].removeFile();
                         break;
 
                     default:
@@ -184,6 +184,9 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     }
                 }
             }
+
+            delete _listView;
+            _listView = new ListView(_menu->getContentRect(), _nextcloud->getItems());
 
             PartialUpdate(_menu->getContentRect()->x, _menu->getContentRect()->y, _menu->getContentRect()->w, _menu->getContentRect()->h);
 
@@ -204,4 +207,9 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         }
     }
     return 0;
+}
+
+void EventHandler::DialogHandlerStatic(const int clicked)
+{
+    //CloseProgressbar();
 }
