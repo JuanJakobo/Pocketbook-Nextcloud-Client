@@ -12,6 +12,8 @@
 #include "inkview.h"
 #include "item.h"
 
+#include <memory>
+
 class ListViewEntry
 {
 public:
@@ -35,8 +37,9 @@ public:
 
 private:
     int _page;
-    ifont *_font;
-
+    int _fontHeight;
+    std::unique_ptr<ifont> _entryFont;
+    std::unique_ptr<ifont> _entryFontBold;
     irect _position;
 };
 #endif

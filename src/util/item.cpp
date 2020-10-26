@@ -28,7 +28,6 @@ Item::Item(const string &xmlItem)
     {
         _type = IFOLDER;
         _title = _title.substr(0, _path.length() - 1);
-        //TODO whatfor do i need the size as double?
         setSize(atof(Util::getXMLAttribute(xmlItem, "d:quota-used-bytes").c_str()));
     }
     else

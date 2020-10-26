@@ -15,6 +15,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 using std::string;
 using std::vector;
@@ -65,9 +66,8 @@ public:
 private:
     irect *_contentRect;
     const vector<Item> _items;
-
-    ifont *_font;
-
+    std::unique_ptr<ifont> _titleFont;
+    std::unique_ptr<ifont> _footerFont;
     vector<ListViewEntry> _entries;
     int _page;
     int _shownPage;

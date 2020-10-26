@@ -14,6 +14,8 @@
 #include "listView.h"
 #include "loginView.h"
 
+#include <memory>
+
 const string LOG_PATH = "/mnt/ext1/system/config/nextcloud";
 
 class EventHandler
@@ -23,11 +25,6 @@ public:
         * Defines fonds, sets global Event Handler and starts new content 
         */
     EventHandler();
-
-    /**
-        * Destructor destroys pointer to game and menu  
-        */
-    ~EventHandler();
 
     /**
         * Handles events and redirects them
@@ -41,11 +38,10 @@ public:
 
 private:
     static EventHandler *_eventHandlerStatic;
-    MenuHandler *_menu;
-    Nextcloud *_nextcloud;
-    ListView *_listView;
-    LoginView *_loginView;
-
+    std::unique_ptr<MenuHandler> _menu;
+    std::unique_ptr<Nextcloud> _nextcloud;
+    std::unique_ptr<ListView> _listView;
+    std::unique_ptr<LoginView> _loginView;
 
     /**
         * Functions needed to call C function, redirects to real function
@@ -75,5 +71,7 @@ private:
         * @return int returns if the event was handled
         */
     int pointerHandler(const int type, const int par1, const int par2);
+
+    static void DialogHandlerStatic(int clicked);
 };
 #endif

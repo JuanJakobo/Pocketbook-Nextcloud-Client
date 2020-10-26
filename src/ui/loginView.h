@@ -12,6 +12,7 @@
 #include "inkview.h"
 
 #include <string>
+#include <memory>
 
 using std::string;
 
@@ -21,7 +22,6 @@ class LoginView
 {
 public:
     LoginView(irect *contentRect);
-    ~LoginView();
 
     void drawLoginView();
     int logginClicked(int x, int y);
@@ -32,7 +32,7 @@ public:
 
 private:
     static LoginView *_loginViewStatic;
-    ifont *_loginFont;
+    std::unique_ptr<ifont> _loginFont;
     irect *_contentRect;
     irect _urlButton;
     irect _loginButton;

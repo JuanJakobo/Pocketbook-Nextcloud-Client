@@ -10,6 +10,7 @@
 #define MENU_HANDLER
 
 #include <string>
+#include <memory>
 
 using std::string;
 
@@ -23,11 +24,6 @@ public:
         */
     MenuHandler(const string &name);
 
-    /**
-        * Destructor 
-        */
-    ~MenuHandler();
-
     irect *getContentRect() { return &_contentRect; };
     irect *getMenuButtonRect() { return &_menuButtonRect; };
 
@@ -40,14 +36,18 @@ public:
         */
     int createMenu(bool loggedIn, bool workOffline, iv_menuhandler handler);
 
+    void drawLoadingScreen();
+
 private:
-    ifont *_menuFont;
+    std::unique_ptr<ifont> _menuFont;
+    std::unique_ptr<ifont> _loadingFont;
 
     int _panelMenuBeginX;
     int _panelMenuBeginY;
     int _panelMenuHeight;
     int _mainMenuWidth;
     irect _menuButtonRect;
+    irect _loadingScreenRect;
 
     imenu _mainMenu;
     irect _contentRect;

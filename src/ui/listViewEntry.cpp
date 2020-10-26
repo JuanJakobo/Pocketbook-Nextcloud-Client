@@ -11,32 +11,35 @@
 #include "listViewEntry.h"
 #include "util.h"
 
+#include <memory>
+
 ListViewEntry::ListViewEntry(int page, irect rect) : _page(page), _position(rect)
 {
+    _fontHeight = 30;
+    _entryFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", _fontHeight, 1));
+    _entryFontBold = std::unique_ptr<ifont>(OpenFont("LiberationMono-Bold", _fontHeight, 1));
 }
 
 void ListViewEntry::draw(const Item &item)
 {
-    int fontHeight = 30;
-    _font = OpenFont("LiberationMono", fontHeight, 1);
-    SetFont(_font, BLACK);
+    SetFont(_entryFontBold.get(), BLACK);
+    DrawTextRect(_position.x, _position.y, _position.w, _fontHeight, item.getTitle().c_str(), ALIGN_LEFT);
 
+    SetFont(_entryFont.get(), BLACK);
     if (item.getType() == IFILE)
     {
-        DrawTextRect(_position.x, _position.y + fontHeight, _position.w, fontHeight, item.getFiletype().c_str(), ALIGN_LEFT);
+        DrawTextRect(_position.x, _position.y + _fontHeight, _position.w, _fontHeight, item.getFiletype().c_str(), ALIGN_LEFT);
         if (item.isDownloaded())
         {
-            DrawTextRect(_position.x, _position.y + 3 * fontHeight, _position.w, fontHeight, "Synced", ALIGN_RIGHT);
+            DrawTextRect(_position.x, _position.y + 3 * _fontHeight, _position.w, _fontHeight, "Synced", ALIGN_RIGHT);
         }
         else
         {
-            DrawTextRect(_position.x, _position.y + 3 * fontHeight, _position.w, fontHeight, "Download", ALIGN_RIGHT);
+            DrawTextRect(_position.x, _position.y + 3 * _fontHeight, _position.w, _fontHeight, "Click to Download", ALIGN_RIGHT);
         }
     }
-
-    DrawTextRect(_position.x, _position.y, _position.w, fontHeight, item.getTitle().c_str(), ALIGN_LEFT);
-    DrawTextRect(_position.x, _position.y + 2 * fontHeight, _position.w, fontHeight, item.getLastEditDate().c_str(), ALIGN_LEFT);
-    DrawTextRect(_position.x, _position.y + 3 * fontHeight, _position.w, fontHeight, item.getSize().c_str(), ALIGN_LEFT);
+    DrawTextRect(_position.x, _position.y + 2 * _fontHeight, _position.w, _fontHeight, item.getLastEditDate().c_str(), ALIGN_LEFT);
+    DrawTextRect(_position.x, _position.y + 3 * _fontHeight, _position.w, _fontHeight, item.getSize().c_str(), ALIGN_LEFT);
 
     int line = (_position.y + _position.h) - 1;
     DrawLine(0, line, ScreenWidth(), line, BLACK);

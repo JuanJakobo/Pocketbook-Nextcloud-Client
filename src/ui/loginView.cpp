@@ -11,6 +11,7 @@
 #include "eventHandler.h"
 
 #include <string>
+#include <memory>
 
 using std::string;
 
@@ -19,37 +20,30 @@ LoginView *LoginView::_loginViewStatic;
 LoginView::LoginView(irect *contentRect) : _contentRect(contentRect)
 {
     _loginViewStatic = this;
-    _loginFont = OpenFont("LiberationMono", 40, 1);
-}
-
-LoginView::~LoginView()
-{
-    CloseFont(_loginFont);
+    _loginFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", 40, 1));
 }
 
 void LoginView::drawLoginView()
 {
-    FillAreaRect(_contentRect, WHITE);
+    SetFont(_loginFont.get(), BLACK);
 
+    FillAreaRect(_contentRect, WHITE);
     _urlButton = iRect(50, 200, (ScreenWidth() - 50), 75, ALIGN_CENTER);
     DrawLine(20, 275, (ScreenWidth() - 20), 275, BLACK);
-    SetFont(_loginFont, BLACK);
     DrawTextRect2(&_urlButton, "Url");
 
     _usernameButton = iRect(50, 400, ScreenWidth() - 50, 75, ALIGN_CENTER);
     DrawLine(20, 475, (ScreenWidth() - 20), 475, BLACK);
-    SetFont(_loginFont, BLACK);
     DrawTextRect2(&_usernameButton, "Username");
 
     _passwordButton = iRect(50, 600, (ScreenWidth() - 50), 75, ALIGN_CENTER);
     DrawLine(20, 675, (ScreenWidth() - 20), 675, BLACK);
-    SetFont(_loginFont, BLACK);
     DrawTextRect2(&_passwordButton, "Password");
 
     _loginButton = iRect(ScreenWidth() / 2 - (200 / 2), 700, 200, 50, ALIGN_CENTER);
 
     FillAreaRect(&_loginButton, BLACK);
-    SetFont(_loginFont, WHITE);
+    SetFont(_loginFont.get(), WHITE);
     DrawTextRect2(&_loginButton, "Login");
 }
 

@@ -14,15 +14,17 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 using std::string;
 using std::vector;
 
 ListView::ListView(irect *contentRect, const vector<Item> &items) : _contentRect(contentRect), _items(items)
 {
-    _font = OpenFont("LiberationMono", 30, 1);
-    SetFont(_font, BLACK);
     FillAreaRect(_contentRect, WHITE);
+
+    _titleFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", 35, 1));
+    _footerFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", 30, 1));
 
     _entries.clear();
 
@@ -61,16 +63,12 @@ ListView::ListView(irect *contentRect, const vector<Item> &items) : _contentRect
 
 ListView::~ListView()
 {
-    delete _font;
 }
 
 void ListView::drawHeader(string headerText)
 {
+    SetFont(_titleFont.get(), BLACK);
     headerText = Util::replaceString(headerText,"%20"," ");
-
-    _font = OpenFont("LiberationMono", 35, 1);
-    SetFont(_font, BLACK);
-
     DrawTextRect(_contentRect->x, _contentRect->y, _contentRect->w, _headerHeight - 1, headerText.c_str(), ALIGN_LEFT);
 
     int line = (_contentRect->y + _headerHeight) - 2;
@@ -79,8 +77,8 @@ void ListView::drawHeader(string headerText)
 
 void ListView::drawFooter()
 {
+    SetFont(_footerFont.get(), WHITE);
     string footer = Util::valueToString<int>(_shownPage) + "/" + Util::valueToString<int>(_page);
-    SetFont(_font, WHITE);
     FillAreaRect(&_pageButton, BLACK);
     DrawTextRect2(&_pageButton, footer.c_str());
 }
@@ -96,8 +94,6 @@ void ListView::drawEntries()
 
 int ListView::listClicked(int x, int y)
 {
-    SetFont(_font, BLACK);
-
     if (IsInRect(x, y, &_pageButton))
     {
         if (_page > 1)

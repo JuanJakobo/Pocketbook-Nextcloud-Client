@@ -14,6 +14,7 @@
 #include "util.h"
 
 #include <string>
+#include <memory>
 
 using std::string;
 
@@ -24,8 +25,8 @@ EventHandler::EventHandler()
     //create a event to create handlers
     _eventHandlerStatic = this;
 
-    _menu = new MenuHandler("Nextcloud");
-    _nextcloud = new Nextcloud();
+    _menu = std::unique_ptr<MenuHandler>(new MenuHandler("Nextcloud"));
+    _nextcloud = std::unique_ptr<Nextcloud>(new Nextcloud());
     _loginView = nullptr;
     _listView = nullptr;
 
@@ -33,21 +34,16 @@ EventHandler::EventHandler()
     {
         if (_nextcloud->login())
         {
-            _listView = new ListView(_menu->getContentRect(), _nextcloud->getItems());
+            _listView = std::unique_ptr<ListView>(new ListView(_menu->getContentRect(), _nextcloud->getItems()));
             FullUpdate();
             return;
         }
     }
 
-    _loginView = new LoginView(_menu->getContentRect());
+    _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
     _loginView->drawLoginView();
+
     FullUpdate();
-}
-EventHandler::~EventHandler()
-{
-    delete _nextcloud;
-    delete _listView;
-    delete _menu;
 }
 
 int EventHandler::eventDistributor(const int type, const int par1, const int par2)
@@ -101,9 +97,9 @@ void EventHandler::mainMenuHandler(const int index)
             return;
         }
         _nextcloud->logout();
-        delete _listView;
-        _listView = nullptr;
-        _loginView = new LoginView(_menu->getContentRect());
+        _listView.reset();
+
+        _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
         _loginView->drawLoginView();
         FullUpdate();
         break;
@@ -133,15 +129,14 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 if (_nextcloud->getItems()[itemID].getType() == Itemtype::IFOLDER)
                 {
                     FillAreaRect(_menu->getContentRect(), WHITE);
-                    irect loadingScreenRect = iRect(_menu->getContentRect()->w / 2 - 125, _menu->getContentRect()->h / 2 - 50, 250, 100, ALIGN_CENTER);
-                    DrawTextRect2(&loadingScreenRect, "Loading...");
-                    PartialUpdate(loadingScreenRect.x, loadingScreenRect.y, loadingScreenRect.w, loadingScreenRect.h);
+                    _menu->drawLoadingScreen();
 
                     string tempPath = _nextcloud->getItems()[itemID].getPath();
 
                     if (!tempPath.empty())
                         _nextcloud->getDataStructure(tempPath);
 
+                    _listView.reset(new ListView(_menu->getContentRect(), _nextcloud->getItems()));
                     _listView->drawHeader(tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
                 }
                 else
@@ -185,9 +180,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 }
             }
 
-            delete _listView;
-            _listView = new ListView(_menu->getContentRect(), _nextcloud->getItems());
-
             PartialUpdate(_menu->getContentRect()->x, _menu->getContentRect()->y, _menu->getContentRect()->w, _menu->getContentRect()->h);
 
             return 1;
@@ -198,8 +190,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             {
                 if (_nextcloud->login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
                 {
-                    _listView = new ListView(_menu->getContentRect(), _nextcloud->getItems());
-                    delete _loginView;
+                    _listView = std::unique_ptr<ListView>(new ListView(_menu->getContentRect(), _nextcloud->getItems()));
+                    _loginView.reset();
                     FullUpdate();
                 }
                 return 1;
