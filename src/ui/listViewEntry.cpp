@@ -15,9 +15,6 @@
 
 ListViewEntry::ListViewEntry(int page, irect rect) : _page(page), _position(rect)
 {
-    _fontHeight = 30;
-    _entryFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", _fontHeight, 1));
-    _entryFontBold = std::unique_ptr<ifont>(OpenFont("LiberationMono-Bold", _fontHeight, 1));
 }
 
 void ListViewEntry::draw(const Item &item)

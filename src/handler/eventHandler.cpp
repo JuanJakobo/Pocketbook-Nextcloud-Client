@@ -10,7 +10,6 @@
 #include "eventHandler.h"
 #include "menuHandler.h"
 #include "listView.h"
-#include "item.h"
 #include "util.h"
 
 #include <string>
@@ -25,6 +24,7 @@ EventHandler::EventHandler()
     //create a event to create handlers
     _eventHandlerStatic = this;
 
+    //TODO use pointer for menu?
     _menu = std::unique_ptr<MenuHandler>(new MenuHandler("Nextcloud"));
     _nextcloud = std::unique_ptr<Nextcloud>(new Nextcloud());
     _loginView = nullptr;
@@ -141,14 +141,10 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 }
                 else
                 {
-                    int dialogResult = 4;
+                    int dialogResult = 2;
                     if (_nextcloud->getItems()[itemID].isDownloaded())
                     {
                         dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Open", "Sync", "Remove");
-                    }
-                    else
-                    {
-                        dialogResult = 2;
                     }
 
                     switch (dialogResult)
@@ -171,12 +167,16 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         }
                         break;
                     case 3:
-                        _nextcloud->getItems()[itemID].removeFile();
+                        _nextcloud->removeFile(itemID);
                         break;
 
                     default:
                         break;
                     }
+                    //TODO pass items only as ref, so this is not necessary and items exist only once
+                    _listView.reset(new ListView(_menu->getContentRect(), _nextcloud->getItems()));
+                    //_listView->drawEntry(itemID);
+
                 }
             }
 
@@ -203,5 +203,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 
 void EventHandler::DialogHandlerStatic(const int clicked)
 {
+    //TODO cannot interact with it
     //CloseProgressbar();
 }

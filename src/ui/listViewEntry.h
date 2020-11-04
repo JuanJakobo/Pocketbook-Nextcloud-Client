@@ -37,9 +37,10 @@ public:
 
 private:
     int _page;
-    int _fontHeight;
-    std::unique_ptr<ifont> _entryFont;
-    std::unique_ptr<ifont> _entryFontBold;
+    //TODO in central class?
+    int _fontHeight = 30;
+    std::unique_ptr<ifont> _entryFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", _fontHeight, 1));;
+    std::unique_ptr<ifont> _entryFontBold = std::unique_ptr<ifont>(OpenFont("LiberationMono-Bold", _fontHeight, 1));
     irect _position;
 };
 #endif

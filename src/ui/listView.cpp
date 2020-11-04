@@ -28,10 +28,7 @@ ListView::ListView(irect *contentRect, const vector<Item> &items) : _contentRect
 
     _entries.clear();
 
-    int itemCount = 7;
-    _footerHeight = 100;
-    _headerHeight = 40;
-    int entrySize = (_contentRect->h - _footerHeight - _headerHeight) / itemCount;
+    int entrySize = (_contentRect->h - _footerHeight - _headerHeight) / _itemCount;
 
     _shownPage = 1;
     _page = 1;
@@ -43,7 +40,7 @@ ListView::ListView(irect *contentRect, const vector<Item> &items) : _contentRect
 
     while (i > 0)
     {
-        if (z >= itemCount)
+        if (z >= _itemCount)
         {
             _page++;
             z = 0;
@@ -81,6 +78,12 @@ void ListView::drawFooter()
     string footer = Util::valueToString<int>(_shownPage) + "/" + Util::valueToString<int>(_page);
     FillAreaRect(&_pageButton, BLACK);
     DrawTextRect2(&_pageButton, footer.c_str());
+}
+
+void ListView::drawEntry(int itemID)
+{
+    FillAreaRect(_entries[itemID].getPosition(),WHITE);
+    _entries[itemID].draw(_items[itemID]);
 }
 
 void ListView::drawEntries()

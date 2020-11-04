@@ -48,6 +48,8 @@ public:
         */
     void drawFooter();
 
+    void drawEntry(int itemID);
+
     /**
         * iterates through the items and sends them to the listViewEntry Class for drawing
         * 
@@ -66,13 +68,14 @@ public:
 private:
     irect *_contentRect;
     const vector<Item> _items;
+    vector<ListViewEntry> _entries;
     std::unique_ptr<ifont> _titleFont;
     std::unique_ptr<ifont> _footerFont;
-    vector<ListViewEntry> _entries;
     int _page;
     int _shownPage;
     irect _pageButton;
-    int _footerHeight;
-    int _headerHeight;
+    int _footerHeight = 100;
+    int _headerHeight = 40;
+    int _itemCount = 7;
 };
 #endif

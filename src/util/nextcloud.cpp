@@ -157,6 +157,13 @@ bool Nextcloud::downloadItem(int itemID)
     return false;
 }
 
+
+bool Nextcloud::removeFile(int itemID)
+{
+    remove(_items[itemID].getLocalPath().c_str());
+    _items[itemID].setDownloaded(false);
+}
+
 bool Nextcloud::getDataStructure(string &pathUrl)
 {
     return getDataStructure(pathUrl, this->getUsername(), this->getPassword());

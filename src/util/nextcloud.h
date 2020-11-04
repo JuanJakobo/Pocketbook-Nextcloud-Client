@@ -45,6 +45,9 @@ public:
 
     bool downloadItem(int itemID);
 
+    bool removeFile(int itemID);
+
+
     /**
         * gets the dataStructure of the given URL and writes its WEBDAV items to the items vector, reads Userdata from configfile
         * 
