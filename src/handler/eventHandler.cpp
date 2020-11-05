@@ -38,7 +38,6 @@ EventHandler::EventHandler()
     }
 
     _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
-    _loginView->drawLoginView();
 
     FullUpdate();
 }
@@ -98,7 +97,6 @@ void EventHandler::mainMenuHandler(const int index)
         _listView.reset();
 
         _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
-        _loginView->drawLoginView();
         FullUpdate();
         break;
     }

@@ -23,7 +23,6 @@ class LoginView
 public:
     LoginView(irect *contentRect);
 
-    void drawLoginView();
     int logginClicked(int x, int y);
 
     string getUsername() { return _username; };
@@ -38,7 +37,7 @@ private:
     irect _loginButton;
     irect _usernameButton;
     irect _passwordButton;
-    int _test;
+    int _keyboardValue;
     string _username;
     string _password;
     string _url;

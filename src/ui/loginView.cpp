@@ -21,26 +21,24 @@ LoginView::LoginView(irect *contentRect) : _contentRect(contentRect)
 {
     _loginViewStatic = this;
     _loginFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", 40, 1));
-}
 
-void LoginView::drawLoginView()
-{
     SetFont(_loginFont.get(), BLACK);
-
     FillAreaRect(_contentRect, WHITE);
-    _urlButton = iRect(50, 200, (ScreenWidth() - 50), 75, ALIGN_CENTER);
-    DrawLine(20, 275, (ScreenWidth() - 20), 275, BLACK);
-    DrawTextRect2(&_urlButton, "Url");
 
-    _usernameButton = iRect(50, 400, ScreenWidth() - 50, 75, ALIGN_CENTER);
-    DrawLine(20, 475, (ScreenWidth() - 20), 475, BLACK);
-    DrawTextRect2(&_usernameButton, "Username");
+    _urlButton = iRect(50, 200, (ScreenWidth() - 100), 75, ALIGN_CENTER);
 
-    _passwordButton = iRect(50, 600, (ScreenWidth() - 50), 75, ALIGN_CENTER);
-    DrawLine(20, 675, (ScreenWidth() - 20), 675, BLACK);
-    DrawTextRect2(&_passwordButton, "Password");
+    DrawTextRect(_urlButton.x, _urlButton.y - 50, _urlButton.w, _urlButton.h, "Server address:", ALIGN_LEFT);
+    DrawRect(_urlButton.x-1, _urlButton.y-1, _urlButton.w+2, _urlButton.h+2, BLACK);
 
-    _loginButton = iRect(ScreenWidth() / 2 - (200 / 2), 700, 200, 50, ALIGN_CENTER);
+    _usernameButton = iRect(50, 400, ScreenWidth() - 100, 75, ALIGN_CENTER);
+    DrawTextRect(_usernameButton.x, _usernameButton.y - 50, _usernameButton.w, _usernameButton.h, "Username:", ALIGN_LEFT);
+    DrawRect(_usernameButton.x-1, _usernameButton.y-1, _usernameButton.w+2, _usernameButton.h+2, BLACK);
+
+    _passwordButton = iRect(50, 600, (ScreenWidth() - 100), 75, ALIGN_CENTER);
+    DrawTextRect(_passwordButton.x, _passwordButton.y - 50, _passwordButton.w, _passwordButton.h, "Password:", ALIGN_LEFT);
+    DrawRect(_passwordButton.x-1, _passwordButton.y-1, _passwordButton.w+2, _passwordButton.h+2, BLACK);
+
+    _loginButton = iRect(50, 750, (ScreenWidth() - 100), 75, ALIGN_CENTER);
 
     FillAreaRect(&_loginButton, BLACK);
     SetFont(_loginFont.get(), WHITE);
@@ -61,13 +59,13 @@ void LoginView::keyboardHandler(char *text)
     if (s.empty())
         return;
 
-    if (_test == 1)
+    if (_keyboardValue == 1)
     {
         _url = s.c_str();
         FillAreaRect(&_urlButton, WHITE);
         DrawTextRect2(&_urlButton, s.c_str());
     }
-    else if (_test == 2)
+    else if (_keyboardValue == 2)
     {
         _username = s.c_str();
         FillAreaRect(&_usernameButton, WHITE);
@@ -96,20 +94,20 @@ int LoginView::logginClicked(int x, int y)
 
     if (IsInRect(x, y, &_urlButton))
     {
-        _test = 1;
-        OpenKeyboard("Url", _charBuffer, MAX_CHAR_BUFF_LENGHT - 1, KBD_NORMAL, &keyboardHandlerStatic);
+        _keyboardValue = 1;
+        OpenKeyboard("Server address", _charBuffer, MAX_CHAR_BUFF_LENGHT - 1, KBD_NORMAL, &keyboardHandlerStatic);
         return 1;
     }
 
     else if (IsInRect(x, y, &_usernameButton))
     {
-        _test = 2;
+        _keyboardValue = 2;
         OpenKeyboard("Username", _charBuffer, MAX_CHAR_BUFF_LENGHT - 1, KBD_NORMAL, &keyboardHandlerStatic);
         return 1;
     }
     else if (IsInRect(x, y, &_passwordButton))
     {
-        _test = 3;
+        _keyboardValue = 3;
         OpenKeyboard("Password", _charBuffer, MAX_CHAR_BUFF_LENGHT - 1, KBD_PASSWORD, &keyboardHandlerStatic);
 
         return 1;
