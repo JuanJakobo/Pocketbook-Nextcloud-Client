@@ -15,6 +15,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 using std::string;
 using std::vector;
@@ -60,7 +61,7 @@ public:
     void setUsername(const string &Username);
     void setPassword(const string &Pass);
 
-    vector<Item> getItems() { return _items; };
+    vector<Item> *getItems() { return _items.get(); };
     bool isLoggedIn() { return _loggedIn; };
     bool isWorkOffline() { return _workOffline; };
     void switchWorkOffline() { _workOffline = !_workOffline; };
@@ -70,7 +71,7 @@ public:
 private:
     static Nextcloud *nextcloudStatic;
 
-    vector<Item> _items;
+    std::shared_ptr<vector<Item>> _items =  nullptr;
     bool _loggedIn{false};
     string _url;
     bool _workOffline{false};

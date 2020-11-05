@@ -19,7 +19,7 @@
 using std::string;
 using std::vector;
 
-ListView::ListView(irect *contentRect, const vector<Item> &items) : _contentRect(contentRect), _items(items)
+ListView::ListView(irect *contentRect, const vector<Item> *items) : _contentRect(contentRect), _items(items)
 {
     FillAreaRect(_contentRect, WHITE);
 
@@ -33,7 +33,7 @@ ListView::ListView(irect *contentRect, const vector<Item> &items) : _contentRect
     _shownPage = 1;
     _page = 1;
 
-    auto i = _items.size();
+    auto i = _items->size();
     auto z = 0;
 
     _entries.reserve(i);
@@ -83,7 +83,7 @@ void ListView::drawFooter()
 void ListView::drawEntry(int itemID)
 {
     FillAreaRect(_entries[itemID].getPosition(),WHITE);
-    _entries[itemID].draw(_items[itemID]);
+    _entries[itemID].draw(_items->at(itemID));
 }
 
 void ListView::drawEntries()
@@ -91,7 +91,7 @@ void ListView::drawEntries()
     for (auto i = 0; i < _entries.size(); i++)
     {
         if (_entries[i].getPage() == _shownPage)
-            _entries[i].draw(_items[i]);
+            _entries[i].draw(_items->at(i));
     }
 }
 

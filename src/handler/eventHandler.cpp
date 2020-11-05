@@ -24,23 +24,20 @@ EventHandler::EventHandler()
     //create a event to create handlers
     _eventHandlerStatic = this;
 
-    //TODO use pointer for menu?
-    _menu = std::unique_ptr<MenuHandler>(new MenuHandler("Nextcloud"));
-    _nextcloud = std::unique_ptr<Nextcloud>(new Nextcloud());
     _loginView = nullptr;
     _listView = nullptr;
 
     if (iv_access(NEXTCLOUD_CONFIG_PATH.c_str(), W_OK) == 0)
     {
-        if (_nextcloud->login())
+        if (_nextcloud.login())
         {
-            _listView = std::unique_ptr<ListView>(new ListView(_menu->getContentRect(), _nextcloud->getItems()));
+            _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
             FullUpdate();
             return;
         }
     }
 
-    _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
+    _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
     _loginView->drawLoginView();
 
     FullUpdate();
@@ -66,11 +63,11 @@ void EventHandler::mainMenuHandler(const int index)
     //offlineModus
     case 101:
     {
-        if (_nextcloud->isWorkOffline())
+        if (_nextcloud.isWorkOffline())
         {
             if (Util::connectToNetwork())
             {
-                _nextcloud->switchWorkOffline();
+                _nextcloud.switchWorkOffline();
             }
             else
             {
@@ -79,7 +76,7 @@ void EventHandler::mainMenuHandler(const int index)
         }
         else
         {
-            _nextcloud->switchWorkOffline();
+            _nextcloud.switchWorkOffline();
         }
 
         break;
@@ -87,19 +84,20 @@ void EventHandler::mainMenuHandler(const int index)
     //Logout
     case 102:
     {
-        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to delete local files?", "Yes", "No", "Cancel");
-        if (dialogResult == 1)
-        {
-            remove(NEXTCLOUD_FILE_PATH.c_str());
-        }
-        else if (dialogResult == 3)
-        {
-            return;
-        }
-        _nextcloud->logout();
+        //TODO implement removal of files
+        //int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to delete local files?", "Yes", "No", "Cancel");
+        //if (dialogResult == 1)
+        //{
+        //    remove(NEXTCLOUD_FILE_PATH.c_str());
+        //}
+        //else if (dialogResult == 3)
+        //{
+        //    return;
+        //}
+        _nextcloud.logout();
         _listView.reset();
 
-        _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
+        _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
         _loginView->drawLoginView();
         FullUpdate();
         break;
@@ -117,32 +115,32 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 {
     if (type == EVT_POINTERDOWN)
     {
-        if (IsInRect(par1, par2, _menu->getMenuButtonRect()) == 1)
+        if (IsInRect(par1, par2, _menu.getMenuButtonRect()) == 1)
         {
-            return _menu->createMenu(_nextcloud->isLoggedIn(), _nextcloud->isWorkOffline(), EventHandler::mainMenuHandlerStatic);
+            return _menu.createMenu(_nextcloud.isLoggedIn(), _nextcloud.isWorkOffline(), EventHandler::mainMenuHandlerStatic);
         }
         else if (_listView != nullptr)
         {
             int itemID = _listView->listClicked(par1, par2);
             if (itemID != -1)
             {
-                if (_nextcloud->getItems()[itemID].getType() == Itemtype::IFOLDER)
+                if (_nextcloud.getItems()->at(itemID).getType() == Itemtype::IFOLDER)
                 {
-                    FillAreaRect(_menu->getContentRect(), WHITE);
-                    _menu->drawLoadingScreen();
+                    FillAreaRect(_menu.getContentRect(), WHITE);
+                    _menu.drawLoadingScreen();
 
-                    string tempPath = _nextcloud->getItems()[itemID].getPath();
+                    string tempPath = _nextcloud.getItems()->at(itemID).getPath();
 
                     if (!tempPath.empty())
-                        _nextcloud->getDataStructure(tempPath);
+                        _nextcloud.getDataStructure(tempPath);
 
-                    _listView.reset(new ListView(_menu->getContentRect(), _nextcloud->getItems()));
+                    _listView.reset(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
                     _listView->drawHeader(tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
                 }
                 else
                 {
                     int dialogResult = 2;
-                    if (_nextcloud->getItems()[itemID].isDownloaded())
+                    if (_nextcloud.getItems()->at(itemID).isDownloaded())
                     {
                         dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Open", "Sync", "Remove");
                     }
@@ -150,13 +148,12 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     switch (dialogResult)
                     {
                     case 1:
-                        _nextcloud->getItems()[itemID].open();
-
+                        _nextcloud.getItems()->at(itemID).open();
                         break;
                     case 2:
                         OpenProgressbar(1, "Downloading...", "Check network connection", 0, EventHandler::DialogHandlerStatic);
 
-                        if (!_nextcloud->downloadItem(itemID))
+                        if (!_nextcloud.downloadItem(itemID))
                         {
                             CloseProgressbar();
                             Message(ICON_WARNING, "Warning", "Could not download the file, please try again.", 600);
@@ -167,20 +164,18 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         }
                         break;
                     case 3:
-                        _nextcloud->removeFile(itemID);
+                        if (!_nextcloud.removeFile(itemID))
+                            Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 600);
                         break;
 
                     default:
                         break;
                     }
-                    //TODO pass items only as ref, so this is not necessary and items exist only once
-                    _listView.reset(new ListView(_menu->getContentRect(), _nextcloud->getItems()));
-                    //_listView->drawEntry(itemID);
-
+                    _listView->drawEntry(itemID);
                 }
             }
 
-            PartialUpdate(_menu->getContentRect()->x, _menu->getContentRect()->y, _menu->getContentRect()->w, _menu->getContentRect()->h);
+            PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
 
             return 1;
         }
@@ -188,9 +183,9 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         {
             if (_loginView->logginClicked(par1, par2) == 2)
             {
-                if (_nextcloud->login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
+                if (_nextcloud.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
                 {
-                    _listView = std::unique_ptr<ListView>(new ListView(_menu->getContentRect(), _nextcloud->getItems()));
+                    _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
                     _loginView.reset();
                     FullUpdate();
                 }

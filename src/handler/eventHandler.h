@@ -38,8 +38,8 @@ public:
 
 private:
     static EventHandler *_eventHandlerStatic;
-    std::unique_ptr<MenuHandler> _menu;
-    std::unique_ptr<Nextcloud> _nextcloud;
+    MenuHandler _menu = MenuHandler("Nextcloud");
+    Nextcloud _nextcloud = Nextcloud();
     std::unique_ptr<ListView> _listView;
     std::unique_ptr<LoginView> _loginView;
 

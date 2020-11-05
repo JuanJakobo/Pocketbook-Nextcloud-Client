@@ -96,7 +96,7 @@ void Nextcloud::logout()
 
 bool Nextcloud::downloadItem(int itemID)
 {
-    Log::writeLog("started download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath());
+    Log::writeLog("started download of " + _items->at(itemID).getPath() + " to " + _items->at(itemID).getLocalPath());
 
     if (_workOffline)
     {
@@ -121,9 +121,9 @@ bool Nextcloud::downloadItem(int itemID)
         string post = this->getUsername() + std::string(":") + this->getPassword();
 
         FILE *fp;
-        fp = iv_fopen(_items[itemID].getLocalPath().c_str(), "wb");
+        fp = iv_fopen(_items->at(itemID).getLocalPath().c_str(), "wb");
 
-        curl_easy_setopt(curl, CURLOPT_URL, (_url + _items[itemID].getPath()).c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, (_url + _items->at(itemID).getPath()).c_str());
         curl_easy_setopt(curl, CURLOPT_USERPWD, post.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeData);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
@@ -142,8 +142,8 @@ bool Nextcloud::downloadItem(int itemID)
             switch (response_code)
             {
             case 200:
-                Log::writeLog("finished download of " + _items[itemID].getPath() + " to " + _items[itemID].getLocalPath());
-                _items[itemID].setDownloaded(true);
+                Log::writeLog("finished download of " + _items->at(itemID).getPath() + " to " + _items->at(itemID).getLocalPath());
+                _items->at(itemID).setDownloaded(true);
                 return true;
             case 401:
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
@@ -157,11 +157,12 @@ bool Nextcloud::downloadItem(int itemID)
     return false;
 }
 
-
 bool Nextcloud::removeFile(int itemID)
 {
-    remove(_items[itemID].getLocalPath().c_str());
-    _items[itemID].setDownloaded(false);
+    if (remove(_items->at(itemID).getLocalPath().c_str()) != 0)
+        return false;
+    _items->at(itemID).setDownloaded(false);
+    return true;
 }
 
 bool Nextcloud::getDataStructure(string &pathUrl)
@@ -313,8 +314,10 @@ bool Nextcloud::readInXML(string xml)
     size_t end;
     string beginItem = "<d:response>";
     string endItem = "</d:response>";
+    vector<Item> tempItems;
 
-    _items.clear();
+    if (_items)
+        _items->clear();
 
     begin = xml.find(beginItem);
 
@@ -323,26 +326,28 @@ bool Nextcloud::readInXML(string xml)
         end = xml.find(endItem);
 
         //TODO copy array and here only temp
-        this->_items.push_back(Item(xml.substr(begin, end)));
+        tempItems.push_back(Item(xml.substr(begin, end)));
 
         xml = xml.substr(end + endItem.length());
 
         begin = xml.find(beginItem);
     }
 
-    if (_items.size() < 1)
+    _items = std::make_shared<vector<Item>>(std::move(tempItems));
+
+    if (_items->size() < 1)
         return false;
 
     //resize item 1
-    string header = _items[0].getPath();
+    string header = _items->at(0).getPath();
     header = header.substr(0, header.find_last_of("/"));
     header = header.substr(0, header.find_last_of("/") + 1);
-    _items[0].setPath(header);
-    _items[0].setTitle("...");
-    _items[0].setLastEditDate("");
+    _items->at(0).setPath(header);
+    _items->at(0).setTitle("...");
+    _items->at(0).setLastEditDate("");
 
-    if (_items[0].getPath().compare(NEXTCLOUD_ROOT_PATH) == 0)
-        _items.erase(_items.begin());
+    if (_items->at(0).getPath().compare(NEXTCLOUD_ROOT_PATH) == 0)
+        _items->erase(_items->begin());
 
     return true;
 }
@@ -372,14 +377,13 @@ bool Nextcloud::getOfflineStructure(const string &pathUrl)
         if (localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
         {
             Message(ICON_ERROR, "Error", "The root structure is not available offline. To try again to connect turn on online modus in the menu.", 1200);
-
         }
         else
         {
             //Structure is not available offline, stay at the tree
             Message(ICON_ERROR, "Error", "The selected structure is not available offline.", 1200);
-
-            return true;
         }
     }
+
+    return true;
 }
