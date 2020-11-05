@@ -19,7 +19,7 @@
 using std::string;
 using std::vector;
 
-ListView::ListView(irect *contentRect, const vector<Item> *items) : _contentRect(contentRect), _items(items)
+ListView::ListView(irect *contentRect, const std::shared_ptr<vector<Item>> items) : _contentRect(contentRect), _items(items)
 {
     FillAreaRect(_contentRect, WHITE);
 

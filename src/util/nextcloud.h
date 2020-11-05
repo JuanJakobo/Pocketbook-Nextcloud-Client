@@ -48,7 +48,6 @@ public:
 
     bool removeFile(int itemID);
 
-
     /**
         * gets the dataStructure of the given URL and writes its WEBDAV items to the items vector, reads Userdata from configfile
         * 
@@ -61,9 +60,9 @@ public:
     void setUsername(const string &Username);
     void setPassword(const string &Pass);
 
-    vector<Item> *getItems() { return _items.get(); };
-    bool isLoggedIn() { return _loggedIn; };
-    bool isWorkOffline() { return _workOffline; };
+    std::shared_ptr<vector<Item>> getItems() const { return _items; };
+    bool isLoggedIn() const { return _loggedIn; };
+    bool isWorkOffline() const { return _workOffline; };
     void switchWorkOffline() { _workOffline = !_workOffline; };
 
     static string getLocalPath(string path);
@@ -71,7 +70,7 @@ public:
 private:
     static Nextcloud *nextcloudStatic;
 
-    std::shared_ptr<vector<Item>> _items =  nullptr;
+    std::shared_ptr<vector<Item>> _items = nullptr;
     bool _loggedIn{false};
     string _url;
     bool _workOffline{false};
