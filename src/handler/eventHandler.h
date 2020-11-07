@@ -37,11 +37,11 @@ public:
     int eventDistributor(const int type, const int par1, const int par2);
 
 private:
-    static EventHandler *_eventHandlerStatic;
-    MenuHandler _menu = MenuHandler("Nextcloud");
-    Nextcloud _nextcloud = Nextcloud();
+    static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<ListView> _listView;
     std::unique_ptr<LoginView> _loginView;
+    MenuHandler _menu = MenuHandler("Nextcloud");
+    Nextcloud _nextcloud = Nextcloud();
 
     /**
         * Functions needed to call C function, redirects to real function

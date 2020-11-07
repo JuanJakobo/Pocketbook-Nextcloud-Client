@@ -17,12 +17,12 @@
 
 using std::string;
 
-EventHandler *EventHandler::_eventHandlerStatic;
+std::unique_ptr<EventHandler>EventHandler::_eventHandlerStatic;
 
 EventHandler::EventHandler()
 {
     //create a event to create handlers
-    _eventHandlerStatic = this;
+    _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
     _loginView = nullptr;
     _listView = nullptr;
@@ -95,7 +95,6 @@ void EventHandler::mainMenuHandler(const int index)
         //}
         _nextcloud.logout();
         _listView.reset();
-
         _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
         FullUpdate();
         break;
@@ -154,7 +153,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         if (!_nextcloud.downloadItem(itemID))
                         {
                             CloseProgressbar();
-                            Message(ICON_WARNING, "Warning", "Could not download the file, please try again.", 600);
+                            if(!_nextcloud.isWorkOffline())
+                                Message(ICON_WARNING, "Warning", "Could not download the file, please try again.", 600);
                         }
                         else
                         {
