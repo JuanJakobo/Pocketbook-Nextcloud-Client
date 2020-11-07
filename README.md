@@ -15,9 +15,8 @@ To download a file, click on it. A synced file can be either opened, synced or r
 
 ##  To-Do's
 * [ ] compare local files to server files (currently local files are not shown)
-* [ ] add options --> start on which folder, 
+* [ ] add options --> start on which folder, foldersize
 * [ ] open audiobooks, pictures
-* [ ] add screenshots
 
 ### Known issues
 * The main menu of the PB shows new books only if it turns into sleep modus. Otherwise the new books can only be opened from the nextcloud applicaton
