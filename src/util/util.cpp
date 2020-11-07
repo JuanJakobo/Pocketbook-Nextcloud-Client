@@ -73,12 +73,87 @@ string Util::getXMLAttribute(const string &buffer, const string &name)
     return NULL;
 }
 
-string Util::replaceString(string item, const string& find, const string& to)
+void Util::decodeUrl(string &item)
 {
-    for (size_t pos = item.find(find); pos != string::npos; pos = item.find(find, pos))
+    string buffer;
+    buffer.reserve(item.size());
+    for (size_t pos = 0; pos != item.size(); ++pos)
     {
-        item.replace(pos, find.length(), to);
+        string temp = item.substr(pos, 3);
+        if (temp == "%20")
+        {
+            buffer.append(" ");
+            pos = pos + 2;
+        }
+        else if (temp == "%21")
+        {
+            buffer.append("!");
+            pos = pos + 2;
+        }
+        else if (temp == "%22")
+        {
+            buffer.append("\"");
+            pos = pos + 2;
+        }
+        else if (temp == "%23")
+        {
+            buffer.append("#");
+            pos = pos + 2;
+        }
+        else if (temp == "%24")
+        {
+            buffer.append("$");
+            pos = pos + 2;
+        }
+        else if (temp == "%25")
+        {
+            buffer.append("%");
+            pos = pos + 2;
+        }
+        else if (temp == "%26")
+        {
+            buffer.append("&");
+            pos = pos + 2;
+        }
+        else if (temp == "%27")
+        {
+            buffer.append("'");
+            pos = pos + 2;
+        }
+        else if (temp == "%28")
+        {
+            buffer.append("(");
+            pos = pos + 2;
+        }
+        else if (temp == "%29")
+        {
+            buffer.append(")");
+            pos = pos + 2;
+        }
+        else if (temp == "%2a")
+        {
+            buffer.append("*");
+            pos = pos + 2;
+        }
+        else if (temp == "%2b")
+        {
+            buffer.append("+");
+            pos = pos + 2;
+        }
+        else if (temp == "%2c")
+        {
+            buffer.append(",");
+            pos = pos + 2;
+        }
+        else if (temp == "%3f")
+        {
+            buffer.append("?");
+            pos = pos + 2;
+        }
+        else
+        {
+            buffer.append(&item[pos], 1);
+        }
     }
-
-    return item;
+    item.swap(buffer);
 }

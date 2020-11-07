@@ -21,7 +21,7 @@ const int MAX_CHAR_BUFF_LENGHT = 256;
 class LoginView
 {
 public:
-    LoginView(irect *contentRect);
+    LoginView(const irect *contentRect);
 
     int logginClicked(int x, int y);
 
@@ -32,7 +32,7 @@ public:
 private:
     static LoginView *_loginViewStatic;
     std::unique_ptr<ifont> _loginFont;
-    irect *_contentRect;
+    const irect *_contentRect;
     irect _urlButton;
     irect _loginButton;
     irect _usernameButton;

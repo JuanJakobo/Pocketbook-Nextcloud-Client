@@ -19,7 +19,7 @@
 using std::string;
 using std::vector;
 
-ListView::ListView(irect *contentRect, const std::shared_ptr<vector<Item>> items) : _contentRect(contentRect), _items(items)
+ListView::ListView(const irect *contentRect, const std::shared_ptr<vector<Item>> items) : _contentRect(contentRect), _items(items)
 {
     FillAreaRect(_contentRect, WHITE);
 
@@ -65,7 +65,7 @@ ListView::~ListView()
 void ListView::drawHeader(string headerText)
 {
     SetFont(_titleFont.get(), BLACK);
-    headerText = Util::replaceString(headerText,"%20"," ");
+    Util::decodeUrl(headerText);
     DrawTextRect(_contentRect->x, _contentRect->y, _contentRect->w, _headerHeight - 1, headerText.c_str(), ALIGN_LEFT);
 
     int line = (_contentRect->y + _headerHeight) - 2;

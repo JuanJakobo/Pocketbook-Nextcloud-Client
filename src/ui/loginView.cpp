@@ -17,7 +17,7 @@ using std::string;
 
 LoginView *LoginView::_loginViewStatic;
 
-LoginView::LoginView(irect *contentRect) : _contentRect(contentRect)
+LoginView::LoginView(const irect *contentRect) : _contentRect(contentRect)
 {
     _loginViewStatic = this;
     _loginFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", 40, 1));

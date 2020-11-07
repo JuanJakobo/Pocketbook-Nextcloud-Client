@@ -50,7 +50,7 @@ Item::Item(const string &xmlItem)
     }
 
     _title = _title.substr(_title.find_last_of("/") + 1, _title.length());
-    _title = Util::replaceString(_title, "%20", " ");
+    Util::decodeUrl(_title);
 }
 
 void Item::open() const

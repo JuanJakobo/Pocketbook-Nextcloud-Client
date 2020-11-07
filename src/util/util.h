@@ -67,7 +67,7 @@ public:
     */
     static string getXMLAttribute(const string &buffer, const string &name);
 
-    static string replaceString(string item, const string &find, const string &to);
+    static void decodeUrl(string &item);
 
 private:
     Util() {}
