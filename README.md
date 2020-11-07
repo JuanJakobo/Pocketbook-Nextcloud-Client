@@ -15,7 +15,7 @@ To download a file, click on it. A synced file can be either opened, synced or r
 
 ##  To-Do's
 * [ ] compare local files to server files (currently local files are not shown)
-* [ ] add options --> start on which folder, foldersize
+* [ ] add options --> start on which folder, foldersize, show only local data in nextcloud structure
 * [ ] open audiobooks, pictures
 
 ### Known issues
