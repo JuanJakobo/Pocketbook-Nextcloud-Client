@@ -53,6 +53,14 @@ Item::Item(const string &xmlItem)
     Util::decodeUrl(_title);
 }
 
+Item::Item(const string &localPath, bool downloaded) : _localPath(localPath), _downloaded(downloaded)
+{
+    _title = _localPath;
+    _title = _title.substr(_title.find_last_of("/") + 1, _title.length());
+    Util::decodeUrl(_title);
+    _fileType = IFILE;
+}
+
 void Item::open() const
 {
     if (_fileType.find("application/epub+zip") != string::npos ||
@@ -93,7 +101,7 @@ void Item::setSize(double tempSize)
 
     double departBy;
     string unit;
-    
+
     if (tempSize < 1048576)
     {
         departBy = 1024;
@@ -112,6 +120,4 @@ void Item::setSize(double tempSize)
 
     tempSize = round((tempSize / departBy) * 10.0) / 10.0;
     _size = Util::valueToString(tempSize) + " " + unit;
-
-
 }

@@ -150,17 +150,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         break;
                     case 2:
                         OpenProgressbar(1, "Downloading...", "Check network connection", 0, EventHandler::DialogHandlerStatic);
-
-                        if (!_nextcloud.downloadItem(itemID))
-                        {
-                            CloseProgressbar();
-                            if (!_nextcloud.isWorkOffline())
-                                Message(ICON_WARNING, "Warning", "Could not download the file, please try again.", 600);
-                        }
-                        else
-                        {
-                            CloseProgressbar();
-                        }
+                        _nextcloud.downloadItem(itemID);
+                        CloseProgressbar();
                         break;
                     case 3:
                         if (!_nextcloud.removeFile(itemID))

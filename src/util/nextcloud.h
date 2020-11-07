@@ -44,7 +44,7 @@ public:
 
     void logout(bool deleteFiles = false);
 
-    bool downloadItem(int itemID);
+    void downloadItem(int itemID);
 
     bool removeFile(int itemID);
 

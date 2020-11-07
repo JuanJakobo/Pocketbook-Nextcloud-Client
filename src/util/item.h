@@ -26,6 +26,8 @@ class Item
 public:
     Item(const string &xmlItem);
 
+    Item(const string &localPath, bool downloaded);
+
     void setPath(const string &path) { _path = path; };
     string getPath() const { return _path; };
 
@@ -54,10 +56,10 @@ private:
     string _path;
     Itemtype _type;
     string _title;
-    bool _downloaded;
+    bool _downloaded{false};
     string _localPath;
-    string _lastEditDate;
-    string _size;
+    string _lastEditDate{"Error"};
+    string _size{"Error"};
     string _fileType;
 
     void setSize(double tempSize);

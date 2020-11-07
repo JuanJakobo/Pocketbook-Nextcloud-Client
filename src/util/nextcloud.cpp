@@ -101,25 +101,28 @@ void Nextcloud::logout(bool deleteFiles)
     _loggedIn = false;
 }
 
-bool Nextcloud::downloadItem(int itemID)
+void Nextcloud::downloadItem(int itemID)
 {
     Log::writeLog("started download of " + _items->at(itemID).getPath() + " to " + _items->at(itemID).getLocalPath());
 
     if (_workOffline)
     {
         int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "You are in offline modus. Go back online?", "Yes", "No", "Cancel");
-
         if (dialogResult == 2 || dialogResult == 3)
-            return false;
+            return;
+        _workOffline = false;
     }
 
     if (!Util::connectToNetwork())
     {
-        Message(3, "Warning", "Can not connect to the Internet. Switching to offline modus.", 200);
+        Message(3, "Warning", "Can not connect to the Internet. Switching to offline modus.", 600);
         _workOffline = true;
-        return false;
     }
 
+    if(_items->at(itemID).getPath().empty()){
+        Message(3, "Warning", "Download path is not set, therefore cannot download the file.", 600);
+        return;
+    }
     CURLcode res;
     CURL *curl = curl_easy_init();
 
@@ -152,7 +155,7 @@ bool Nextcloud::downloadItem(int itemID)
             case 200:
                 Log::writeLog("finished download of " + _items->at(itemID).getPath() + " to " + _items->at(itemID).getLocalPath());
                 _items->at(itemID).setDownloaded(true);
-                return true;
+                break;
             case 401:
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
                 break;
@@ -162,7 +165,6 @@ bool Nextcloud::downloadItem(int itemID)
             }
         }
     }
-    return false;
 }
 
 bool Nextcloud::removeFile(int itemID)
@@ -229,30 +231,69 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
             {
             case 207:
             {
+                string localPath = this->getLocalPath(pathUrl);
+
+                //create items_
                 if (!readInXML(readBuffer))
                     return false;
 
-                string localPath = this->getLocalPath(pathUrl);
-
-                //create neccesary subfolders
                 if (iv_access(localPath.c_str(), W_OK) != 0)
-                    iv_buildpath(localPath.c_str());
-
-                localPath = localPath + NEXTCLOUD_STRUCTURE_EXTENSION;
-
-                //check for difference local and server
-                if (iv_access(localPath.c_str(), R_OK) != 0)
                 {
-                    Log::writeLog("Local structure of " + localPath + " found.");
-
-                    //TODO get items from local path
-                    //compare local and online, if online no longer availaible delete
-                    //if is in old .structure --> delete from pocketbook and check for last edit date
-                    //delete old structure file
+                    //if the current folder does not exist locally, create it
+                    iv_buildpath(localPath.c_str());
                 }
 
-                //TODO if local file is newer than of old structure --> upload
-                //if is not in old file and not in new, ask if should be uploaded
+                else
+                {
+                    //get items from local path
+                    if (iv_access(localPath.c_str(), R_OK) != 0)
+                    {
+                        Log::writeLog("Local structure of " + localPath + " found.");
+                        //TODO if has files that are not online, add to _items
+                    }
+
+                    //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
+                    DIR *dir;
+                    class dirent *ent;
+                    class stat st;
+
+                    dir = opendir(localPath.c_str());
+                    while ((ent = readdir(dir)) != NULL)
+                    {
+                        const string file_name = ent->d_name;
+                        const string full_file_name = localPath + file_name;
+
+                        if (file_name[0] == '.')
+                            continue;
+
+                        if (stat(full_file_name.c_str(), &st) == -1)
+                            continue;
+
+                        const bool is_directory = (st.st_mode & S_IFDIR) != 0;
+
+                        if (is_directory)
+                            continue;
+                        bool found = false;
+                        for (auto i = 0; i < _items->size(); i++)
+                        {
+                            //TODO compare last edit local and in cloud and display to user
+                            if (_items->at(i).getLocalPath().compare(full_file_name) == 0)
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            _items->push_back(Item(full_file_name, true));
+                        }
+                    }
+                    closedir(dir);
+                }
+
+                //TODO structure as CSV?
+                //update the .structure file acording to items in the folder 
+                localPath = localPath + NEXTCLOUD_STRUCTURE_EXTENSION;
 
                 //save xml to make the structure available offline
                 ofstream outFile(localPath);
@@ -267,14 +308,14 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
                 }
 
                 return true;
-                break;
             }
             case 401:
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
                 break;
             default:
-                Message(ICON_ERROR, "Error", ("An unknown error occured. (Curl Response Code " + Util::valueToString(response_code) + ")").c_str(), 1200);
-                break;
+                Message(ICON_ERROR, "Error", ("An unknown error occured. Switching to offline modus. To work online turn on online modus in the menu. (Curl Response Code " + Util::valueToString(response_code) + ")").c_str(), 1200);
+                _workOffline = true;
+                return getOfflineStructure(pathUrl);
             }
         }
     }
@@ -324,16 +365,12 @@ bool Nextcloud::readInXML(string xml)
     string endItem = "</d:response>";
     vector<Item> tempItems;
 
-    if (_items)
-        _items->clear();
-
     begin = xml.find(beginItem);
 
     while (begin != std::string::npos)
     {
         end = xml.find(endItem);
 
-        //TODO copy array and here only temp
         tempItems.push_back(Item(xml.substr(begin, end)));
 
         xml = xml.substr(end + endItem.length());
@@ -341,6 +378,8 @@ bool Nextcloud::readInXML(string xml)
         begin = xml.find(beginItem);
     }
 
+    if (_items)
+        _items->clear();
     _items = std::make_shared<vector<Item>>(std::move(tempItems));
 
     if (_items->size() < 1)
@@ -376,15 +415,17 @@ bool Nextcloud::getOfflineStructure(const string &pathUrl)
         ifstream inFile(localPath);
         std::stringstream buffer;
         buffer << inFile.rdbuf();
+        //TODO also show in offline modus all files!
 
         if (!readInXML(buffer.str()))
             return false;
     }
     else
     {
-        if (localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
+        if (pathUrl.compare(NEXTCLOUD_ROOT_PATH + getUsername() + "/") == 0)
         {
-            Message(ICON_ERROR, "Error", "The root structure is not available offline. To try again to connect turn on online modus in the menu.", 1200);
+            Message(ICON_ERROR, "Error", "The root structure is not available offline. Please try again to login.", 1200);
+            logout();
         }
         else
         {
@@ -393,5 +434,5 @@ bool Nextcloud::getOfflineStructure(const string &pathUrl)
         }
     }
 
-    return true;
+    return false;
 }
