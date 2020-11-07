@@ -15,7 +15,6 @@ To download a file, click on it. A synced file can be either opened, synced or r
 
 ##  To-Do's
 * [ ] compare local files to server files (currently local files are not shown)
-* [ ] delete files on logout
 * [ ] add options --> start on which folder, 
 * [ ] open audiobooks, pictures
 * [ ] add screenshots

@@ -17,7 +17,7 @@
 
 using std::string;
 
-std::unique_ptr<EventHandler>EventHandler::_eventHandlerStatic;
+std::unique_ptr<EventHandler> EventHandler::_eventHandlerStatic;
 
 EventHandler::EventHandler()
 {
@@ -83,17 +83,18 @@ void EventHandler::mainMenuHandler(const int index)
     //Logout
     case 102:
     {
-        //TODO implement removal of files
-        //int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to delete local files?", "Yes", "No", "Cancel");
-        //if (dialogResult == 1)
-        //{
-        //    remove(NEXTCLOUD_FILE_PATH.c_str());
-        //}
-        //else if (dialogResult == 3)
-        //{
-        //    return;
-        //}
-        _nextcloud.logout();
+        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to delete local files?", "Yes", "No", "Cancel");
+        switch (dialogResult)
+        {
+        case 1:
+            _nextcloud.logout(true);
+            break;
+        case 3:
+            return;
+        default:
+            _nextcloud.logout();
+            break;
+        }
         _listView.reset();
         _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
         FullUpdate();
@@ -153,7 +154,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         if (!_nextcloud.downloadItem(itemID))
                         {
                             CloseProgressbar();
-                            if(!_nextcloud.isWorkOffline())
+                            if (!_nextcloud.isWorkOffline())
                                 Message(ICON_WARNING, "Warning", "Could not download the file, please try again.", 600);
                         }
                         else

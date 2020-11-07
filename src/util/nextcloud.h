@@ -42,7 +42,7 @@ public:
 
     bool login();
 
-    void logout();
+    void logout(bool deleteFiles = false);
 
     bool downloadItem(int itemID);
 

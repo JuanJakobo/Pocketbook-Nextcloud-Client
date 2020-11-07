@@ -86,11 +86,18 @@ bool Nextcloud::login(const string &Url, const string &Username, const string &P
     return false;
 }
 
-void Nextcloud::logout()
+void Nextcloud::logout(bool deleteFiles)
 {
     remove(NEXTCLOUD_CONFIG_PATH.c_str());
     remove((NEXTCLOUD_CONFIG_PATH + ".back.").c_str());
+    if (deleteFiles)
+    {
+        string cmd = "rm -rf " + NEXTCLOUD_FILE_PATH + "/" + getUsername() + "/";
+        system(cmd.c_str());
+    }
     _url.clear();
+    _items = nullptr;
+    _workOffline = false;
     _loggedIn = false;
 }
 
@@ -129,7 +136,8 @@ bool Nextcloud::downloadItem(int itemID)
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, Util::progress_callback);
-
+        //Follow redirects
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
         iv_fclose(fp);
@@ -149,7 +157,7 @@ bool Nextcloud::downloadItem(int itemID)
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
                 break;
             default:
-                Message(ICON_ERROR, "Error", "An unknown error occured.", 1200);
+                Message(ICON_ERROR, "Error", ("An unknown error occured. (Curl Response Code " + Util::valueToString(response_code) + ")").c_str(), 1200);
                 break;
             }
         }
@@ -265,7 +273,7 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
                 break;
             default:
-                Message(ICON_ERROR, "Error", "An unknown error occured." + response_code, 1200);
+                Message(ICON_ERROR, "Error", ("An unknown error occured. (Curl Response Code " + Util::valueToString(response_code) + ")").c_str(), 1200);
                 break;
             }
         }
