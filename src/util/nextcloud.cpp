@@ -88,13 +88,15 @@ bool Nextcloud::login(const string &Url, const string &Username, const string &P
 
 void Nextcloud::logout(bool deleteFiles)
 {
-    remove(NEXTCLOUD_CONFIG_PATH.c_str());
-    remove((NEXTCLOUD_CONFIG_PATH + ".back.").c_str());
     if (deleteFiles)
     {
         string cmd = "rm -rf " + NEXTCLOUD_FILE_PATH + "/" + getUsername() + "/";
         system(cmd.c_str());
     }
+    
+    remove(NEXTCLOUD_CONFIG_PATH.c_str());
+    remove((NEXTCLOUD_CONFIG_PATH + ".back.").c_str());
+
     _url.clear();
     _items = nullptr;
     _workOffline = false;
@@ -119,7 +121,8 @@ void Nextcloud::downloadItem(int itemID)
         _workOffline = true;
     }
 
-    if(_items->at(itemID).getPath().empty()){
+    if (_items->at(itemID).getPath().empty())
+    {
         Message(3, "Warning", "Download path is not set, therefore cannot download the file.", 600);
         return;
     }
@@ -292,7 +295,7 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
                 }
 
                 //TODO structure as CSV?
-                //update the .structure file acording to items in the folder 
+                //update the .structure file acording to items in the folder
                 localPath = localPath + NEXTCLOUD_STRUCTURE_EXTENSION;
 
                 //save xml to make the structure available offline
