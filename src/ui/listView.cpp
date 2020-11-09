@@ -30,8 +30,8 @@ ListView::ListView(const irect *contentRect, const std::shared_ptr<vector<Item>>
 
     int entrySize = (_contentRect->h - _footerHeight - _headerHeight) / _itemCount;
 
-    _shownPage = 1;
     _page = 1;
+    _shownPage = _page;
 
     auto i = _items->size();
     auto z = 0;
@@ -52,7 +52,12 @@ ListView::ListView(const irect *contentRect, const std::shared_ptr<vector<Item>>
         z++;
     }
 
-    _pageButton = iRect(_contentRect->w - 100, _contentRect->h + _contentRect->y - _footerHeight, 100, _footerHeight, ALIGN_CENTER);
+    _pageIcon = iRect(_contentRect->w - 100, _contentRect->h + _contentRect->y - _footerHeight, 100, _footerHeight, ALIGN_CENTER);
+
+    //TODO draw botton back and next, draw just once?
+    _firstPageButton = iRect(_contentRect->x, _contentRect->h + _contentRect->y - _footerHeight, 100, _footerHeight, ALIGN_CENTER);
+    _lastPageButton = iRect(_contentRect->x + 120, _contentRect->h + _contentRect->y - _footerHeight, 100, _footerHeight, ALIGN_CENTER);
+    _nextPageButton = iRect(_contentRect->x + 240, _contentRect->h + _contentRect->y - _footerHeight, 100, _footerHeight, ALIGN_CENTER);
 
     drawEntries();
     drawFooter();
@@ -76,13 +81,20 @@ void ListView::drawFooter()
 {
     SetFont(_footerFont.get(), WHITE);
     string footer = Util::valueToString<int>(_shownPage) + "/" + Util::valueToString<int>(_page);
-    FillAreaRect(&_pageButton, BLACK);
-    DrawTextRect2(&_pageButton, footer.c_str());
+    FillAreaRect(&_pageIcon, BLACK);
+
+    DrawTextRect2(&_pageIcon, footer.c_str());
+    FillAreaRect(&_firstPageButton, BLACK);
+    DrawTextRect2(&_firstPageButton, "First");
+    FillAreaRect(&_lastPageButton, BLACK);
+    DrawTextRect2(&_lastPageButton, "Last");
+    FillAreaRect(&_nextPageButton, BLACK);
+    DrawTextRect2(&_nextPageButton, "Next");
 }
 
 void ListView::drawEntry(int itemID)
 {
-    FillAreaRect(_entries[itemID].getPosition(),WHITE);
+    FillAreaRect(_entries[itemID].getPosition(), WHITE);
     _entries[itemID].draw(_items->at(itemID));
 }
 
@@ -95,26 +107,38 @@ void ListView::drawEntries()
     }
 }
 
+void ListView::actualizePage(int _pageToShown)
+{
+    if (_pageToShown > _page)
+    {
+        Message(ICON_ERROR, "Info", "You have reached the last page, to return to the first, please click home.", 1200);
+    }
+    else if (_pageToShown < 1)
+    {
+        Message(ICON_ERROR, "Info", "You are already on the first page.", 1200);
+    }
+    else
+    {
+        _shownPage = _pageToShown;
+        FillArea(_contentRect->x, _contentRect->y + _headerHeight, _contentRect->w, _contentRect->h, WHITE);
+        drawEntries();
+        drawFooter();
+    }
+}
+
 int ListView::listClicked(int x, int y)
 {
-    if (IsInRect(x, y, &_pageButton))
+    if (IsInRect(x, y, &_firstPageButton))
     {
-        if (_page > 1)
-        {
-            FillArea(_contentRect->x,_contentRect->y+_headerHeight, _contentRect->w, _contentRect->h, WHITE);
-
-            if (_shownPage >= _page)
-            {
-                _shownPage = 1;
-            }
-            else
-            {
-                _shownPage++;
-            }
-
-            drawEntries();
-            drawFooter();
-        }
+        actualizePage(1);
+    }
+    else if (IsInRect(x, y, &_nextPageButton))
+    {
+        actualizePage(_shownPage+1);
+    }
+    else if (IsInRect(x, y, &_lastPageButton))
+    {
+        actualizePage(_shownPage-1);
     }
     else
     {

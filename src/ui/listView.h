@@ -56,6 +56,9 @@ public:
         */
     void drawEntries();
 
+    void actualizePage(int _pageToShown);
+
+
     /**
         * Checkes if the listview has been clicked and either changes the page or returns item ID
         * 
@@ -73,7 +76,10 @@ private:
     std::unique_ptr<ifont> _footerFont;
     int _page;
     int _shownPage;
-    irect _pageButton;
+    irect _pageIcon;
+    irect _nextPageButton;
+    irect _lastPageButton;
+    irect _firstPageButton;
     int _footerHeight = 100;
     int _headerHeight = 40;
     int _itemCount = 7;
