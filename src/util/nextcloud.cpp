@@ -59,9 +59,22 @@ void Nextcloud::setPassword(const string &Pass)
     CloseConfig(nextcloudConfig);
 }
 
+void Nextcloud::setStartFolder(const string &Path)
+{
+    iconfigedit *temp = nullptr;
+    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
+    WriteString(nextcloudConfig, "startFolder", Path.c_str());
+    CloseConfig(nextcloudConfig);
+}
+
 bool Nextcloud::login()
 {
-    if (getDataStructure(NEXTCLOUD_ROOT_PATH + this->getUsername() + "/", this->getUsername(), this->getPassword()))
+    string tempPath = getStartFolder();
+
+    if (tempPath.empty())
+        tempPath = NEXTCLOUD_ROOT_PATH + this->getUsername() + "/";
+
+    if (getDataStructure(tempPath, this->getUsername(), this->getPassword()))
     {
         _loggedIn = true;
         return true;
@@ -73,13 +86,15 @@ bool Nextcloud::login()
 bool Nextcloud::login(const string &Url, const string &Username, const string &Pass)
 {
     _url = Url;
-    if (getDataStructure(NEXTCLOUD_ROOT_PATH + Username + "/", Username, Pass))
+    string tempPath = NEXTCLOUD_ROOT_PATH + Username + "/";
+    if (getDataStructure(tempPath, Username, Pass))
     {
         if (iv_access(NEXTCLOUD_CONFIG_PATH.c_str(), W_OK) != 0)
             iv_buildpath(NEXTCLOUD_CONFIG_PATH.c_str());
         this->setUsername(Username);
         this->setPassword(Pass);
         this->setURL(_url);
+        this->setStartFolder(tempPath);
         _loggedIn = true;
         return true;
     }
@@ -354,6 +369,15 @@ string Nextcloud::getPassword()
     string pass = ReadSecret(nextcloudConfig, "password", "");
     CloseConfigNoSave(nextcloudConfig);
     return pass;
+}
+
+string Nextcloud::getStartFolder()
+{
+    iconfigedit *temp = nullptr;
+    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
+    string startFolder = ReadString(nextcloudConfig, "startFolder", "");
+    CloseConfigNoSave(nextcloudConfig);
+    return startFolder;
 }
 
 void Nextcloud::DialogHandlerStatic(int Button)

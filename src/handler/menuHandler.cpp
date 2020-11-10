@@ -56,9 +56,10 @@ int MenuHandler::createMenu(bool loggedIn, bool workOffline, iv_menuhandler hand
             {ITEM_HEADER, 0, "Menu", NULL},
             //show logged in
             {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 101, text, NULL},
-            {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 102, "Logout", NULL},
+            {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 102, "Make startfolder", NULL},
+            {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 103, "Logout", NULL},
             //show always
-            {ITEM_ACTIVE, 103, "Exit"},
+            {ITEM_ACTIVE, 104, "Exit"},
             {0, 0, NULL, NULL}};
 
     if (loggedIn)

@@ -86,8 +86,16 @@ void EventHandler::mainMenuHandler(const int index)
 
         break;
     }
-    //Logout
+    //Make startfolder
     case 102:
+    {
+        _nextcloud.setStartFolder(_tempPath);
+        Message(ICON_INFORMATION, "Info", ("On the next startup the folder" + _tempPath + " will be shown.").c_str(), 1200);
+
+        break;
+    }
+    //Logout
+    case 103:
     {
         int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to delete local files?", "Yes", "No", "Cancel");
         switch (dialogResult)
@@ -107,7 +115,7 @@ void EventHandler::mainMenuHandler(const int index)
         break;
     }
     //Exit
-    case 103:
+    case 104:
         CloseApp();
         break;
     default:
@@ -133,13 +141,12 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     FillAreaRect(_menu.getContentRect(), WHITE);
                     _menu.drawLoadingScreen();
 
-                    string tempPath = _nextcloud.getItems()->at(itemID).getPath();
-
-                    if (!tempPath.empty())
-                        _nextcloud.getDataStructure(tempPath);
+                    _tempPath = _nextcloud.getItems()->at(itemID).getPath();
+                    if (!_tempPath.empty())
+                        _nextcloud.getDataStructure(_tempPath);
 
                     _listView.reset(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
-                    _listView->drawHeader(tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
+                    _listView->drawHeader(_tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
                 }
                 else
                 {

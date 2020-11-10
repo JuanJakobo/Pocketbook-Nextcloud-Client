@@ -42,6 +42,7 @@ private:
     std::unique_ptr<LoginView> _loginView;
     MenuHandler _menu = MenuHandler("Nextcloud");
     Nextcloud _nextcloud = Nextcloud();
+    string _tempPath;
 
     /**
         * Functions needed to call C function, redirects to real function

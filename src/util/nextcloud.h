@@ -60,6 +60,7 @@ public:
     void setURL(const string &Url);
     void setUsername(const string &Username);
     void setPassword(const string &Pass);
+    void setStartFolder(const string &Path);
 
     std::shared_ptr<vector<Item>> getItems() const { return _items; };
     bool isLoggedIn() const { return _loggedIn; };
@@ -86,9 +87,10 @@ private:
         */
     bool getDataStructure(const string &pathUrl, const string &Username, const string &Pass);
 
+    string getUrl();
     string getUsername();
     string getPassword();
-    string getUrl();
+    string getStartFolder();
 
     /**
     * Handles the end of the game dialog and lets the user
