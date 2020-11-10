@@ -21,12 +21,19 @@ enum Itemtype
     IFOLDER
 };
 
+enum FileState
+{
+    ICLOUD,
+    ISYNCED,
+    ILOCAL
+};
+
 class Item
 {
 public:
     Item(const string &xmlItem);
 
-    Item(const string &localPath, bool downloaded);
+    Item(const string &localPath, FileState state);
 
     void setPath(const string &path) { _path = path; };
     string getPath() const { return _path; };
@@ -38,11 +45,11 @@ public:
     void setTitle(const string &title) { _title = title; };
     string getTitle() const { return _title; };
 
-    void setDownloaded(bool downloaded) { _downloaded = downloaded; };
-    bool isDownloaded() const { return _downloaded; };
+    void setState(FileState state) { _state = state; };
+    FileState getState() const { return _state; };
 
     string getLastEditDate() const { return _lastEditDate; };
-    void setLastEditDate(const string &date){ _lastEditDate = date;};
+    void setLastEditDate(const string &date) { _lastEditDate = date; };
 
     string getSize() const { return _size; };
 
@@ -56,7 +63,7 @@ private:
     string _path;
     Itemtype _type;
     string _title;
-    bool _downloaded{false};
+    FileState _state{FileState::ICLOUD};
     string _localPath;
     string _lastEditDate{"Error"};
     string _size{"Error"};

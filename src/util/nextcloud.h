@@ -67,6 +67,8 @@ public:
 
     static string getLocalPath(string path);
 
+    void getLocalFileStructure(const string &localPath);
+
 private:
     static Nextcloud *nextcloudStatic;
 

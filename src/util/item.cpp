@@ -45,11 +45,11 @@ Item::Item(const string &xmlItem)
 
         if (iv_access(_localPath.c_str(), W_OK) != 0)
         {
-            _downloaded = false;
+            _state = FileState::ICLOUD;
         }
         else
         {
-            _downloaded = true;
+            _state = FileState::ISYNCED;
         }
     }
 
@@ -57,7 +57,7 @@ Item::Item(const string &xmlItem)
     Util::decodeUrl(_title);
 }
 
-Item::Item(const string &localPath, bool downloaded) : _localPath(localPath), _downloaded(downloaded)
+Item::Item(const string &localPath, FileState state) : _localPath(localPath), _state(state)
 {
     _title = _localPath;
     _title = _title.substr(_title.find_last_of("/") + 1, _title.length());

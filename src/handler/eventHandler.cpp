@@ -151,7 +151,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 else
                 {
                     int dialogResult = 2;
-                    if (_nextcloud.getItems()->at(itemID).isDownloaded())
+                    if (_nextcloud.getItems()->at(itemID).getState() != FileState::ICLOUD)
                     {
                         dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Open", "Sync", "Remove");
                     }

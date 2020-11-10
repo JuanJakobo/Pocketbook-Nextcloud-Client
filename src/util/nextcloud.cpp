@@ -166,7 +166,7 @@ void Nextcloud::downloadItem(int itemID)
             {
             case 200:
                 Log::writeLog("finished download of " + _items->at(itemID).getPath() + " to " + _items->at(itemID).getLocalPath());
-                _items->at(itemID).setDownloaded(true);
+                _items->at(itemID).setState(FileState::ISYNCED);
                 break;
             case 401:
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
@@ -256,43 +256,7 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
                         //TODO if has files that are not online, add to _items
                     }
 
-                    //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
-                    DIR *dir;
-                    class dirent *ent;
-                    class stat st;
-
-                    dir = opendir(localPath.c_str());
-                    while ((ent = readdir(dir)) != NULL)
-                    {
-                        const string file_name = ent->d_name;
-                        const string full_file_name = localPath + file_name;
-
-                        if (file_name[0] == '.')
-                            continue;
-
-                        if (stat(full_file_name.c_str(), &st) == -1)
-                            continue;
-
-                        const bool is_directory = (st.st_mode & S_IFDIR) != 0;
-
-                        if (is_directory)
-                            continue;
-                        bool found = false;
-                        for (auto i = 0; i < _items->size(); i++)
-                        {
-                            //TODO compare last edit local and in cloud and display to user
-                            if (_items->at(i).getLocalPath().compare(full_file_name) == 0)
-                            {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found)
-                        {
-                            _items->push_back(Item(full_file_name, true));
-                        }
-                    }
-                    closedir(dir);
+                    getLocalFileStructure(localPath);
                 }
 
                 //TODO structure as CSV?
@@ -434,6 +398,8 @@ bool Nextcloud::getOfflineStructure(const string &pathUrl)
 
         if (!readInXML(buffer.str()))
             return false;
+
+        getLocalFileStructure(this->getLocalPath(pathUrl));
     }
     else
     {
@@ -450,4 +416,47 @@ bool Nextcloud::getOfflineStructure(const string &pathUrl)
     }
 
     return false;
+}
+
+void Nextcloud::getLocalFileStructure(const string &localPath)
+{
+    //TODO also get folders
+    //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
+    DIR *dir;
+    class dirent *ent;
+    class stat st;
+
+    dir = opendir(localPath.c_str());
+    while ((ent = readdir(dir)) != NULL)
+    {
+        const string file_name = ent->d_name;
+        const string full_file_name = localPath + file_name;
+
+        if (file_name[0] == '.')
+            continue;
+
+        if (stat(full_file_name.c_str(), &st) == -1)
+            continue;
+
+        //also include directory
+        const bool is_directory = (st.st_mode & S_IFDIR) != 0;
+        if (is_directory)
+            continue;
+
+        bool found = false;
+        for (auto i = 0; i < _items->size(); i++)
+        {
+            //TODO compare last edit local and in cloud and display to user
+            if (_items->at(i).getLocalPath().compare(full_file_name) == 0)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            _items->push_back(Item(full_file_name, FileState::ILOCAL));
+        }
+    }
+    closedir(dir);
 }

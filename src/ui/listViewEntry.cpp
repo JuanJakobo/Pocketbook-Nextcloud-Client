@@ -23,20 +23,29 @@ void ListViewEntry::draw(const Item &item)
     DrawTextRect(_position.x, _position.y, _position.w, _fontHeight, item.getTitle().c_str(), ALIGN_LEFT);
 
     SetFont(_entryFont.get(), BLACK);
-    if (item.getType() == IFILE)
+
+    if (item.getState() == FileState::ILOCAL)
     {
-        DrawTextRect(_position.x, _position.y + _fontHeight, _position.w, _fontHeight, item.getFiletype().c_str(), ALIGN_LEFT);
-        if (item.isDownloaded())
-        {
-            DrawTextRect(_position.x, _position.y + 3 * _fontHeight, _position.w, _fontHeight, "Synced", ALIGN_RIGHT);
-        }
-        else
-        {
-            DrawTextRect(_position.x, _position.y + 3 * _fontHeight, _position.w, _fontHeight, "Click to Download", ALIGN_RIGHT);
-        }
+        DrawTextRect(_position.x, _position.y + 3 * _fontHeight, _position.w, _fontHeight, "Local", ALIGN_RIGHT);
     }
-    DrawTextRect(_position.x, _position.y + 2 * _fontHeight, _position.w, _fontHeight, item.getLastEditDate().c_str(), ALIGN_LEFT);
-    DrawTextRect(_position.x, _position.y + 3 * _fontHeight, _position.w, _fontHeight, item.getSize().c_str(), ALIGN_LEFT);
+    else
+    {
+        if (item.getType() == IFILE)
+        {
+            DrawTextRect(_position.x, _position.y + _fontHeight, _position.w, _fontHeight, item.getFiletype().c_str(), ALIGN_LEFT);
+
+            if (item.getState() == FileState::ISYNCED)
+            {
+                DrawTextRect(_position.x, _position.y + 3 * _fontHeight, _position.w, _fontHeight, "Synced", ALIGN_RIGHT);
+            }
+            else
+            {
+                DrawTextRect(_position.x, _position.y + 3 * _fontHeight, _position.w, _fontHeight, "Click to Download", ALIGN_RIGHT);
+            }
+        }
+        DrawTextRect(_position.x, _position.y + 2 * _fontHeight, _position.w, _fontHeight, item.getLastEditDate().c_str(), ALIGN_LEFT);
+        DrawTextRect(_position.x, _position.y + 3 * _fontHeight, _position.w, _fontHeight, item.getSize().c_str(), ALIGN_LEFT);
+    }
 
     int line = (_position.y + _position.h) - 1;
     DrawLine(0, line, ScreenWidth(), line, BLACK);
