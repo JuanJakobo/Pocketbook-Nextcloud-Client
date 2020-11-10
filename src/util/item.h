@@ -50,7 +50,7 @@ public:
 
     void open() const;
 
-    void removeFile();
+    bool removeFile();
 
 private:
     string _path;

@@ -162,11 +162,20 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         _nextcloud.getItems()->at(itemID).open();
                         break;
                     case 2:
+                        //TODO implement upload if local file
+                        if (_nextcloud.isWorkOffline())
+                        {
+                            int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "You are in offline modus. Go back online?", "Yes", "No", "Cancel");
+                            if (dialogResult == 2 || dialogResult == 3)
+                                return 0;
+                            _nextcloud.switchWorkOffline();
+                        }
                         OpenProgressbar(1, "Downloading...", "Check network connection", 0, EventHandler::DialogHandlerStatic);
                         _nextcloud.downloadItem(itemID);
                         CloseProgressbar();
                         break;
                     case 3:
+                        if (!_nextcloud.getItems()->at(itemID).removeFile())
                             Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
                         break;
 

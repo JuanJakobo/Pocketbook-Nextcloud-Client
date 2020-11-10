@@ -91,7 +91,6 @@ void LoginView::keyboardHandler(char *text)
 int LoginView::logginClicked(int x, int y)
 {
     _charBuffer = (char *)malloc(_bufferSize);
-    //_charBuffer = "test";
 
     if (IsInRect(x, y, &_urlButton))
     {

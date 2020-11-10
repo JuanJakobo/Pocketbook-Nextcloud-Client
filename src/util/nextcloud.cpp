@@ -108,7 +108,6 @@ void Nextcloud::logout(bool deleteFiles)
         string cmd = "rm -rf " + NEXTCLOUD_FILE_PATH + "/" + getUsername() + "/";
         system(cmd.c_str());
     }
-    
     remove(NEXTCLOUD_CONFIG_PATH.c_str());
     remove((NEXTCLOUD_CONFIG_PATH + ".back.").c_str());
 
@@ -121,14 +120,6 @@ void Nextcloud::logout(bool deleteFiles)
 void Nextcloud::downloadItem(int itemID)
 {
     Log::writeLog("started download of " + _items->at(itemID).getPath() + " to " + _items->at(itemID).getLocalPath());
-
-    if (_workOffline)
-    {
-        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "You are in offline modus. Go back online?", "Yes", "No", "Cancel");
-        if (dialogResult == 2 || dialogResult == 3)
-            return;
-        _workOffline = false;
-    }
 
     if (!Util::connectToNetwork())
     {
@@ -186,14 +177,6 @@ void Nextcloud::downloadItem(int itemID)
             }
         }
     }
-}
-
-bool Nextcloud::removeFile(int itemID)
-{
-    if (remove(_items->at(itemID).getLocalPath().c_str()) != 0)
-        return false;
-    _items->at(itemID).setDownloaded(false);
-    return true;
 }
 
 bool Nextcloud::getDataStructure(string &pathUrl)

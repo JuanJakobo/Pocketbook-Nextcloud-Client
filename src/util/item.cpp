@@ -88,10 +88,20 @@ void Item::open() const
     }
 }
 
-void Item::removeFile()
+bool Item::removeFile()
 {
-    remove(_localPath.c_str());
-    _downloaded = false;
+
+    if (remove(_localPath.c_str()) != 0)
+        return false;
+    if (_state == FileState::ISYNCED)
+    {
+        _state = FileState::ICLOUD;
+    }
+    else
+    {
+        Message(ICON_INFORMATION, "Warning", "The file will be shown until next folder update.", 1200);
+    }
+    return true;
 }
 
 void Item::setSize(double tempSize)
