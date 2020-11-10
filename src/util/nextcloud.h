@@ -25,6 +25,7 @@ const string NEXTCLOUD_CONFIG_PATH = NEXTCLOUD_PATH + "/nextcloud.cfg";
 const string NEXTCLOUD_FILE_PATH = "/mnt/ext1/nextcloud";
 const string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
 const string NEXTCLOUD_STRUCTURE_EXTENSION = ".structure";
+const string NEXTCLOUD_END_PATH = "/nextcloud";
 
 class Nextcloud
 {
