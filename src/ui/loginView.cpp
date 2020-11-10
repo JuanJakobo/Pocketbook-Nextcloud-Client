@@ -28,15 +28,15 @@ LoginView::LoginView(const irect *contentRect) : _contentRect(contentRect)
     _urlButton = iRect(50, 200, (ScreenWidth() - 100), 75, ALIGN_CENTER);
 
     DrawTextRect(_urlButton.x, _urlButton.y - 50, _urlButton.w, _urlButton.h, "Server address:", ALIGN_LEFT);
-    DrawRect(_urlButton.x-1, _urlButton.y-1, _urlButton.w+2, _urlButton.h+2, BLACK);
+    DrawRect(_urlButton.x - 1, _urlButton.y - 1, _urlButton.w + 2, _urlButton.h + 2, BLACK);
 
     _usernameButton = iRect(50, 400, ScreenWidth() - 100, 75, ALIGN_CENTER);
     DrawTextRect(_usernameButton.x, _usernameButton.y - 50, _usernameButton.w, _usernameButton.h, "Username:", ALIGN_LEFT);
-    DrawRect(_usernameButton.x-1, _usernameButton.y-1, _usernameButton.w+2, _usernameButton.h+2, BLACK);
+    DrawRect(_usernameButton.x - 1, _usernameButton.y - 1, _usernameButton.w + 2, _usernameButton.h + 2, BLACK);
 
     _passwordButton = iRect(50, 600, (ScreenWidth() - 100), 75, ALIGN_CENTER);
     DrawTextRect(_passwordButton.x, _passwordButton.y - 50, _passwordButton.w, _passwordButton.h, "Password:", ALIGN_LEFT);
-    DrawRect(_passwordButton.x-1, _passwordButton.y-1, _passwordButton.w+2, _passwordButton.h+2, BLACK);
+    DrawRect(_passwordButton.x - 1, _passwordButton.y - 1, _passwordButton.w + 2, _passwordButton.h + 2, BLACK);
 
     _loginButton = iRect(50, 750, (ScreenWidth() - 100), 75, ALIGN_CENTER);
 
@@ -85,12 +85,13 @@ void LoginView::keyboardHandler(char *text)
         DrawTextRect2(&_passwordButton, pass.c_str());
     }
 
-    _charBuffer = NULL;
+    free(_charBuffer);
 }
 
 int LoginView::logginClicked(int x, int y)
 {
-    _charBuffer = new char[4 * MAX_CHAR_BUFF_LENGHT + 1];
+    _charBuffer = (char *)malloc(_bufferSize);
+    //_charBuffer = "test";
 
     if (IsInRect(x, y, &_urlButton))
     {
@@ -116,7 +117,7 @@ int LoginView::logginClicked(int x, int y)
     {
         if (_username.empty() || _password.empty() || _url.empty())
         {
-            Message(ICON_ERROR, "Error", "Please set url, username and password.", 600);
+            Message(ICON_ERROR, "Error", "Please set url, username and password.", 1200);
             return 1;
         }
 

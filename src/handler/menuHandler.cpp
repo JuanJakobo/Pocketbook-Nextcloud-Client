@@ -32,8 +32,8 @@ MenuHandler::MenuHandler(const string &name)
 
     _contentRect = iRect(0, _panelMenuHeight, ScreenWidth(), (ScreenHeight() - PanelHeight() - _panelMenuHeight), 0);
 
-    _loadingScreenRect = iRect (_contentRect.w/2-125,_contentRect.h / 2 - 50, 250,100, ALIGN_CENTER);
-    _loadingFont = std::unique_ptr<ifont>(OpenFont("LiberationMono",_loadingScreenRect.h /4 , 1));
+    _loadingScreenRect = iRect(_contentRect.w / 2 - 125, _contentRect.h / 2 - 50, 250, 100, ALIGN_CENTER);
+    _loadingFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", _loadingScreenRect.h / 4, 1));
 
     SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
     DrawPanel(NULL, "", NULL, -1);

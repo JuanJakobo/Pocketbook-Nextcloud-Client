@@ -80,7 +80,7 @@ void Item::open() const
     */
     else
     {
-        Message(3, "Warning", "The filetype is currently not supported. :/", 600);
+        Message(ICON_INFORMATION, "Warning", "The filetype is currently not supported.", 1200);
     }
 }
 

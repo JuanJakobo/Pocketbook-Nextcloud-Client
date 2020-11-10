@@ -29,11 +29,17 @@ EventHandler::EventHandler()
 
     if (iv_access(NEXTCLOUD_CONFIG_PATH.c_str(), W_OK) == 0)
     {
+        _menu.drawLoadingScreen();
         if (_nextcloud.login())
         {
             _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
             FullUpdate();
             return;
+        }
+        else
+        {
+            Message(ICON_ERROR, "Error", "Could not login, please try again.", 1200);
+            _nextcloud.logout();
         }
     }
 
@@ -70,7 +76,7 @@ void EventHandler::mainMenuHandler(const int index)
             }
             else
             {
-                Message(ICON_WARNING, "Warning", "Could not connect to the internet.", 600);
+                Message(ICON_WARNING, "Warning", "Could not connect to the internet.", 1200);
             }
         }
         else
@@ -154,8 +160,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         CloseProgressbar();
                         break;
                     case 3:
-                        if (!_nextcloud.removeFile(itemID))
-                            Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 600);
+                            Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
                         break;
 
                     default:
@@ -173,6 +178,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         {
             if (_loginView->logginClicked(par1, par2) == 2)
             {
+                _menu.drawLoadingScreen();
                 if (_nextcloud.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
                 {
                     _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));

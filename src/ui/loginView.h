@@ -41,7 +41,9 @@ private:
     string _username;
     string _password;
     string _url;
-    char *_charBuffer;
+    char *_charBuffer; 
+    const int _bufferSize = 4 * MAX_CHAR_BUFF_LENGHT + 1;
+
 
     /**
         * Functions needed to call C function, handles the panel

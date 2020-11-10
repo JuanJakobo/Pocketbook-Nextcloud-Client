@@ -117,15 +117,18 @@ void Nextcloud::downloadItem(int itemID)
 
     if (!Util::connectToNetwork())
     {
-        Message(3, "Warning", "Can not connect to the Internet. Switching to offline modus.", 600);
+        Message(ICON_WARNING, "Warning", "Can not connect to the Internet. Switching to offline modus.", 1200);
         _workOffline = true;
     }
 
     if (_items->at(itemID).getPath().empty())
     {
-        Message(3, "Warning", "Download path is not set, therefore cannot download the file.", 600);
+        Message(ICON_ERROR, "Error", "Download path is not set, therefore cannot download the file.", 1200);
         return;
     }
+
+    UpdateProgressbar("Starting Download", 0);
+
     CURLcode res;
     CURL *curl = curl_easy_init();
 
@@ -191,7 +194,7 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
 
     if (!Util::connectToNetwork())
     {
-        Message(3, "Warning", "Cannot connect to the internet. Switching to offline modus. To work online turn on online modus in the menu.", 200);
+        Message(ICON_WARNING, "Warning", "Cannot connect to the internet. Switching to offline modus. To work online turn on online modus in the menu.", 200);
         _workOffline = true;
         return getOfflineStructure(pathUrl);
     }
@@ -310,6 +313,7 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
                     Log::writeLog(localPath + "Couldnt save copy of tree structure locally.");
                 }
 
+                outFile.close();
                 return true;
             }
             case 401:
@@ -404,6 +408,7 @@ bool Nextcloud::readInXML(string xml)
 
 string Nextcloud::getLocalPath(string path)
 {
+    Util::decodeUrl(path);
     if (path.find(NEXTCLOUD_ROOT_PATH) != string::npos)
         path = path.substr(NEXTCLOUD_ROOT_PATH.length());
 
