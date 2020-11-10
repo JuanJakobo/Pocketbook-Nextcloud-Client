@@ -13,13 +13,8 @@ Download and unzip the file from releases and place the nextcloud.app into the "
 After login you are at the root file folder of your nextcloud instance.
 To download a file, click on it. A synced file can be either opened, synced or removed.
 
-##  To-Do's
-* [ ] compare local files to server files (currently local files are not shown)
-* [ ] add options --> start on which folder, foldersize, show only local data in nextcloud structure
-* [ ] open audiobooks, pictures
-
 ### Known issues
-* The main menu of the PB shows new books only if it turns into sleep modus. Otherwise the new books can only be opened from the nextcloud applicaton
+* The main menu of the PB shows new books only if it turns into sleep modus. Otherwise the new books can only be opened from the nextcloud applicaton.
 
 ## Disclamer
 

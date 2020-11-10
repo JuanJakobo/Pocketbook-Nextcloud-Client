@@ -68,16 +68,29 @@ Item::Item(const string &localPath, FileState state) : _localPath(localPath), _s
 void Item::open() const
 {
     if (_fileType.find("application/epub+zip") != string::npos ||
-        _fileType.find("application/pdf") != string::npos)
+        _fileType.find("application/pdf") != string::npos ||
+        _fileType.find("application/octet-stream") != string::npos ||
+        _fileType.find("text/plain") != string::npos ||
+        _fileType.find("text/html") != string::npos ||
+        _fileType.find("text/rtf") != string::npos ||
+        _fileType.find("application/msword") != string::npos ||
+        _fileType.find("application/x-mobipocket-ebook") != string::npos ||
+        _fileType.find("application/vnd.openxmlformats-officedocument.wordprocessingml.document") != string::npos ||
+        _fileType.find("application/x-fictionbook+xml") != string::npos)
     {
+
         OpenBook(_localPath.c_str(), "", 0);
     }
     /*
-    else if (_fileType.find("image/jpeg") != string::npos)
+    else if (_fileType.find("audio/mpeg") != string::npos ||
+             _fileType.find("audio/ogg") != string::npos ||
+             _fileType.find("audio/mp4") != string::npos ||
+             _fileType.find("audio/m4b") != string::npos)
     {
-        Message(3, "Info", "Opening image", 600);
+        PlayFile(_localPath.c_str());
+        OpenPlayer();
     }
-    else if (_fileType.find("text") != string::npos)
+    else if (_fileType.find("image/jpeg") != string::npos)
     {
         Message(3, "Info", "Opening image", 600);
     }
