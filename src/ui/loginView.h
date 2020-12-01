@@ -16,7 +16,7 @@
 
 using std::string;
 
-const int MAX_CHAR_BUFF_LENGHT = 256;
+const int KEYBOARD_STRING_LENGHT = 80;
 
 class LoginView
 {
@@ -41,9 +41,7 @@ private:
     string _username;
     string _password;
     string _url;
-    char *_charBuffer; 
-    const int _bufferSize = 4 * MAX_CHAR_BUFF_LENGHT + 1;
-
+    string _temp;
 
     /**
         * Functions needed to call C function, handles the panel

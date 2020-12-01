@@ -84,31 +84,36 @@ void LoginView::keyboardHandler(char *text)
 
         DrawTextRect2(&_passwordButton, pass.c_str());
     }
-
-    free(_charBuffer);
 }
 
 int LoginView::logginClicked(int x, int y)
 {
-    _charBuffer = (char *)malloc(_bufferSize);
+    _temp = "";
 
     if (IsInRect(x, y, &_urlButton))
     {
         _keyboardValue = 1;
-        OpenKeyboard("Server address", _charBuffer, MAX_CHAR_BUFF_LENGHT - 1, KBD_NORMAL, &keyboardHandlerStatic);
+        if(!_url.empty())
+            _temp = _url;
+        _temp.resize(KEYBOARD_STRING_LENGHT);
+        OpenKeyboard("Server address", &_temp[0],KEYBOARD_STRING_LENGHT - 1, KBD_NORMAL, &keyboardHandlerStatic);
         return 1;
     }
 
     else if (IsInRect(x, y, &_usernameButton))
     {
         _keyboardValue = 2;
-        OpenKeyboard("Username", _charBuffer, MAX_CHAR_BUFF_LENGHT - 1, KBD_NORMAL, &keyboardHandlerStatic);
+        if(!_username.empty())
+            _temp = _username;
+        _temp.resize(KEYBOARD_STRING_LENGHT);
+        OpenKeyboard("Username", &_temp[0], KEYBOARD_STRING_LENGHT, KBD_NORMAL, &keyboardHandlerStatic);
         return 1;
     }
     else if (IsInRect(x, y, &_passwordButton))
     {
         _keyboardValue = 3;
-        OpenKeyboard("Password", _charBuffer, MAX_CHAR_BUFF_LENGHT - 1, KBD_PASSWORD, &keyboardHandlerStatic);
+        _temp.resize(KEYBOARD_STRING_LENGHT);
+        OpenKeyboard("Password",&_temp[0], KEYBOARD_STRING_LENGHT, KBD_PASSWORD, &keyboardHandlerStatic);
 
         return 1;
     }
