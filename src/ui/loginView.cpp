@@ -59,13 +59,13 @@ void LoginView::keyboardHandler(char *text)
     if (s.empty())
         return;
 
-    if (_keyboardValue == 1)
+    if (_target == KeyboardTarget::IURL)
     {
         _url = s.c_str();
         FillAreaRect(&_urlButton, WHITE);
         DrawTextRect2(&_urlButton, s.c_str());
     }
-    else if (_keyboardValue == 2)
+    else if (_target == KeyboardTarget::IUSERNAME)
     {
         _username = s.c_str();
         FillAreaRect(&_usernameButton, WHITE);
@@ -92,7 +92,7 @@ int LoginView::logginClicked(int x, int y)
 
     if (IsInRect(x, y, &_urlButton))
     {
-        _keyboardValue = 1;
+        _target = KeyboardTarget::IURL;
         if(!_url.empty())
             _temp = _url;
         _temp.resize(KEYBOARD_STRING_LENGHT);
@@ -102,7 +102,7 @@ int LoginView::logginClicked(int x, int y)
 
     else if (IsInRect(x, y, &_usernameButton))
     {
-        _keyboardValue = 2;
+        _target = KeyboardTarget::IUSERNAME;
         if(!_username.empty())
             _temp = _username;
         _temp.resize(KEYBOARD_STRING_LENGHT);
@@ -111,7 +111,7 @@ int LoginView::logginClicked(int x, int y)
     }
     else if (IsInRect(x, y, &_passwordButton))
     {
-        _keyboardValue = 3;
+        _target = KeyboardTarget::IPASSWORD;
         _temp.resize(KEYBOARD_STRING_LENGHT);
         OpenKeyboard("Password",&_temp[0], KEYBOARD_STRING_LENGHT, KBD_PASSWORD, &keyboardHandlerStatic);
 
