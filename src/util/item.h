@@ -31,9 +31,28 @@ enum FileState
 class Item
 {
 public:
+
+    /**
+        * Creates an item by receiving the xml from nextcloud and parses it into an object 
+        * 
+        * @param xmlItem result of the nextcloud request
+        */
     Item(const string &xmlItem);
 
+    /**
+     * Creates a new item by receiving localPath from the pocketbook
+     * 
+     * @param localPath path where the file is placed
+     * @param FileState state of the file
     Item(const string &localPath, FileState state);
+    
+    /**
+     * Tries to open the item by checking the file format and then executes the fitting action
+     */
+    void open() const;
+
+
+    bool removeFile();
 
     void setPath(const string &path) { _path = path; };
     string getPath() const { return _path; };
@@ -55,10 +74,6 @@ public:
 
     string getFiletype() const { return _fileType; };
 
-    void open() const;
-
-    bool removeFile();
-
 private:
     string _path;
     Itemtype _type;
@@ -69,6 +84,11 @@ private:
     string _size{"Error"};
     string _fileType;
 
+    /**
+     * Converts the size to an easier readble format
+     * 
+     * @param tempSize Size of the item in bytes
+     */
     void setSize(double tempSize);
 };
 #endif

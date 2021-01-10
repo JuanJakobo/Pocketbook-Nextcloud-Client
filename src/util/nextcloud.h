@@ -33,18 +33,29 @@ public:
     explicit Nextcloud();
 
     /**
-        * Handles first login to nextcloud, if sucessfull saves userdata
-        * 
-        * @param Username the username of the Nextcloud instance
-        * @param Pass the pass of the Nextcloud instance
-        * @return true - sucessfull login, false - failed login
-        */
+      * Handles first login to nextcloud, if sucessfull saves userdata
+      * 
+      * @param Username the username of the Nextcloud instance
+      * @param Pass the pass of the Nextcloud instance
+      * @return true - sucessfull login, false - failed login
+      */
     bool login(const string &Url, const string &Username, const string &Pass);
 
+    /**
+     * Handles login by receiving userdat from config
+     */
     bool login();
 
+    /**
+     * Deletes the config files and deletes are temp files 
+     * @param deleteFiles default false, true - local files are deleted, false local files are kept
+     */
     void logout(bool deleteFiles = false);
 
+    /**
+     * Downloads a certain item from the Nextcloud and saves it locally 
+     * @param itemID id of the item 
+     */
     void downloadItem(int itemID);
 
     /**

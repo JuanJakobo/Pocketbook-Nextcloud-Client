@@ -21,7 +21,6 @@ using namespace std;
 Item::Item(const string &xmlItem)
 {
     _path = Util::getXMLAttribute(xmlItem, "d:href");
-    //TODO also test for url
     if (_path.find(NEXTCLOUD_END_PATH) != std::string::npos)
         _path.erase(0, NEXTCLOUD_END_PATH.length());
 

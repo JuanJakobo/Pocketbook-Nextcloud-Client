@@ -394,7 +394,6 @@ bool Nextcloud::getOfflineStructure(const string &pathUrl)
         ifstream inFile(localPath);
         std::stringstream buffer;
         buffer << inFile.rdbuf();
-        //TODO also show in offline modus all files!
 
         if (!readInXML(buffer.str()))
             return false;

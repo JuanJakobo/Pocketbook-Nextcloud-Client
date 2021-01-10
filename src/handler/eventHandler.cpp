@@ -144,7 +144,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     _tempPath = _nextcloud.getItems()->at(itemID).getPath();
                     if (!_tempPath.empty())
                         _nextcloud.getDataStructure(_tempPath);
-
                     _listView.reset(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
                     _listView->drawHeader(_tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
                 }
@@ -162,7 +161,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         _nextcloud.getItems()->at(itemID).open();
                         break;
                     case 2:
-                        //TODO implement upload if local file
                         if (_nextcloud.isWorkOffline())
                         {
                             int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "You are in offline modus. Go back online?", "Yes", "No", "Cancel");
