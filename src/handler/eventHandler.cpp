@@ -117,7 +117,7 @@ void EventHandler::mainMenuHandler(const int index)
     //Info
     case 104:
     {
-         int dialogResult = DialogSynchro(ICON_INFORMATION, "Information", "Version 0.5 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues","","", "Close");
+        dialogResult = DialogSynchro(ICON_INFORMATION, "Information", "Version 0.5 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues","","", "Close");
         break;
     }
     //Exit
@@ -215,5 +215,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 void EventHandler::DialogHandlerStatic(const int clicked)
 {
     //TODO cannot interact with it
+    // make download in different thread https://github.com/pmartin/pocketbook-demo/blob/master/demo08-pthreads/demo08.cpp
     //CloseProgressbar();
 }
