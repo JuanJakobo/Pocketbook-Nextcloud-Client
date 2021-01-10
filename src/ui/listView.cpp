@@ -23,9 +23,6 @@ ListView::ListView(const irect *contentRect, const std::shared_ptr<vector<Item>>
 {
     FillAreaRect(_contentRect, WHITE);
 
-    _titleFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", 35, 1));
-    _footerFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", 30, 1));
-
     _entries.clear();
 
     int entrySize = (_contentRect->h - _footerHeight - _headerHeight) / _itemCount;
@@ -65,11 +62,15 @@ ListView::ListView(const irect *contentRect, const std::shared_ptr<vector<Item>>
 
 ListView::~ListView()
 {
+    CloseFont(_entryFont);
+    CloseFont(_entryFontBold);
+    CloseFont(_titleFont);
+    CloseFont(_footerFont);
 }
 
 void ListView::drawHeader(string headerText)
 {
-    SetFont(_titleFont.get(), BLACK);
+    SetFont(_titleFont, BLACK);
     Util::decodeUrl(headerText);
     DrawTextRect(_contentRect->x, _contentRect->y, _contentRect->w, _headerHeight - 1, headerText.c_str(), ALIGN_LEFT);
 
@@ -79,7 +80,7 @@ void ListView::drawHeader(string headerText)
 
 void ListView::drawFooter()
 {
-    SetFont(_footerFont.get(), WHITE);
+    SetFont(_footerFont, WHITE);
     string footer = Util::valueToString<int>(_shownPage) + "/" + Util::valueToString<int>(_page);
     FillAreaRect(&_pageIcon, BLACK);
 
@@ -95,7 +96,7 @@ void ListView::drawFooter()
 void ListView::drawEntry(int itemID)
 {
     FillAreaRect(_entries[itemID].getPosition(), WHITE);
-    _entries[itemID].draw(_items->at(itemID));
+    _entries[itemID].draw(_items->at(itemID), _entryFont, _entryFontBold, _fontHeight);
 }
 
 void ListView::drawEntries()
@@ -103,7 +104,7 @@ void ListView::drawEntries()
     for (auto i = 0; i < _entries.size(); i++)
     {
         if (_entries[i].getPage() == _shownPage)
-            _entries[i].draw(_items->at(i));
+            _entries[i].draw(_items->at(i), _entryFont, _entryFontBold, _fontHeight);
     }
 }
 

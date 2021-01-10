@@ -30,6 +30,8 @@ class LoginView
 public:
     LoginView(const irect *contentRect);
 
+    ~LoginView();
+    
     int logginClicked(int x, int y);
 
     string getUsername() { return _username; };
@@ -38,7 +40,7 @@ public:
 
 private:
     static LoginView *_loginViewStatic;
-    std::unique_ptr<ifont> _loginFont;
+    ifont *_loginFont = OpenFont("LiberationMono", 40, 1);
     const irect *_contentRect;
     irect _urlButton;
     irect _loginButton;

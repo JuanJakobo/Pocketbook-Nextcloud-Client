@@ -69,19 +69,22 @@ public:
     int listClicked(int x, int y);
 
 private:
+    int _footerHeight = 100;
+    int _headerHeight = 40;
+    int _fontHeight = 30;
     const irect *_contentRect;
     const std::shared_ptr<vector<Item>> _items =  nullptr;
     vector<ListViewEntry> _entries;
-    std::unique_ptr<ifont> _titleFont;
-    std::unique_ptr<ifont> _footerFont;
+    ifont *_titleFont = OpenFont("LiberationMono", 35, 1);
+    ifont *_footerFont = OpenFont("LiberationMono", 30, 1);
+    ifont *_entryFont = OpenFont("LiberationMono", _fontHeight, 1);
+    ifont *_entryFontBold = OpenFont("LiberationMono-Bold", _fontHeight, 1);
     int _page;
     int _shownPage;
     irect _pageIcon;
     irect _nextPageButton;
     irect _lastPageButton;
     irect _firstPageButton;
-    int _footerHeight = 100;
-    int _headerHeight = 40;
-    int _itemCount = 7;
+   int _itemCount = 7;
 };
 #endif

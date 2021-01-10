@@ -33,14 +33,10 @@ public:
         * 
         * @param item item that shall be drawn
         */
-    void draw(const Item &item);
+    void draw(const Item &item, ifont *entryFont, ifont *entryFontBold, int fontHeight);
 
 private:
     int _page;
-    //TODO in central class?
-    int _fontHeight = 30;
-    std::unique_ptr<ifont> _entryFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", _fontHeight, 1));;
-    std::unique_ptr<ifont> _entryFontBold = std::unique_ptr<ifont>(OpenFont("LiberationMono-Bold", _fontHeight, 1));
     irect _position;
 };
 #endif

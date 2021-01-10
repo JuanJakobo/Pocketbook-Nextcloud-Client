@@ -20,9 +20,8 @@ LoginView *LoginView::_loginViewStatic;
 LoginView::LoginView(const irect *contentRect) : _contentRect(contentRect)
 {
     _loginViewStatic = this;
-    _loginFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", 40, 1));
 
-    SetFont(_loginFont.get(), BLACK);
+    SetFont(_loginFont, BLACK);
     FillAreaRect(_contentRect, WHITE);
 
     _urlButton = iRect(50, 200, (ScreenWidth() - 100), 75, ALIGN_CENTER);
@@ -41,10 +40,14 @@ LoginView::LoginView(const irect *contentRect) : _contentRect(contentRect)
     _loginButton = iRect(50, 750, (ScreenWidth() - 100), 75, ALIGN_CENTER);
 
     FillAreaRect(&_loginButton, BLACK);
-    SetFont(_loginFont.get(), WHITE);
+    SetFont(_loginFont, WHITE);
     DrawTextRect2(&_loginButton, "Login");
 }
 
+LoginView::~LoginView()
+{
+    CloseFont(_loginFont);
+}
 void LoginView::keyboardHandlerStatic(char *text)
 {
     _loginViewStatic->keyboardHandler(text);
