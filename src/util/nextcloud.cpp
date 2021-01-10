@@ -253,13 +253,11 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
                     if (iv_access(localPath.c_str(), R_OK) != 0)
                     {
                         Log::writeLog("Local structure of " + localPath + " found.");
-                        //TODO if has files that are not online, add to _items
                     }
 
                     getLocalFileStructure(localPath);
                 }
 
-                //TODO structure as CSV?
                 //update the .structure file acording to items in the folder
                 localPath = localPath + NEXTCLOUD_STRUCTURE_EXTENSION;
 
@@ -419,7 +417,7 @@ bool Nextcloud::getOfflineStructure(const string &pathUrl)
 
 void Nextcloud::getLocalFileStructure(const string &localPath)
 {
-    //TODO also get folders
+    //TODO also show local folders that are not synced to the cloud yet
     //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
     DIR *dir;
     class dirent *ent;

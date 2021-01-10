@@ -117,7 +117,7 @@ void EventHandler::mainMenuHandler(const int index)
     //Info
     case 104:
     {
-        dialogResult = DialogSynchro(ICON_INFORMATION, "Information", "Version 0.5 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues","","", "Close");
+        DialogSynchro(ICON_INFORMATION, "Information", "Version 0.5 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues","","", "Close");
         break;
     }
     //Exit
