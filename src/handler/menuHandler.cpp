@@ -59,16 +59,17 @@ int MenuHandler::createMenu(bool loggedIn, bool workOffline, iv_menuhandler hand
             {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 102, "Make startfolder", NULL},
             {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 103, "Logout", NULL},
             //show always
-            {ITEM_ACTIVE, 104, "Exit"},
+            {ITEM_ACTIVE, 104, "Info"},
+            {ITEM_ACTIVE, 105, "Exit"},
             {0, 0, NULL, NULL}};
 
     if (loggedIn)
     {
-        mainMenu[2].type = ITEM_ACTIVE;
+        mainMenu[3].type = ITEM_ACTIVE;
     }
     else
     {
-        mainMenu[1].type = ITEM_ACTIVE;
+        mainMenu[2].type = ITEM_ACTIVE;
     }
 
     OpenMenu(mainMenu, 0, _panelMenuBeginX, _panelMenuBeginY, handler);

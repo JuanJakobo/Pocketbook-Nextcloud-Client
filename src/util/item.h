@@ -44,6 +44,7 @@ public:
      * 
      * @param localPath path where the file is placed
      * @param FileState state of the file
+     */
     Item(const string &localPath, FileState state);
     
     /**
