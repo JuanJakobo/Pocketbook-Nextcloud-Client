@@ -25,7 +25,19 @@ ListView::ListView(const irect *contentRect, const std::shared_ptr<vector<Item>>
 
     _entries.clear();
 
-    int entrySize = (_contentRect->h - _footerHeight - _headerHeight) / _itemCount;
+    int entrySize = _contentRect->h / (_itemCount + 1);
+
+    _headerHeight = 0.25 * entrySize;
+    _footerHeight = 0.75 * entrySize;
+
+    _headerFontHeight = 0.8 * _headerHeight;
+    _footerFontHeight = 0.3 * _footerHeight;
+    _entryFontHeight = 0.2 * entrySize;
+
+    _headerFont = OpenFont("LiberationMono", _headerFontHeight, 1);
+    _footerFont = OpenFont("LiberationMono", _footerFontHeight, 1);
+    _entryFont = OpenFont("LiberationMono", _entryFontHeight, 1);
+    _entryFontBold = OpenFont("LiberationMono-Bold", _entryFontHeight, 1);
 
     _page = 1;
     _shownPage = _page;
@@ -63,13 +75,13 @@ ListView::~ListView()
 {
     CloseFont(_entryFont);
     CloseFont(_entryFontBold);
-    CloseFont(_titleFont);
+    CloseFont(_headerFont);
     CloseFont(_footerFont);
 }
 
 void ListView::drawHeader(string headerText)
 {
-    SetFont(_titleFont, BLACK);
+    SetFont(_headerFont, BLACK);
     Util::decodeUrl(headerText);
     DrawTextRect(_contentRect->x, _contentRect->y, _contentRect->w, _headerHeight - 1, headerText.c_str(), ALIGN_LEFT);
 
@@ -95,7 +107,7 @@ void ListView::drawFooter()
 void ListView::drawEntry(int itemID)
 {
     FillAreaRect(_entries[itemID].getPosition(), WHITE);
-    _entries[itemID].draw(_items->at(itemID), _entryFont, _entryFontBold, _fontHeight);
+    _entries[itemID].draw(_items->at(itemID), _entryFont, _entryFontBold, _entryFontHeight);
 }
 
 void ListView::drawEntries()
@@ -103,7 +115,7 @@ void ListView::drawEntries()
     for (auto i = 0; i < _entries.size(); i++)
     {
         if (_entries[i].getPage() == _shownPage)
-            _entries[i].draw(_items->at(i), _entryFont, _entryFontBold, _fontHeight);
+            _entries[i].draw(_items->at(i), _entryFont, _entryFontBold, _entryFontHeight);
     }
 }
 
@@ -134,11 +146,11 @@ int ListView::listClicked(int x, int y)
     }
     else if (IsInRect(x, y, &_nextPageButton))
     {
-        actualizePage(_shownPage+1);
+        actualizePage(_shownPage + 1);
     }
     else if (IsInRect(x, y, &_lastPageButton))
     {
-        actualizePage(_shownPage-1);
+        actualizePage(_shownPage - 1);
     }
     else
     {
