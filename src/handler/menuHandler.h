@@ -10,7 +10,6 @@
 #define MENU_HANDLER
 
 #include <string>
-#include <memory>
 
 using std::string;
 
@@ -23,6 +22,8 @@ public:
         * @param name name of the application
         */
     MenuHandler(const string &name);
+
+    ~MenuHandler();
 
     irect *getContentRect() { return &_contentRect; };
     irect *getMenuButtonRect() { return &_menuButtonRect; };
@@ -39,8 +40,8 @@ public:
     void drawLoadingScreen();
 
 private:
-    std::unique_ptr<ifont> _menuFont;
-    std::unique_ptr<ifont> _loadingFont;
+    ifont *_menuFont;
+    ifont *_loadingFont;
 
     int _panelMenuBeginX;
     int _panelMenuBeginY;

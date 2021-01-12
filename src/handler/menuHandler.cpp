@@ -10,7 +10,6 @@
 #include "menuHandler.h"
 
 #include <string>
-#include <memory>
 
 using std::string;
 
@@ -23,9 +22,10 @@ MenuHandler::MenuHandler(const string &name)
     _panelMenuBeginX = ScreenWidth() - _mainMenuWidth;
 
     _menuButtonRect = iRect(_mainMenuWidth * 2, _panelMenuBeginY, _mainMenuWidth, _panelMenuHeight, ALIGN_RIGHT);
-    _menuFont = std::unique_ptr<ifont>(OpenFont("LiberationMono-Bold", _panelMenuHeight / 2, 1));
 
-    SetFont(_menuFont.get(), BLACK);
+    _menuFont = OpenFont("LiberationMono-Bold", _panelMenuHeight / 2, 1);
+
+    SetFont(_menuFont, BLACK);
     DrawTextRect(0, _panelMenuBeginY, ScreenWidth(), _panelMenuHeight, name.c_str(), ALIGN_CENTER);
     DrawTextRect2(&_menuButtonRect, "Menu");
     DrawLine(0, _panelMenuHeight - 1, ScreenWidth(), _panelMenuHeight - 1, BLACK);
@@ -33,10 +33,16 @@ MenuHandler::MenuHandler(const string &name)
     _contentRect = iRect(0, _panelMenuHeight, ScreenWidth(), (ScreenHeight() - PanelHeight() - _panelMenuHeight), 0);
 
     _loadingScreenRect = iRect(_contentRect.w / 2 - 125, _contentRect.h / 2 - 50, 250, 100, ALIGN_CENTER);
-    _loadingFont = std::unique_ptr<ifont>(OpenFont("LiberationMono", _loadingScreenRect.h / 4, 1));
+    _loadingFont = OpenFont("LiberationMono", _loadingScreenRect.h / 4, 1);
 
     SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
     DrawPanel(NULL, "", NULL, -1);
+}
+
+MenuHandler::~MenuHandler()
+{
+    CloseFont(_menuFont);
+    CloseFont(_loadingFont);
 }
 
 void MenuHandler::panelHandlerStatic()
@@ -79,7 +85,7 @@ int MenuHandler::createMenu(bool loggedIn, bool workOffline, iv_menuhandler hand
 
 void MenuHandler::drawLoadingScreen()
 {
-    SetFont(_loadingFont.get(), BLACK);
+    SetFont(_loadingFont, BLACK);
     DrawTextRect2(&_loadingScreenRect, "Loading...");
     PartialUpdate(_loadingScreenRect.x, _loadingScreenRect.y, _loadingScreenRect.w, _loadingScreenRect.h);
 }
