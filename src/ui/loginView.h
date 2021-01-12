@@ -12,7 +12,6 @@
 #include "inkview.h"
 
 #include <string>
-#include <memory>
 
 using std::string;
 
@@ -40,7 +39,8 @@ public:
 
 private:
     static LoginView *_loginViewStatic;
-    ifont *_loginFont = OpenFont("LiberationMono", 40, 1);
+    int _loginFontHeight;
+    ifont *_loginFont; 
     const irect *_contentRect;
     irect _urlButton;
     irect _loginButton;
