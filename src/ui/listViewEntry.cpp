@@ -11,8 +11,6 @@
 #include "listViewEntry.h"
 #include "util.h"
 
-#include <memory>
-
 ListViewEntry::ListViewEntry(int page, irect rect) : _page(page), _position(rect)
 {
 }

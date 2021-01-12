@@ -12,8 +12,6 @@
 #include "inkview.h"
 #include "item.h"
 
-#include <memory>
-
 class ListViewEntry
 {
 public:
