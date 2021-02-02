@@ -16,8 +16,9 @@ A basic client to access an existing nextcloud instance via Pocketbook.
 Download and unzip the file from releases and place the nextcloud.app into the "applications" folder of your pocketbook. Once you disconnect the Pocketbook from the PC, the application should be visibile in the application launcher.
 
 ### Tested on
-* Pocketbook HD3 (PB623) 
+* Pocketbook Touch HD3 (PB623) 
 * Pocketbook Touch Lux 5
+* PocketBook Touch HD2 (PB631)
 
 ## Usage
 To login type the servername (e.g. https://domain), Username and Password. You then will be redirected to the root file folder of your nextcloud instance.
