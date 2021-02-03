@@ -10,6 +10,7 @@
 
 #include <string>
 #include <math.h>
+#include <curl/curl.h>
 
 using std::string;
 
@@ -75,85 +76,12 @@ string Util::getXMLAttribute(const string &buffer, const string &name)
 
 void Util::decodeUrl(string &item)
 {
-    string buffer;
-    buffer.reserve(item.size());
-    for (size_t pos = 0; pos != item.size(); ++pos)
-    {
-        string temp = item.substr(pos, 3);
-        if (temp == "%20")
-        {
-            buffer.append(" ");
-            pos = pos + 2;
-        }
-        else if (temp == "%21")
-        {
-            buffer.append("!");
-            pos = pos + 2;
-        }
-        else if (temp == "%22")
-        {
-            buffer.append("\"");
-            pos = pos + 2;
-        }
-        else if (temp == "%23")
-        {
-            buffer.append("#");
-            pos = pos + 2;
-        }
-        else if (temp == "%24")
-        {
-            buffer.append("$");
-            pos = pos + 2;
-        }
-        else if (temp == "%25")
-        {
-            buffer.append("%");
-            pos = pos + 2;
-        }
-        else if (temp == "%26")
-        {
-            buffer.append("&");
-            pos = pos + 2;
-        }
-        else if (temp == "%27")
-        {
-            buffer.append("'");
-            pos = pos + 2;
-        }
-        else if (temp == "%28")
-        {
-            buffer.append("(");
-            pos = pos + 2;
-        }
-        else if (temp == "%29")
-        {
-            buffer.append(")");
-            pos = pos + 2;
-        }
-        else if (temp == "%2a")
-        {
-            buffer.append("*");
-            pos = pos + 2;
-        }
-        else if (temp == "%2b")
-        {
-            buffer.append("+");
-            pos = pos + 2;
-        }
-        else if (temp == "%2c")
-        {
-            buffer.append(",");
-            pos = pos + 2;
-        }
-        else if (temp == "%3f")
-        {
-            buffer.append("?");
-            pos = pos + 2;
-        }
-        else
-        {
-            buffer.append(&item[pos], 1);
-        }
-    }
-    item.swap(buffer);
+    char *buffer;
+    CURL *curl = curl_easy_init();
+
+    buffer = curl_easy_unescape(curl,item.c_str(),0,NULL);
+    item =  buffer;
+
+    curl_free(buffer)
+    curl_easy_cleanup(curl);
 }
