@@ -82,6 +82,6 @@ void Util::decodeUrl(string &item)
     buffer = curl_easy_unescape(curl,item.c_str(),0,NULL);
     item =  buffer;
 
-    curl_free(buffer)
+    curl_free(buffer);
     curl_easy_cleanup(curl);
 }
