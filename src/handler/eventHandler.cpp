@@ -117,7 +117,7 @@ void EventHandler::mainMenuHandler(const int index)
     //Info
     case 104:
     {
-        DialogSynchro(ICON_INFORMATION, "Information", "Version 0.5 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues","","", "Close");
+        DialogSynchro(ICON_INFORMATION, "Information", "Version 0.5 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", "", "", "Close");
         break;
     }
     //Exit
@@ -155,10 +155,11 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 }
                 else
                 {
-                    int dialogResult = 2;
+
+                    int dialogResult = 0;
                     if (_nextcloud.getItems()->at(itemID).getState() != FileState::ICLOUD)
                     {
-                        dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Open", "Sync", "Remove");
+                        dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Open", "Remove", "Cancel");
                     }
 
                     switch (dialogResult)
@@ -167,6 +168,12 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         _nextcloud.getItems()->at(itemID).open();
                         break;
                     case 2:
+                        if (!_nextcloud.getItems()->at(itemID).removeFile())
+                            Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
+                        break;
+                    case 3:
+                        break;
+                    default:
                         if (_nextcloud.isWorkOffline())
                         {
                             int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "You are in offline modus. Go back online?", "Yes", "No", "Cancel");
@@ -177,13 +184,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         OpenProgressbar(1, "Downloading...", "Check network connection", 0, EventHandler::DialogHandlerStatic);
                         _nextcloud.downloadItem(itemID);
                         CloseProgressbar();
-                        break;
-                    case 3:
-                        if (!_nextcloud.getItems()->at(itemID).removeFile())
-                            Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
-                        break;
-
-                    default:
                         break;
                     }
                     _listView->drawEntry(itemID);
