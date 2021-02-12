@@ -22,11 +22,10 @@ using std::ofstream;
 using std::string;
 
 //neccesary to use Dialog method
-Nextcloud *Nextcloud::nextcloudStatic;
-
+std::unique_ptr<Nextcloud> Nextcloud::_nextcloudStatic;
 Nextcloud::Nextcloud()
 {
-    nextcloudStatic = this;
+    _nextcloudStatic = std::unique_ptr<Nextcloud>(this);
 
     if (iv_access(NEXTCLOUD_PATH.c_str(), W_OK) != 0)
         iv_mkdir(NEXTCLOUD_PATH.c_str(), 0777);
@@ -67,6 +66,31 @@ void Nextcloud::setStartFolder(const string &Path)
     CloseConfig(nextcloudConfig);
 }
 
+bool Nextcloud::setItems(const vector<Item> &tempItems)
+{
+
+    if (tempItems.empty())
+        return false;
+
+    if (!_items.empty())
+        _items.clear();
+
+    _items = tempItems;
+
+    //resize item 1
+    string header = _items.at(0).getPath();
+    header = header.substr(0, header.find_last_of("/"));
+    header = header.substr(0, header.find_last_of("/") + 1);
+    _items.at(0).setPath(header);
+    _items.at(0).setTitle("...");
+    _items.at(0).setLastEditDate("");
+
+    if (_items.at(0).getPath().compare(NEXTCLOUD_ROOT_PATH) == 0)
+        _items.erase(_items.begin());
+
+    return true;
+}
+
 bool Nextcloud::login()
 {
     string tempPath = getStartFolder();
@@ -74,7 +98,7 @@ bool Nextcloud::login()
     if (tempPath.empty())
         tempPath = NEXTCLOUD_ROOT_PATH + this->getUsername() + "/";
 
-    if (getDataStructure(tempPath, this->getUsername(), this->getPassword()))
+    if (setItems(getDataStructure(tempPath)))
     {
         _loggedIn = true;
         return true;
@@ -87,7 +111,7 @@ bool Nextcloud::login(const string &Url, const string &Username, const string &P
 {
     _url = Url;
     string tempPath = NEXTCLOUD_ROOT_PATH + Username + "/";
-    if (getDataStructure(tempPath, Username, Pass))
+    if (setItems(getDataStructure(tempPath, Username, Pass)))
     {
         if (iv_access(NEXTCLOUD_CONFIG_PATH.c_str(), W_OK) != 0)
             iv_buildpath(NEXTCLOUD_CONFIG_PATH.c_str());
@@ -112,14 +136,14 @@ void Nextcloud::logout(bool deleteFiles)
     remove((NEXTCLOUD_CONFIG_PATH + ".back.").c_str());
 
     _url.clear();
-    _items = nullptr;
+    _items.clear();
     _workOffline = false;
     _loggedIn = false;
 }
 
 void Nextcloud::downloadItem(int itemID)
 {
-    Log::writeLog("started download of " + _items->at(itemID).getPath() + " to " + _items->at(itemID).getLocalPath());
+    Log::writeLog("started download of " + _items.at(itemID).getPath() + " to " + _items.at(itemID).getLocalPath());
 
     if (!Util::connectToNetwork())
     {
@@ -127,7 +151,7 @@ void Nextcloud::downloadItem(int itemID)
         _workOffline = true;
     }
 
-    if (_items->at(itemID).getPath().empty())
+    if (_items.at(itemID).getPath().empty())
     {
         Message(ICON_ERROR, "Error", "Download path is not set, therefore cannot download the file.", 1200);
         return;
@@ -143,9 +167,9 @@ void Nextcloud::downloadItem(int itemID)
         string post = this->getUsername() + std::string(":") + this->getPassword();
 
         FILE *fp;
-        fp = iv_fopen(_items->at(itemID).getLocalPath().c_str(), "wb");
+        fp = iv_fopen(_items.at(itemID).getLocalPath().c_str(), "wb");
 
-        curl_easy_setopt(curl, CURLOPT_URL, (_url + _items->at(itemID).getPath()).c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, (_url + _items.at(itemID).getPath()).c_str());
         curl_easy_setopt(curl, CURLOPT_USERPWD, post.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeData);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
@@ -165,8 +189,8 @@ void Nextcloud::downloadItem(int itemID)
             switch (response_code)
             {
             case 200:
-                Log::writeLog("finished download of " + _items->at(itemID).getPath() + " to " + _items->at(itemID).getLocalPath());
-                _items->at(itemID).setState(FileState::ISYNCED);
+                Log::writeLog("finished download of " + _items.at(itemID).getPath() + " to " + _items.at(itemID).getLocalPath());
+                _items.at(itemID).setState(FileState::ISYNCED);
                 break;
             case 401:
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
@@ -179,14 +203,47 @@ void Nextcloud::downloadItem(int itemID)
     }
 }
 
-bool Nextcloud::getDataStructure(string &pathUrl)
+bool Nextcloud::downloadFolder(const vector<Item> &tempItems, int itemId)
+{
+
+    //also has to look at the previous items?
+
+    //do not change items oxml or use temp here?
+    if (tempItems.at(itemId).getType() == Itemtype::IFOLDER)
+    {
+
+        //get the data structure under the folder that is requested --> overrides items object and therefore will fail!
+
+        //should return items vector?
+        string temp = tempItems.at(itemId).getPath();
+        vector<Item> tempItemsNew = getDataStructure(temp);
+
+        //this will be the new item list --> where to switch to when this process is over --> open the folder that has t be synced?
+        //get item id?
+        for (auto i = 0; i < tempItemsNew.size(); i++)
+        {
+
+            downloadFolder(tempItemsNew,itemId);
+            //overrides current item list and therefore nos possible!
+            // has to be read in again?
+            // call method again?
+        }
+    }
+    else
+    {
+        downloadItem(itemId);
+    }
+
+   return true;
+}
+
+vector<Item> Nextcloud::getDataStructure(string &pathUrl)
 {
     return getDataStructure(pathUrl, this->getUsername(), this->getPassword());
 }
 
-bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, const string &Pass)
+vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Username, const string &Pass)
 {
-    //could not connect to internet, therefore offline modus
     if (_workOffline)
         return getOfflineStructure(pathUrl);
 
@@ -203,7 +260,7 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
     if (Username.empty() || Pass.empty())
     {
         Message(ICON_ERROR, "Error", "Username/password not set.", 1200);
-        return false;
+        return {};
     }
 
     string readBuffer;
@@ -238,15 +295,15 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
                 string localPath = this->getLocalPath(pathUrl);
 
                 //create items_
-                if (!readInXML(readBuffer))
-                    return false;
+                vector<Item> tempItems = readInXML(readBuffer);
+                if (tempItems.empty())
+                    return {};
 
                 if (iv_access(localPath.c_str(), W_OK) != 0)
                 {
                     //if the current folder does not exist locally, create it
                     iv_buildpath(localPath.c_str());
                 }
-
                 else
                 {
                     //get items from local path
@@ -274,7 +331,7 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
                 }
 
                 outFile.close();
-                return true;
+                return tempItems;
             }
             case 401:
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
@@ -286,7 +343,7 @@ bool Nextcloud::getDataStructure(const string &pathUrl, const string &Username, 
             }
         }
     }
-    return false;
+    return {};
 }
 
 string Nextcloud::getUrl()
@@ -329,11 +386,11 @@ void Nextcloud::DialogHandlerStatic(int Button)
 {
     if (Button == 2)
     {
-        nextcloudStatic->_workOffline = true;
+        _nextcloudStatic->_workOffline = true;
     }
 }
 
-bool Nextcloud::readInXML(string xml)
+vector<Item> Nextcloud::readInXML(string xml)
 {
     size_t begin;
     size_t end;
@@ -347,32 +404,15 @@ bool Nextcloud::readInXML(string xml)
     {
         end = xml.find(endItem);
 
-        tempItems.push_back(Item(xml.substr(begin, end)));
+        tempItems.push_back(xml.substr(begin,end));
 
         xml = xml.substr(end + endItem.length());
 
         begin = xml.find(beginItem);
     }
 
-    if (_items)
-        _items->clear();
-    _items = std::make_shared<vector<Item>>(std::move(tempItems));
+    return tempItems;
 
-    if (_items->size() < 1)
-        return false;
-
-    //resize item 1
-    string header = _items->at(0).getPath();
-    header = header.substr(0, header.find_last_of("/"));
-    header = header.substr(0, header.find_last_of("/") + 1);
-    _items->at(0).setPath(header);
-    _items->at(0).setTitle("...");
-    _items->at(0).setLastEditDate("");
-
-    if (_items->at(0).getPath().compare(NEXTCLOUD_ROOT_PATH) == 0)
-        _items->erase(_items->begin());
-
-    return true;
 }
 
 string Nextcloud::getLocalPath(string path)
@@ -384,7 +424,7 @@ string Nextcloud::getLocalPath(string path)
     return NEXTCLOUD_FILE_PATH + "/" + path;
 }
 
-bool Nextcloud::getOfflineStructure(const string &pathUrl)
+vector<Item> Nextcloud::getOfflineStructure(const string &pathUrl)
 {
     string localPath = this->getLocalPath(pathUrl) + NEXTCLOUD_STRUCTURE_EXTENSION;
     if (iv_access(localPath.c_str(), W_OK) == 0)
@@ -393,10 +433,13 @@ bool Nextcloud::getOfflineStructure(const string &pathUrl)
         std::stringstream buffer;
         buffer << inFile.rdbuf();
 
-        if (!readInXML(buffer.str()))
-            return false;
+        vector<Item> tempItems = readInXML(buffer.str());
+
+        if (tempItems.empty())
+            return {};
 
         getLocalFileStructure(this->getLocalPath(pathUrl));
+        return tempItems;
     }
     else
     {
@@ -411,8 +454,7 @@ bool Nextcloud::getOfflineStructure(const string &pathUrl)
             Message(ICON_ERROR, "Error", "The selected structure is not available offline.", 1200);
         }
     }
-
-    return false;
+    return {};
 }
 
 void Nextcloud::getLocalFileStructure(const string &localPath)
@@ -441,10 +483,10 @@ void Nextcloud::getLocalFileStructure(const string &localPath)
             continue;
 
         bool found = false;
-        for (auto i = 0; i < _items->size(); i++)
+        for (auto i = 0; i < _items.size(); i++)
         {
             //TODO compare last edit local and in cloud and display to user
-            if (_items->at(i).getLocalPath().compare(full_file_name) == 0)
+            if (_items.at(i).getLocalPath().compare(full_file_name) == 0)
             {
                 found = true;
                 break;
@@ -452,7 +494,7 @@ void Nextcloud::getLocalFileStructure(const string &localPath)
         }
         if (!found)
         {
-            _items->push_back(Item(full_file_name, FileState::ILOCAL));
+            _items.push_back(Item(full_file_name, FileState::ILOCAL));
         }
     }
     closedir(dir);

@@ -58,20 +58,27 @@ public:
      */
     void downloadItem(int itemID);
 
+
+    /**
+     * 
+     * 
+     */
+    bool downloadFolder(const vector<Item> &tempItems, int itemId);
+
     /**
         * gets the dataStructure of the given URL and writes its WEBDAV items to the items vector, reads Userdata from configfile
         * 
         * @param pathUrl URL to get the dataStructure of
-        * @return true - sucessfull, false - error
+        * @return vector of items
         */
-    bool getDataStructure(string &pathUrl);
+    vector<Item> getDataStructure(string &pathUrl);
 
     void setURL(const string &Url);
     void setUsername(const string &Username);
     void setPassword(const string &Pass);
     void setStartFolder(const string &Path);
 
-    std::shared_ptr<vector<Item>> getItems() const { return _items; };
+    vector<Item> getItems() const { return _items; };
     bool isLoggedIn() const { return _loggedIn; };
     bool isWorkOffline() const { return _workOffline; };
     void switchWorkOffline() { _workOffline = !_workOffline; };
@@ -80,10 +87,14 @@ public:
 
     void getLocalFileStructure(const string &localPath);
 
-private:
-    static Nextcloud *nextcloudStatic;
 
-    std::shared_ptr<vector<Item>> _items = nullptr;
+    bool setItems(const vector<Item> &tempItems);
+
+
+private:
+    static std::unique_ptr<Nextcloud> _nextcloudStatic;
+
+    vector<Item> _items;
     bool _loggedIn{false};
     string _url;
     bool _workOffline{false};
@@ -94,9 +105,9 @@ private:
         * @param pathUrl URL to get the dataStructure of
         * @param Username the username of the Nextcloud instance
         * @param Pass the pass of the Nextcloud instance
-        * @return true - sucessfull, false - error
+        * @return vector of Items 
         */
-    bool getDataStructure(const string &pathUrl, const string &Username, const string &Pass);
+    vector<Item> getDataStructure(const string &pathUrl, const string &Username, const string &Pass);
 
     string getUrl();
     string getUsername();
@@ -112,9 +123,9 @@ private:
     */
     static void DialogHandlerStatic(int Button);
 
-    bool readInXML(string xml);
+    vector<Item> readInXML(string xml);
 
-    bool getOfflineStructure(const string &pathUrl);
+    vector<Item> getOfflineStructure(const string &pathUrl);
 };
 
 #endif
