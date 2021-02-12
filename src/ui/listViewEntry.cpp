@@ -41,6 +41,14 @@ void ListViewEntry::draw(const Item &item, ifont *entryFont, ifont *entryFontBol
                 DrawTextRect(_position.x, _position.y + 3 * fontHeight, _position.w, fontHeight, "Click to Download", ALIGN_RIGHT);
             }
         }
+        else
+        {
+            if (item.getState() == FileState::ISYNCED)
+            {
+                DrawTextRect(_position.x, _position.y + 3 * fontHeight, _position.w, fontHeight, "Folder synced", ALIGN_RIGHT);
+            }
+        }
+
         DrawTextRect(_position.x, _position.y + 2 * fontHeight, _position.w, fontHeight, item.getLastEditDate().c_str(), ALIGN_LEFT);
         DrawTextRect(_position.x, _position.y + 3 * fontHeight, _position.w, fontHeight, item.getSize().c_str(), ALIGN_LEFT);
     }
