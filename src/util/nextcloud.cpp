@@ -21,11 +21,8 @@ using std::ifstream;
 using std::ofstream;
 using std::string;
 
-//neccesary to use Dialog method
-std::unique_ptr<Nextcloud> Nextcloud::_nextcloudStatic;
 Nextcloud::Nextcloud()
 {
-    _nextcloudStatic = std::unique_ptr<Nextcloud>(this);
 
     if (iv_access(NEXTCLOUD_PATH.c_str(), W_OK) != 0)
         iv_mkdir(NEXTCLOUD_PATH.c_str(), 0777);
@@ -141,23 +138,15 @@ void Nextcloud::logout(bool deleteFiles)
     _loggedIn = false;
 }
 
-void Nextcloud::downloadItem(int itemID)
+void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
 {
-    Log::writeLog("started download of " + _items.at(itemID).getPath() + " to " + _items.at(itemID).getLocalPath());
-
-    if (!Util::connectToNetwork())
-    {
-        Message(ICON_WARNING, "Warning", "Can not connect to the Internet. Switching to offline modus.", 1200);
-        _workOffline = true;
-    }
-
-    if (_items.at(itemID).getPath().empty())
+    if (tempItems.at(itemID).getPath().empty())
     {
         Message(ICON_ERROR, "Error", "Download path is not set, therefore cannot download the file.", 1200);
         return;
     }
 
-    UpdateProgressbar("Starting Download", 0);
+    UpdateProgressbar(("Starting Download of " + tempItems.at(itemID).getPath()).c_str(), 0);
 
     CURLcode res;
     CURL *curl = curl_easy_init();
@@ -167,9 +156,9 @@ void Nextcloud::downloadItem(int itemID)
         string post = this->getUsername() + std::string(":") + this->getPassword();
 
         FILE *fp;
-        fp = iv_fopen(_items.at(itemID).getLocalPath().c_str(), "wb");
+        fp = iv_fopen(tempItems.at(itemID).getLocalPath().c_str(), "wb");
 
-        curl_easy_setopt(curl, CURLOPT_URL, (_url + _items.at(itemID).getPath()).c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, (_url + tempItems.at(itemID).getPath()).c_str());
         curl_easy_setopt(curl, CURLOPT_USERPWD, post.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeData);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
@@ -189,8 +178,8 @@ void Nextcloud::downloadItem(int itemID)
             switch (response_code)
             {
             case 200:
-                Log::writeLog("finished download of " + _items.at(itemID).getPath() + " to " + _items.at(itemID).getLocalPath());
-                _items.at(itemID).setState(FileState::ISYNCED);
+                Log::writeLog("finished download of " + tempItems.at(itemID).getPath() + " to " + tempItems.at(itemID).getLocalPath());
+                tempItems.at(itemID).setState(FileState::ISYNCED);
                 break;
             case 401:
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
@@ -203,38 +192,50 @@ void Nextcloud::downloadItem(int itemID)
     }
 }
 
-bool Nextcloud::downloadFolder(const vector<Item> &tempItems, int itemId)
+bool Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
 {
-
-    //also has to look at the previous items?
-
-    //do not change items oxml or use temp here?
-    if (tempItems.at(itemId).getType() == Itemtype::IFOLDER)
+    if (tempItems.at(itemID).getType() == Itemtype::IFOLDER)
     {
+        string temp = tempItems.at(itemID).getPath();
+        Log::writeLog("Path to look for " + temp);
+        vector<Item> tempItems = getDataStructure(temp);
 
-        //get the data structure under the folder that is requested --> overrides items object and therefore will fail!
-
-        //should return items vector?
-        string temp = tempItems.at(itemId).getPath();
-        vector<Item> tempItemsNew = getDataStructure(temp);
-
-        //this will be the new item list --> where to switch to when this process is over --> open the folder that has t be synced?
-        //get item id?
-        for (auto i = 0; i < tempItemsNew.size(); i++)
+        //first item of the vector is the root path itself
+        for (auto i = 1; i < tempItems.size(); i++)
         {
-
-            downloadFolder(tempItemsNew,itemId);
-            //overrides current item list and therefore nos possible!
-            // has to be read in again?
-            // call method again?
+            Log::writeLog("Item: " + tempItems.at(i).getPath());
+            downloadFolder(tempItems,i);
         }
     }
     else
     {
-        downloadItem(itemId);
+        //TODO do only if file is newer --> check status
+        Log::writeLog("started download of " + _items.at(itemID).getPath() + " to " + _items.at(itemID).getLocalPath());
+        downloadItem(tempItems, itemID);
     }
 
    return true;
+}
+
+void Nextcloud::download(int itemID)
+{
+    if (!Util::connectToNetwork())
+    {
+        Message(ICON_WARNING, "Warning", "Can not connect to the Internet. Switching to offline modus.", 1200);
+        _workOffline = true;
+        return;
+    }
+
+    this->downloadFolder(_items,itemID);
+}
+
+bool Nextcloud::removeItem(int itemID)
+{
+    Log::writeLog("removing file " + _items.at(itemID).getPath());
+    if(!_items.at(itemID).removeFile())
+        return false;
+
+    return true;
 }
 
 vector<Item> Nextcloud::getDataStructure(string &pathUrl)
@@ -380,14 +381,6 @@ string Nextcloud::getStartFolder()
     string startFolder = ReadString(nextcloudConfig, "startFolder", "");
     CloseConfigNoSave(nextcloudConfig);
     return startFolder;
-}
-
-void Nextcloud::DialogHandlerStatic(int Button)
-{
-    if (Button == 2)
-    {
-        _nextcloudStatic->_workOffline = true;
-    }
 }
 
 vector<Item> Nextcloud::readInXML(string xml)

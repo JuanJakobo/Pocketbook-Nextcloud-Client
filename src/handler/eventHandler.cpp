@@ -109,7 +109,7 @@ void EventHandler::mainMenuHandler(const int index)
             _nextcloud.logout();
             break;
         }
-        _listView.reset();
+        _listView.release();
         _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
         FullUpdate();
         break;
@@ -142,11 +142,18 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             int itemID = _listView->listClicked(par1, par2);
             if (itemID != -1)
             {
+                int dialogResult = 0;
                 if (_nextcloud.getItems().at(itemID).getType() == Itemtype::IFOLDER)
                 {
-                    //TODO temp solution --> remove solution
-                    //TODO if is the first option, go back and dont ask for sync
-                    int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to to do?", "Open folder", "Sync Folder", "Cancel");
+                    if (_nextcloud.getItems().at(itemID).getTitle().compare("...") == 0)
+                    {
+                        dialogResult = 1;
+                    }
+                    else
+                    {
+                        dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to to do?", "Open folder", "Sync Folder", "Cancel");
+                    }
+
                     switch (dialogResult)
                     {
                     case 1:
@@ -156,52 +163,52 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         _tempPath = _nextcloud.getItems().at(itemID).getPath();
                         if (!_tempPath.empty())
                             _nextcloud.setItems(_nextcloud.getDataStructure(_tempPath));
-                        _listView.reset(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
+                        _listView.release();
+                        _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
                         _listView->drawHeader(_tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
-
                         break;
                     case 2:
-                        //Sync folder
-                        _nextcloud.downloadFolder(_nextcloud.getItems(), itemID);
-                        //update the entry and say --> folder is synced 
-                        //entries in visual and in nextlcoud are out of sync
+                        dialogResult = 0;
                     default:
                         break;
                     }
                 }
                 else
                 {
-
-                    int dialogResult = 0;
                     if (_nextcloud.getItems().at(itemID).getState() != FileState::ICLOUD)
                     {
                         dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Open", "Remove", "Cancel");
-                    }
 
-                    switch (dialogResult)
-                    {
-                    case 1:
-                        _nextcloud.getItems().at(itemID).open();
-                        break;
-                    case 2:
-                        if (!_nextcloud.getItems().at(itemID).removeFile())
-                            Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
-                        break;
-                    case 3:
-                        break;
-                    default:
-                        if (_nextcloud.isWorkOffline())
+                        switch (dialogResult)
                         {
-                            int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "You are in offline modus. Go back online?", "Yes", "No", "Cancel");
-                            if (dialogResult == 2 || dialogResult == 3)
-                                return 0;
-                            _nextcloud.switchWorkOffline();
+                        case 1:
+                            _nextcloud.getItems().at(itemID).open();
+                            break;
+                        case 2:
+                            if (!_nextcloud.removeItem(itemID))
+                                Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
+                            _listView->drawEntry(itemID);
+                            break;
+                        default:
+                            break;
                         }
-                        OpenProgressbar(1, "Downloading...", "Check network connection", 0, EventHandler::DialogHandlerStatic);
-                        _nextcloud.downloadItem(itemID);
-                        CloseProgressbar();
-                        break;
                     }
+                }
+
+                if (dialogResult == 0)
+                {
+                    if (_nextcloud.isWorkOffline())
+                    {
+                        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "You are in offline modus. Go back online?", "Yes", "No", "Cancel");
+                        if (dialogResult == 2 || dialogResult == 3)
+                            return 1;
+                        _nextcloud.switchWorkOffline();
+                    }
+                    OpenProgressbar(1, "Downloading...", "Check network connection", 0, EventHandler::DialogHandlerStatic);
+                    _nextcloud.download(itemID);
+                    CloseProgressbar();
+                    
+                    //TODO Include Sync notice for folders
                     _listView->drawEntry(itemID);
                 }
             }
@@ -215,7 +222,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             if (_loginView->logginClicked(par1, par2) == 2)
             {
                 _menu.drawLoadingScreen();
-                //TODO use progressbar and log (check what can go wrong?) catch? 
+                //TODO use progressbar and log (check what can go wrong?) catch?
                 if (_nextcloud.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
                 {
                     _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));

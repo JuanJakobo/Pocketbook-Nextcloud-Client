@@ -32,6 +32,18 @@ class Nextcloud
 public:
     explicit Nextcloud();
 
+    void setURL(const string &Url);
+    void setUsername(const string &Username);
+    void setPassword(const string &Pass);
+    void setStartFolder(const string &Path);
+    bool setItems(const vector<Item> &tempItems);
+
+
+    const vector<Item> &getItems() const { return _items; };
+    bool isLoggedIn() const { return _loggedIn; };
+    bool isWorkOffline() const { return _workOffline; };
+    void switchWorkOffline() { _workOffline = !_workOffline; };
+
     /**
       * Handles first login to nextcloud, if sucessfull saves userdata
       * 
@@ -56,15 +68,18 @@ public:
      * Downloads a certain item from the Nextcloud and saves it locally 
      * @param itemID id of the item 
      */
-    void downloadItem(int itemID);
-
-
+    void downloadItem(vector<Item> &tempItems, int itemID);
+    
     /**
      * 
      * 
      */
-    bool downloadFolder(const vector<Item> &tempItems, int itemId);
+    bool downloadFolder(vector<Item> &tempItems, int itemId);
 
+    void download(int itemId);
+    
+    bool removeItem(int itemID);
+    
     /**
         * gets the dataStructure of the given URL and writes its WEBDAV items to the items vector, reads Userdata from configfile
         * 
@@ -73,27 +88,11 @@ public:
         */
     vector<Item> getDataStructure(string &pathUrl);
 
-    void setURL(const string &Url);
-    void setUsername(const string &Username);
-    void setPassword(const string &Pass);
-    void setStartFolder(const string &Path);
-
-    vector<Item> getItems() const { return _items; };
-    bool isLoggedIn() const { return _loggedIn; };
-    bool isWorkOffline() const { return _workOffline; };
-    void switchWorkOffline() { _workOffline = !_workOffline; };
-
     static string getLocalPath(string path);
 
     void getLocalFileStructure(const string &localPath);
 
-
-    bool setItems(const vector<Item> &tempItems);
-
-
 private:
-    static std::unique_ptr<Nextcloud> _nextcloudStatic;
-
     vector<Item> _items;
     bool _loggedIn{false};
     string _url;

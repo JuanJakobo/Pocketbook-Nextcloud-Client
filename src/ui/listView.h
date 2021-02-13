@@ -29,7 +29,7 @@ public:
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         */
-    ListView(const irect *contentRect, const vector<Item> items);
+    ListView(const irect *contentRect, const vector<Item> &items);
 
     /**
         * Destructor 
@@ -75,7 +75,7 @@ private:
     int _footerFontHeight;
     int _entryFontHeight; 
     const irect *_contentRect;
-    vector<Item> _items;
+    std::unique_ptr<const vector<Item>> _items;
     vector<ListViewEntry> _entries;
     ifont *_headerFont;
     ifont *_footerFont;
