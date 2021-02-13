@@ -110,6 +110,8 @@ bool Nextcloud::login(const string &Url, const string &Username, const string &P
     string tempPath = NEXTCLOUD_ROOT_PATH + Username + "/";
     if (setItems(getDataStructure(tempPath, Username, Pass)))
     {
+        Log::writeLog("Got items");
+
         if (iv_access(NEXTCLOUD_CONFIG_PATH.c_str(), W_OK) != 0)
             iv_buildpath(NEXTCLOUD_CONFIG_PATH.c_str());
         this->setUsername(Username);
@@ -263,6 +265,9 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
         Message(ICON_ERROR, "Error", "Username/password not set.", 1200);
         return {};
     }
+
+    Log::writeLog("Starting download of DataStructure");
+
 
     string readBuffer;
     CURLcode res;
