@@ -144,7 +144,7 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
 {
     if (tempItems.at(itemID).getPath().empty())
     {
-        Message(ICON_ERROR, "Error", "Download path is not set, therefore cannot download the file.", 1200);
+        Message(ICON_ERROR, "Error", "Download path is not set, therefore cannot download the file.", 2000);
         return;
     }
 
@@ -184,10 +184,10 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
                 tempItems.at(itemID).setState(FileState::ISYNCED);
                 break;
             case 401:
-                Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
+                Message(ICON_ERROR, "Error", "Username/password incorrect.", 2000);
                 break;
             default:
-                Message(ICON_ERROR, "Error", ("An unknown error occured. (Curl Response Code " + Util::valueToString(response_code) + ")").c_str(), 1200);
+                Message(ICON_ERROR, "Error", ("An unknown error occured. (Curl Response Code " + Util::valueToString(response_code) + ")").c_str(), 2000);
                 break;
             }
         }
@@ -223,7 +223,7 @@ void Nextcloud::download(int itemID)
 {
     if (!Util::connectToNetwork())
     {
-        Message(ICON_WARNING, "Warning", "Can not connect to the Internet. Switching to offline modus.", 1200);
+        Message(ICON_WARNING, "Warning", "Can not connect to the Internet. Switching to offline modus.", 2000);
         _workOffline = true;
         return;
     }
@@ -252,7 +252,7 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
 
     if (!Util::connectToNetwork())
     {
-        Message(ICON_WARNING, "Warning", "Cannot connect to the internet. Switching to offline modus. To work online turn on online modus in the menu.", 200);
+        Message(ICON_WARNING, "Warning", "Cannot connect to the internet. Switching to offline modus. To work online turn on online modus in the menu.", 2000);
         _workOffline = true;
         return getOfflineStructure(pathUrl);
     }
@@ -262,7 +262,7 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
 
     if (Username.empty() || Pass.empty())
     {
-        Message(ICON_ERROR, "Error", "Username/password not set.", 1200);
+        Message(ICON_ERROR, "Error", "Username/password not set.", 2000);
         return {};
     }
 
@@ -296,6 +296,12 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
 
             switch (response_code)
             {
+            case 404:
+                Message(ICON_ERROR, "Error", "The nextcloud URL seems to be incorrect. You can look up the WebDav URL in the files app->seetings. (The nextcloud URL is the part till \"/remote.php...\".)" , 4000);
+                break;
+            case 401:
+                Message(ICON_ERROR, "Error", "Username/password incorrect.", 4000);
+                break;
             case 207:
             {
                 string localPath = this->getLocalPath(pathUrl);
@@ -339,11 +345,8 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
                 outFile.close();
                 return tempItems;
             }
-            case 401:
-                Message(ICON_ERROR, "Error", "Username/password incorrect.", 1200);
-                break;
             default:
-                Message(ICON_ERROR, "Error", ("An unknown error occured. Switching to offline modus. To work online turn on online modus in the menu. (Curl Response Code " + Util::valueToString(response_code) + ")").c_str(), 1200);
+                Message(ICON_ERROR, "Error", ("An unknown error occured. Switching to offline modus. To work online turn on online modus in the menu. (Curl Response Code " + Util::valueToString(response_code) + ")").c_str(), 4000);
                 _workOffline = true;
                 return getOfflineStructure(pathUrl);
             }
@@ -443,13 +446,13 @@ vector<Item> Nextcloud::getOfflineStructure(const string &pathUrl)
     {
         if (pathUrl.compare(NEXTCLOUD_ROOT_PATH + getUsername() + "/") == 0)
         {
-            Message(ICON_ERROR, "Error", "The root structure is not available offline. Please try again to login.", 1200);
+            Message(ICON_ERROR, "Error", "The root structure is not available offline. Please try again to login.", 2000);
             logout();
         }
         else
         {
             //Structure is not available offline, stay at the tree
-            Message(ICON_ERROR, "Error", "The selected structure is not available offline.", 1200);
+            Message(ICON_ERROR, "Error", "The selected structure is not available offline.", 2000);
         }
     }
     return {};

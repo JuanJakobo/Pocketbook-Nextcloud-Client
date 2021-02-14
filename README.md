@@ -21,7 +21,7 @@ Download and unzip the file from releases and place the nextcloud.app into the "
 * PocketBook Touch HD2 (PB631)
 
 ## Usage
-To login type the servername (e.g. https://domain), Username and Password. You then will be redirected to the root file folder of your nextcloud instance.
+To login type the servername (You can look up the WebDAV URL in the files app->seetings. (The nextcloud URL is the part till \"/remote.php...\".), Username and Password. You then will be redirected to the root file folder of your nextcloud instance.
 To download a file, click on it. A synced file can be either opened, synced or removed.
 
 ### Known issues
