@@ -6,6 +6,7 @@ A basic client to access an existing nextcloud instance via Pocketbook.
 ## Features
 * Display and navigate nextcloud file structure
 * Download files to local storage system
+* Sync folders to local storage system
 * Remove files from local storage system
 * Show local files that are saved but no longer available in the cloud
 * Open epub, pdf, text, html, word and mobi with default ebook reader application
@@ -19,6 +20,7 @@ Download and unzip the file from releases and place the nextcloud.app into the "
 * Pocketbook Touch HD3 (PB623) 
 * Pocketbook Touch Lux 5
 * PocketBook Touch HD2 (PB631)
+* Pocketboot Aqua 2 (PB641)
 
 ## Usage
 To login type the servername (You can look up the WebDAV URL in the files app->seetings. (The nextcloud URL is the part till \"/remote.php...\".), Username and Password. You then will be redirected to the root file folder of your nextcloud instance.
