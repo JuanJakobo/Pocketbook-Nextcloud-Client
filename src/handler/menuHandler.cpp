@@ -89,3 +89,9 @@ void MenuHandler::drawLoadingScreen()
     DrawTextRect2(&_loadingScreenRect, "Loading...");
     PartialUpdate(_loadingScreenRect.x, _loadingScreenRect.y, _loadingScreenRect.w, _loadingScreenRect.h);
 }
+
+void MenuHandler::clearLoadingScreen()
+{
+    FillArea(_loadingScreenRect.x, _loadingScreenRect.y, _loadingScreenRect.w, _loadingScreenRect.h/4, WHITE);
+    PartialUpdate(_loadingScreenRect.x, _loadingScreenRect.y, _loadingScreenRect.w, _loadingScreenRect.h);
+}

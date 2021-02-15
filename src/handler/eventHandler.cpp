@@ -224,20 +224,18 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             {
                 _menu.drawLoadingScreen();
                 
-                Log::writeLog("Start Login from loginscreen");
-
-                //TODO use progressbar and log (check what can go wrong?) catch?
                 if (_nextcloud.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
                 {
                     _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
                     _loginView.reset();
+
+                    FullUpdate();
                 }
                 else
                 {
-                    //TODO redraw login screen so that loading disappears
-                    Message(ICON_WARNING, "Warning", "Something went wrong...", 1200);
+                    _menu.clearLoadingScreen();
+                    Log::writeLog("login failed.");
                 }
-                FullUpdate();
                 return 1;
             }
         }

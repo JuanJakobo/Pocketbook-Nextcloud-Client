@@ -39,6 +39,8 @@ public:
 
     void drawLoadingScreen();
 
+    void clearLoadingScreen();
+
 private:
     ifont *_menuFont;
     ifont *_loadingFont;
