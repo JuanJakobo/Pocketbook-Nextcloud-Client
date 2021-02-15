@@ -18,7 +18,7 @@ Download and unzip the file from releases and place the nextcloud.app into the "
 
 ### Tested on
 * Pocketbook Touch HD3 (PB623) 
-* Pocketbook Touch Lux 5
+* Pocketbook Touch Lux 5 (PB628)
 * PocketBook Touch HD2 (PB631)
 * Pocketboot Aqua 2 (PB641)
 
