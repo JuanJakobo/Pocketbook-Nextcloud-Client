@@ -1,7 +1,7 @@
 # Pocketbook Nextcloud Client
 A basic client to access an existing nextcloud instance via Pocketbook. 
 
-<img src="/screenshots/loginScreen.bmp" width="25%" height="25%">&nbsp;&nbsp;<img src="/screenshots/loginScreenURL.bmp" width="25%" height="25%">&nbsp;&nbsp;<img src="/screenshots/startScreen.bmp" width="25%" height="25%">&nbsp;&nbsp;<img src="/screenshots/menu.bmp" width="25%" height="25%">&nbsp;&nbsp;<img src="/screenshots/folderDialog.bmp" width="25%" height="25%">&nbsp;&nbsp;<img src="/screenshots/fileDialog.bmp" width="25%" height="25%">
+<img src="/screenshots/loginScreen.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/loginScreenURL.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/startScreen.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/menu.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/folderDialog.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/fileDialog.bmp" width="15%" height="15%">
 
 ## Features
 * Display and navigate nextcloud file structure
