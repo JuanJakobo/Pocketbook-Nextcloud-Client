@@ -87,6 +87,7 @@ private:
     irect _nextPageButton;
     irect _prevPageButton;
     irect _firstPageButton;
+    irect _lastPageButton;
    int _itemCount = 7;
 };
 #endif

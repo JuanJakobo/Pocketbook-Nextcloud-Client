@@ -66,6 +66,7 @@ ListView::ListView(const irect *contentRect, const vector<Item> &items) : _conte
     _firstPageButton = iRect(_contentRect->x, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
     _prevPageButton = iRect(_contentRect->x + 150, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
     _nextPageButton = iRect(_contentRect->x + 300, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
+    _lastPageButton = iRect(_contentRect->x + 450, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
 
     drawEntries();
     drawFooter();
@@ -102,10 +103,12 @@ void ListView::drawFooter()
     DrawTextRect2(&_prevPageButton, "Prev");
     FillAreaRect(&_nextPageButton, BLACK);
     DrawTextRect2(&_nextPageButton, "Next");
+    FillAreaRect(&_lastPageButton, BLACK);
+    DrawTextRect2(&_lastPageButton, "Last");
 }
 
 void ListView::drawEntry(int itemID)
-{  
+{
     FillAreaRect(_entries[itemID].getPosition(), WHITE);
     _entries[itemID].draw(_items->at(itemID), _entryFont, _entryFontBold, _entryFontHeight);
 }
@@ -151,6 +154,10 @@ int ListView::listClicked(int x, int y)
     else if (IsInRect(x, y, &_prevPageButton))
     {
         actualizePage(_shownPage - 1);
+    }
+    else if (IsInRect(x, y, &_lastPageButton))
+    {
+        actualizePage(_page);
     }
     else
     {
