@@ -191,6 +191,10 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
                 break;
             }
         }
+        else
+        {
+            Message(ICON_ERROR, "Error", ("An curl error occured (Error Code: " + Util::valueToString(res) + ").").c_str(), 4000);
+        }
     }
 }
 
@@ -206,7 +210,7 @@ bool Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
         for (auto i = 1; i < tempItems.size(); i++)
         {
             Log::writeLog("Item: " + tempItems.at(i).getPath());
-            downloadFolder(tempItems,i);
+            downloadFolder(tempItems, i);
         }
     }
     else
@@ -216,7 +220,7 @@ bool Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
         downloadItem(tempItems, itemID);
     }
 
-   return true;
+    return true;
 }
 
 void Nextcloud::download(int itemID)
@@ -228,13 +232,13 @@ void Nextcloud::download(int itemID)
         return;
     }
 
-    this->downloadFolder(_items,itemID);
+    this->downloadFolder(_items, itemID);
 }
 
 bool Nextcloud::removeItem(int itemID)
 {
     Log::writeLog("removing file " + _items.at(itemID).getPath());
-    if(!_items.at(itemID).removeFile())
+    if (!_items.at(itemID).removeFile())
         return false;
 
     return true;
@@ -268,7 +272,6 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
 
     Log::writeLog("Starting download of DataStructure");
 
-
     string readBuffer;
     CURLcode res;
     CURL *curl = curl_easy_init();
@@ -297,7 +300,7 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
             switch (response_code)
             {
             case 404:
-                Message(ICON_ERROR, "Error", "The nextcloud URL seems to be incorrect. You can look up the WebDav URL in the files app->seetings. (The nextcloud URL is the part till \"/remote.php...\".)" , 4000);
+                Message(ICON_ERROR, "Error", "The nextcloud URL seems to be incorrect. You can look up the WebDav URL in the files app->seetings. (The nextcloud URL is the part till \"/remote.php...\".)", 4000);
                 break;
             case 401:
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 4000);
@@ -350,6 +353,10 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
                 _workOffline = true;
                 return getOfflineStructure(pathUrl);
             }
+        }
+        else
+        {
+            Message(ICON_ERROR, "Error", ("An curl error occured (Error Code: " + Util::valueToString(res) + ").").c_str(), 4000);
         }
     }
     return {};
@@ -405,7 +412,7 @@ vector<Item> Nextcloud::readInXML(string xml)
     {
         end = xml.find(endItem);
 
-        tempItems.push_back(xml.substr(begin,end));
+        tempItems.push_back(xml.substr(begin, end));
 
         xml = xml.substr(end + endItem.length());
 
@@ -413,7 +420,6 @@ vector<Item> Nextcloud::readInXML(string xml)
     }
 
     return tempItems;
-
 }
 
 string Nextcloud::getLocalPath(string path)
