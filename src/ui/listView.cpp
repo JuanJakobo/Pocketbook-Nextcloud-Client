@@ -126,7 +126,7 @@ void ListView::actualizePage(int _pageToShown)
 {
     if (_pageToShown > _page)
     {
-        Message(ICON_INFORMATION, "Info", "You have reached the last page, to return to the first, please click home.", 1200);
+        Message(ICON_INFORMATION, "Info", "You have reached the last page, to return to the first, please click \"first.\"", 1200);
     }
     else if (_pageToShown < 1)
     {
