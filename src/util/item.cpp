@@ -142,6 +142,6 @@ string Item::getSizeString() const
         unit = "GB";
     }
 
-    tempSize = round((tempSize / departBy) * 10.0) / 10.0;
+    tempSize = round((_size / departBy) * 10.0) / 10.0;
     return Util::valueToString(tempSize) + " " + unit;
 }
