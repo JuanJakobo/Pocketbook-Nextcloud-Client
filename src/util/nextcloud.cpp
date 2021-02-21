@@ -144,7 +144,7 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
 {
     if(tempItems.at(itemID).getState() == FileState::ISYNCED)
     {
-        Message(ICON_INFORMATION, "INFO", ("The newest version of file " + tempItems.at(itemID).getPath() + " is already downloaded.").c_str(), 2000);
+        UpdateProgressbar(("The newest version of file " + tempItems.at(itemID).getLocalPath() + " is already downloaded.").c_str(), 0);
         return;
     }
 
@@ -154,7 +154,7 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
         return;
     }
 
-    UpdateProgressbar(("Starting Download of " + tempItems.at(itemID).getPath()).c_str(), 0);
+    UpdateProgressbar(("Starting Download of " + tempItems.at(itemID).getLocalPath()).c_str(), 0);
 
     CURLcode res;
     CURL *curl = curl_easy_init();
@@ -164,7 +164,7 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
         string post = this->getUsername() + std::string(":") + this->getPassword();
 
         FILE *fp;
-        fp = iv_fopen(tempItems.at(itemID).getLocalPath().c_str(), "wb");
+        fp = iv_fopen(tempItems.at(itemID).getTitle().c_str(), "wb");
 
         curl_easy_setopt(curl, CURLOPT_URL, (_url + tempItems.at(itemID).getPath()).c_str());
         curl_easy_setopt(curl, CURLOPT_USERPWD, post.c_str());
@@ -206,6 +206,7 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
 
 bool Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
 {
+    BanSleep(2000);
     if (tempItems.at(itemID).getType() == Itemtype::IFOLDER)
     {
         string temp = tempItems.at(itemID).getPath();
