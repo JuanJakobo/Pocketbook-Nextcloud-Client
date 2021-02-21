@@ -31,12 +31,12 @@ Item::Item(const string &xmlItem)
     {
         _type = IFOLDER;
         _title = _title.substr(0, _path.length() - 1);
-        setSize(atof(Util::getXMLAttribute(xmlItem, "d:quota-used-bytes").c_str()));
+        _size = atof(Util::getXMLAttribute(xmlItem, "d:quota-used-bytes").c_str());
     }
     else
     {
         _type = IFILE;
-        setSize(atof(Util::getXMLAttribute(xmlItem, "d:getcontentlength").c_str()));
+        _size = atof(Util::getXMLAttribute(xmlItem, "d:getcontentlength").c_str());
         _fileType = Util::getXMLAttribute(xmlItem, "d:getcontenttype");
 
         //set local path and test if exists
@@ -116,24 +116,22 @@ bool Item::removeFile()
     return true;
 }
 
-void Item::setSize(double tempSize)
+string Item::getSizeString() const
 {
 
-    if (tempSize < 1024)
-    {
-        _size = "< 1 KB";
-        return;
-    }
+    if (_size < 1024)
+        return "< 1 KB";
 
     double departBy;
+    double tempSize;
     string unit;
 
-    if (tempSize < 1048576)
+    if (_size < 1048576)
     {
         departBy = 1024;
         unit = "KB";
     }
-    else if (tempSize < 1073741824)
+    else if (_size < 1073741824)
     {
         departBy = 1048576;
         unit = "MB";
@@ -145,5 +143,5 @@ void Item::setSize(double tempSize)
     }
 
     tempSize = round((tempSize / departBy) * 10.0) / 10.0;
-    _size = Util::valueToString(tempSize) + " " + unit;
+    return Util::valueToString(tempSize) + " " + unit;
 }

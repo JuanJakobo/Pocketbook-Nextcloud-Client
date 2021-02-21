@@ -25,6 +25,7 @@ enum FileState
 {
     ICLOUD,
     ISYNCED,
+    IOUTSYNCED,
     ILOCAL
 };
 
@@ -71,7 +72,8 @@ public:
     string getLastEditDate() const { return _lastEditDate; };
     void setLastEditDate(const string &date) { _lastEditDate = date; };
 
-    string getSize() const { return _size; };
+    double getSize() const { return _size;};
+    string getSizeString() const;
 
     string getFiletype() const { return _fileType; };
 
@@ -82,7 +84,7 @@ private:
     FileState _state{FileState::ICLOUD};
     string _localPath;
     string _lastEditDate{"Error"};
-    string _size{"Error"};
+    double _size;
     string _fileType;
 
     /**

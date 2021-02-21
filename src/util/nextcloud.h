@@ -90,7 +90,7 @@ public:
 
     static string getLocalPath(string path);
 
-    void getLocalFileStructure(const string &localPath);
+    void getLocalFileStructure(vector<Item> &tempItems, const string &localPath);
 
 private:
     vector<Item> _items;

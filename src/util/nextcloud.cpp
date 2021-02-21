@@ -142,6 +142,12 @@ void Nextcloud::logout(bool deleteFiles)
 
 void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
 {
+    if(tempItems.at(itemID).getState() == FileState::ISYNCED)
+    {
+        Message(ICON_INFORMATION, "INFO", ("The newest version of file " + tempItems.at(itemID).getPath() + " is already downloaded.").c_str(), 2000);
+        return;
+    }
+
     if (tempItems.at(itemID).getPath().empty())
     {
         Message(ICON_ERROR, "Error", "Download path is not set, therefore cannot download the file.", 2000);
@@ -215,7 +221,6 @@ bool Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
     }
     else
     {
-        //TODO do only if file is newer --> check status
         Log::writeLog("started download of " + _items.at(itemID).getPath() + " to " + _items.at(itemID).getLocalPath());
         downloadItem(tempItems, itemID);
     }
@@ -327,7 +332,7 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
                         Log::writeLog("Local structure of " + localPath + " found.");
                     }
 
-                    getLocalFileStructure(localPath);
+                    getLocalFileStructure(tempItems, localPath);
                 }
 
                 //update the .structure file acording to items in the folder
@@ -445,7 +450,7 @@ vector<Item> Nextcloud::getOfflineStructure(const string &pathUrl)
         if (tempItems.empty())
             return {};
 
-        getLocalFileStructure(this->getLocalPath(pathUrl));
+        getLocalFileStructure(tempItems, this->getLocalPath(pathUrl));
         return tempItems;
     }
     else
@@ -464,9 +469,8 @@ vector<Item> Nextcloud::getOfflineStructure(const string &pathUrl)
     return {};
 }
 
-void Nextcloud::getLocalFileStructure(const string &localPath)
+void Nextcloud::getLocalFileStructure(vector<Item> &tempItems, const string &localPath)
 {
-    //TODO also show local folders that are not synced to the cloud yet
     //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
     DIR *dir;
     class dirent *ent;
@@ -475,33 +479,39 @@ void Nextcloud::getLocalFileStructure(const string &localPath)
     dir = opendir(localPath.c_str());
     while ((ent = readdir(dir)) != NULL)
     {
-        const string file_name = ent->d_name;
-        const string full_file_name = localPath + file_name;
+        const string fileName = ent->d_name;
+        const string fullFileName = localPath + fileName;
 
-        if (file_name[0] == '.')
+        if (fileName[0] == '.')
             continue;
 
-        if (stat(full_file_name.c_str(), &st) == -1)
+        if (stat(fullFileName.c_str(), &st) == -1)
             continue;
 
-        //also include directory
-        const bool is_directory = (st.st_mode & S_IFDIR) != 0;
-        if (is_directory)
+        const bool isDirectory = (st.st_mode & S_IFDIR) != 0;
+        if (isDirectory)
             continue;
 
         bool found = false;
-        for (auto i = 0; i < _items.size(); i++)
+        for (auto i = 0; i < tempItems.size(); i++)
         {
-            //TODO compare last edit local and in cloud and display to user
-            if (_items.at(i).getLocalPath().compare(full_file_name) == 0)
+            if (tempItems.at(i).getLocalPath().compare(fullFileName) == 0)
             {
+                std::ifstream in(fullFileName, std::ifstream::binary | std::ifstream::ate );
+                Log::writeLog(Util::valueToString(in.tellg()));
+                Log::writeLog(Util::valueToString(tempItems.at(i).getSize()));
+                if(in.tellg() != tempItems.at(i).getSize())
+                {
+                    tempItems.at(i).setState(FileState::IOUTSYNCED);
+                }
                 found = true;
                 break;
             }
         }
         if (!found)
         {
-            _items.push_back(Item(full_file_name, FileState::ILOCAL));
+            //TODO push to different items list and then ask if shall be deleted later on? --> just in case of folder sync
+            tempItems.push_back(Item(fullFileName, FileState::ILOCAL));
         }
     }
     closedir(dir);
