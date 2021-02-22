@@ -229,7 +229,7 @@ void Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
     }
     else
     {
-        Log::writeLog("started download of " + _items.at(itemID).getPath() + " to " + _items.at(itemID).getLocalPath());
+        Log::writeLog("started download of " + tempItems.at(itemID).getPath() + " to " + tempItems.at(itemID).getLocalPath());
         downloadItem(tempItems, itemID);
     }
 
