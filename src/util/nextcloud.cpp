@@ -207,6 +207,14 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
 void Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
 {
     BanSleep(2000);
+
+    if (tempItems.at(itemID).getState() == FileState::ILOCAL)
+    {
+        UpdateProgressbar(("Removing local item " + tempItems.at(itemID).getLocalPath()).c_str(), 0);
+        tempItems.at(itemID).removeFile();
+        return;
+    }
+
     if (tempItems.at(itemID).getType() == Itemtype::IFOLDER)
     {
         string temp = tempItems.at(itemID).getPath();
@@ -490,20 +498,22 @@ void Nextcloud::getLocalFileStructure(vector<Item> &tempItems, const string &loc
             continue;
 
         const bool isDirectory = (st.st_mode & S_IFDIR) != 0;
-        if (isDirectory)
-            continue;
 
         bool found = false;
-        for (auto i = 0; i < tempItems.size(); i++)
+        for (auto i = 1; i < tempItems.size(); i++)
         {
             if (tempItems.at(i).getLocalPath().compare(fullFileName) == 0)
             {
-                std::ifstream in(fullFileName, std::ifstream::binary | std::ifstream::ate );
-                Log::writeLog(Util::valueToString(in.tellg()));
-                Log::writeLog(Util::valueToString(tempItems.at(i).getSize()));
-                if(in.tellg() != tempItems.at(i).getSize())
+                if (!isDirectory)
                 {
-                    tempItems.at(i).setState(FileState::IOUTSYNCED);
+                    std::ifstream in(fullFileName, std::ifstream::binary | std::ifstream::ate);
+                    Log::writeLog(tempItems.at(i).getTitle());
+                    Log::writeLog(Util::valueToString(in.tellg()));
+                    Log::writeLog(Util::valueToString(tempItems.at(i).getSize()));
+                    if (in.tellg() != tempItems.at(i).getSize())
+                    {
+                        tempItems.at(i).setState(FileState::IOUTSYNCED);
+                    }
                 }
                 found = true;
                 break;
