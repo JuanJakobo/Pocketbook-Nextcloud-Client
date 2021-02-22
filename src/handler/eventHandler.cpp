@@ -206,10 +206,17 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         _nextcloud.switchWorkOffline();
                     }
                     OpenProgressbar(1, "Downloading...", "Check network connection", 0, EventHandler::DialogHandlerStatic);
-                    _nextcloud.download(itemID);
+                    try
+                    {
+                        _nextcloud.download(itemID);
+                    }
+                    catch (const std::exception &e)
+                    {
+                        Log::writeLog(e.what());
+                        Message(ICON_ERROR, "Error", "Something has gone wrong. Please check the logs. (/system/config/nextcloud/)", 1200);
+
+                    }
                     CloseProgressbar();
-                    
-                    //TODO Include Sync notice for folders
                     _listView->drawEntry(itemID);
                 }
             }
