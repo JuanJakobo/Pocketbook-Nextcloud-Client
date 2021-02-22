@@ -56,12 +56,11 @@ Item::Item(const string &xmlItem)
     Util::decodeUrl(_title);
 }
 
-Item::Item(const string &localPath, FileState state) : _localPath(localPath), _state(state)
+Item::Item(const string &localPath, FileState state, Itemtype type) : _localPath(localPath), _state(state), _type(type)
 {
     _title = _localPath;
     _title = _title.substr(_title.find_last_of("/") + 1, _title.length());
     Util::decodeUrl(_title);
-    _fileType = IFILE;
 }
 
 void Item::open() const
@@ -102,10 +101,16 @@ void Item::open() const
 
 bool Item::removeFile()
 {
+    if (_type == Itemtype::IFOLDER)
+    {
+        string cmd = "rm -rf " + _localPath + "/";
+        system(cmd.c_str());
+        return true;
+    }
 
     if (remove(_localPath.c_str()) != 0)
         return false;
-    if (_state == FileState::ISYNCED)
+    if (_state == FileState::ISYNCED || _state == FileState::IOUTSYNCED)
     {
         _state = FileState::ICLOUD;
     }
