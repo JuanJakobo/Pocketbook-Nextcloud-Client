@@ -176,7 +176,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 }
                 else
                 {
-                    if (_nextcloud.getItems().at(itemID).getState() == FileState::ISYNCED || _nextcloud.getItems().at(itemID).getState() == FileState::ILOCAL)
+                    if (_nextcloud.getItems().at(itemID).getState() == FileState::ISYNCED || (_nextcloud.isWorkOffline() && _nextcloud.getItems().at(itemID).getState() == FileState::IOUTSYNCED))
                     {
                         dialogResult = DialogSynchro(ICON_QUESTION, "Action", "What do you want to do?", "Open", "Remove", "Cancel");
 
@@ -223,7 +223,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             if (_loginView->logginClicked(par1, par2) == 2)
             {
                 _menu.drawLoadingScreen();
-                
+
                 if (_nextcloud.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
                 {
                     _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
