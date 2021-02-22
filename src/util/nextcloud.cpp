@@ -204,7 +204,7 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
     }
 }
 
-bool Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
+void Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
 {
     BanSleep(2000);
     if (tempItems.at(itemID).getType() == Itemtype::IFOLDER)
@@ -226,7 +226,7 @@ bool Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
         downloadItem(tempItems, itemID);
     }
 
-    return true;
+    return;
 }
 
 void Nextcloud::download(int itemID)

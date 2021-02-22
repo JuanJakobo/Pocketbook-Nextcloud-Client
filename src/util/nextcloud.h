@@ -74,7 +74,7 @@ public:
      * 
      * 
      */
-    bool downloadFolder(vector<Item> &tempItems, int itemId);
+    void downloadFolder(vector<Item> &tempItems, int itemId);
 
     void download(int itemId);
     
