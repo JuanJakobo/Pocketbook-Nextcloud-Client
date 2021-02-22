@@ -142,7 +142,7 @@ void Nextcloud::logout(bool deleteFiles)
 
 void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
 {
-    if(tempItems.at(itemID).getState() == FileState::ISYNCED)
+    if (tempItems.at(itemID).getState() == FileState::ISYNCED)
     {
         UpdateProgressbar(("The newest version of file " + tempItems.at(itemID).getLocalPath() + " is already downloaded.").c_str(), 0);
         return;
@@ -155,7 +155,6 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
     }
 
     UpdateProgressbar(("Starting Download of " + tempItems.at(itemID).getLocalPath()).c_str(), 0);
-
     CURLcode res;
     CURL *curl = curl_easy_init();
 
@@ -222,7 +221,7 @@ void Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
         vector<Item> tempItems = getDataStructure(temp);
 
         //first item of the vector is the root path itself
-        for (auto i = 1; i < tempItems.size(); i++)
+        for (size_t i = 1; i < tempItems.size(); i++)
         {
             Log::writeLog("Item: " + tempItems.at(i).getPath());
             downloadFolder(tempItems, i);
@@ -247,6 +246,8 @@ void Nextcloud::download(int itemID)
     }
 
     this->downloadFolder(_items, itemID);
+
+    UpdateProgressbar("Download completed", 100);
 }
 
 bool Nextcloud::removeItem(int itemID)
