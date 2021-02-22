@@ -164,7 +164,7 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
         string post = this->getUsername() + std::string(":") + this->getPassword();
 
         FILE *fp;
-        fp = iv_fopen(tempItems.at(itemID).getTitle().c_str(), "wb");
+        fp = iv_fopen(tempItems.at(itemID).getLocalPath().c_str(), "wb");
 
         curl_easy_setopt(curl, CURLOPT_URL, (_url + tempItems.at(itemID).getPath()).c_str());
         curl_easy_setopt(curl, CURLOPT_USERPWD, post.c_str());
