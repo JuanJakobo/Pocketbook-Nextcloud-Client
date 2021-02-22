@@ -26,21 +26,20 @@ Item::Item(const string &xmlItem)
 
     _lastEditDate = Util::getXMLAttribute(xmlItem, "d:getlastmodified");
     _title = _path;
+    _localPath = Nextcloud::getLocalPath(_path);
 
     if (_path.back() == '/')
     {
-        _type = IFOLDER;
+        _localPath = _localPath.substr(0, _localPath.length() - 1);
+        _type = Itemtype::IFOLDER;
         _title = _title.substr(0, _path.length() - 1);
         _size = atof(Util::getXMLAttribute(xmlItem, "d:quota-used-bytes").c_str());
     }
     else
     {
-        _type = IFILE;
+        _type = Itemtype::IFILE;
         _size = atof(Util::getXMLAttribute(xmlItem, "d:getcontentlength").c_str());
         _fileType = Util::getXMLAttribute(xmlItem, "d:getcontenttype");
-
-        //set local path and test if exists
-        _localPath = Nextcloud::getLocalPath(_path);
 
         if (iv_access(_localPath.c_str(), W_OK) != 0)
         {

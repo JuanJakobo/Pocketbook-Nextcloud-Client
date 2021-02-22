@@ -511,8 +511,14 @@ void Nextcloud::getLocalFileStructure(vector<Item> &tempItems, const string &loc
         }
         if (!found)
         {
-            //TODO push to different items list and then ask if shall be deleted later on? --> just in case of folder sync
-            tempItems.push_back(Item(fullFileName, FileState::ILOCAL));
+            if (isDirectory)
+            {
+                tempItems.push_back(Item(fullFileName, FileState::ILOCAL, Itemtype::IFOLDER));
+            }
+            else
+            {
+                tempItems.push_back(Item(fullFileName, FileState::ILOCAL, Itemtype::IFILE));
+            }
         }
     }
     closedir(dir);

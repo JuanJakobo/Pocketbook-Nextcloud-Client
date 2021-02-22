@@ -46,7 +46,7 @@ public:
      * @param localPath path where the file is placed
      * @param FileState state of the file
      */
-    Item(const string &localPath, FileState state);
+    Item(const string &localPath, FileState state, Itemtype type);
     
     /**
      * Tries to open the item by checking the file format and then executes the fitting action
