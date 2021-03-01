@@ -19,8 +19,8 @@ Download and unzip the file from releases and place the nextcloud.app into the "
 ### Tested on
 * Pocketbook Touch HD3 (PB623) 
 * Pocketbook Touch Lux 5 (PB628)
-* PocketBook Touch HD2 (PB631)
-* Pocketboot Aqua 2 (PB641)
+* Pocketbook Touch HD2 (PB631)
+* Pocketbook Aqua 2 (PB641)
 
 ## Usage
 To login type the servername (You can look up the WebDAV URL in the files app->seetings. (The nextcloud URL is the part till \"/remote.php...\".), Username and Password. You then will be redirected to the root file folder of your nextcloud instance.
