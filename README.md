@@ -29,6 +29,24 @@ To download a file, click on it. A synced file can be either opened, synced or r
 ### Known issues
 * The main menu of the PB shows new books only if it turns into sleep modus. Otherwise the new books can only be opened from the nextcloud applicaton.
 
+## How to build
+
+First you need to install the basic build tools for linux.
+
+Then you have to download the Pocketbook SDK (A Fork can be downloaded from https://github.com/JuanJakobo/pocketbook-sdk5.
+
+In the CMakeLists.txt of this project you have to set the root of the TOOLCHAIN_PATH to the location where you saved the SDK:
+
+`SET (TOOLCHAIN_PATH "../../SDK/pocketbook-sdk5-master")`
+
+Then you have to setup cmake by:
+
+`cmake .`
+
+To build the application you can run the makearm script.
+
+`./makearm.sh` 
+
 ## Disclamer
 Use as your own risk! 
 Even though the possibility is really low, the application could harm your device or even break it.

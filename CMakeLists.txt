@@ -74,7 +74,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/ui/
 )
 
-SET (TARGET_LIB pthread inkview freetype z curl)
+SET (TARGET_LIB inkview freetype z curl)
 
 TARGET_LINK_LIBRARIES (Nextcloud.app ${TARGET_LIB})
 
