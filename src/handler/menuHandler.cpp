@@ -43,6 +43,12 @@ MenuHandler::~MenuHandler()
 {
     CloseFont(_menuFont);
     CloseFont(_loadingFont);
+    delete _text;
+    delete _menu;
+    delete _makeStartfolder;
+    delete _logout;
+    delete _info;
+    delete _exit;
 }
 
 void MenuHandler::panelHandlerStatic()
@@ -53,20 +59,22 @@ void MenuHandler::panelHandlerStatic()
 
 int MenuHandler::createMenu(bool loggedIn, bool workOffline, iv_menuhandler handler)
 {
-    char *text = "Work offline";
+    string text = "Work offline";
     if (workOffline)
         text = "Work online";
 
+    _text = strdup(text.c_str());
+
     imenu mainMenu[] =
         {
-            {ITEM_HEADER, 0, "Menu", NULL},
+            {ITEM_HEADER, 0, _menu, NULL},
             //show logged in
-            {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 101, text, NULL},
-            {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 102, "Make startfolder", NULL},
-            {loggedIn ? ITEM_ACTIVE : ITEM_HIDDEN, 103, "Logout", NULL},
+            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _text, NULL},
+            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _makeStartfolder, NULL},
+            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _logout, NULL},
             //show always
-            {ITEM_ACTIVE, 104, "Info"},
-            {ITEM_ACTIVE, 105, "Exit"},
+            {ITEM_ACTIVE, 104, _info, NULL},
+            {ITEM_ACTIVE, 105, _exit, NULL},
             {0, 0, NULL, NULL}};
 
     if (loggedIn)
@@ -92,6 +100,6 @@ void MenuHandler::drawLoadingScreen()
 
 void MenuHandler::clearLoadingScreen()
 {
-    FillArea(_loadingScreenRect.x, _loadingScreenRect.y, _loadingScreenRect.w, _loadingScreenRect.h/4, WHITE);
+    FillArea(_loadingScreenRect.x, _loadingScreenRect.y, _loadingScreenRect.w, _loadingScreenRect.h / 4, WHITE);
     PartialUpdate(_loadingScreenRect.x, _loadingScreenRect.y, _loadingScreenRect.w, _loadingScreenRect.h);
 }

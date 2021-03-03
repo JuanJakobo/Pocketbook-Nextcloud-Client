@@ -501,7 +501,7 @@ void Nextcloud::getLocalFileStructure(vector<Item> &tempItems, const string &loc
         const bool isDirectory = (st.st_mode & S_IFDIR) != 0;
 
         bool found = false;
-        for (auto i = 1; i < tempItems.size(); i++)
+        for (unsigned int i = 1; i < tempItems.size(); i++)
         {
             if (tempItems.at(i).getLocalPath().compare(fullFileName) == 0)
             {

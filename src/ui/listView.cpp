@@ -74,6 +74,7 @@ ListView::ListView(const irect *contentRect, const vector<Item> &items) : _conte
 
 ListView::~ListView()
 {
+    delete _contentRect;
     CloseFont(_entryFont);
     CloseFont(_entryFontBold);
     CloseFont(_headerFont);
@@ -115,7 +116,7 @@ void ListView::drawEntry(int itemID)
 
 void ListView::drawEntries()
 {
-    for (auto i = 0; i < _entries.size(); i++)
+    for (unsigned int i = 0; i < _entries.size(); i++)
     {
         if (_entries[i].getPage() == _shownPage)
             _entries[i].draw(_items->at(i), _entryFont, _entryFontBold, _entryFontHeight);

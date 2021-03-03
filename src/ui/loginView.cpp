@@ -55,6 +55,8 @@ LoginView::LoginView(const irect *contentRect) : _contentRect(contentRect)
 
 LoginView::~LoginView()
 {
+    delete _contentRect;
+    delete _loginViewStatic;
     CloseFont(_loginFont);
 }
 
@@ -90,7 +92,7 @@ void LoginView::keyboardHandler(char *text)
         FillAreaRect(&_passwordButton, WHITE);
 
         string pass;
-        for (auto i = 0; i < s.length(); i++)
+        for (unsigned int i = 0; i < s.length(); i++)
         {
             pass += "*";
         }

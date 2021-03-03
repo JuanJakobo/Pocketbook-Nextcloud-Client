@@ -55,6 +55,14 @@ private:
     imenu _mainMenu;
     irect _contentRect;
 
+    char *_text;
+    char *_menu = strdup("Menu");
+    char *_makeStartfolder = strdup("Make startfolder");
+    char *_logout = strdup("Logout");
+    char *_info = strdup("Info");
+    char *_exit = strdup("Close App");
+
+
     /**
         * Functions needed to call C function, handles the panel
         * 

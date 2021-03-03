@@ -11,6 +11,7 @@
 #include <string>
 #include <math.h>
 #include <curl/curl.h>
+#include <tuple>
 
 using std::string;
 
@@ -48,6 +49,9 @@ bool Util::connectToNetwork()
 
 int Util::progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
+    std::ignore = ultotal;
+    std::ignore = ulnow;
+    free(clientp);
     if (dltotal <= 0.0)
         return 0;
 

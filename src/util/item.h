@@ -79,10 +79,10 @@ public:
 
 private:
     string _path;
-    Itemtype _type;
     string _title;
-    FileState _state{FileState::ICLOUD};
     string _localPath;
+    FileState _state{FileState::ICLOUD};
+    Itemtype _type;
     string _lastEditDate{"Error"};
     double _size;
     string _fileType;
