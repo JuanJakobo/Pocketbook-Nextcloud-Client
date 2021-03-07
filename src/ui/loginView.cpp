@@ -111,7 +111,7 @@ int LoginView::logginClicked(int x, int y)
         if (!_url.empty())
             _temp = _url;
         _temp.resize(KEYBOARD_STRING_LENGHT);
-        OpenKeyboard("https://domainname", &_temp[0], KEYBOARD_STRING_LENGHT - 1, KBD_NORMAL, &keyboardHandlerStatic);
+        OpenKeyboard("https://domainname or WebDAV Url", &_temp[0], KEYBOARD_STRING_LENGHT - 1, KBD_NORMAL, &keyboardHandlerStatic);
         return 1;
     }
 

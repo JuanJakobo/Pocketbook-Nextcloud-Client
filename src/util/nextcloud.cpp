@@ -47,6 +47,14 @@ void Nextcloud::setUsername(const string &Username)
     CloseConfig(nextcloudConfig);
 }
 
+void Nextcloud::setUUID(const string &UUID)
+{
+    iconfigedit *temp = nullptr;
+    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
+    WriteString(nextcloudConfig, "UUID", UUID.c_str());
+    CloseConfig(nextcloudConfig);
+}
+
 void Nextcloud::setPassword(const string &Pass)
 {
     iconfigedit *temp = nullptr;
@@ -81,7 +89,6 @@ bool Nextcloud::setItems(const vector<Item> &tempItems)
     _items.at(0).setPath(header);
     _items.at(0).setTitle("...");
     _items.at(0).setLastEditDate("");
-
     if (_items.at(0).getPath().compare(NEXTCLOUD_ROOT_PATH) == 0)
         _items.erase(_items.begin());
 
@@ -93,7 +100,7 @@ bool Nextcloud::login()
     string tempPath = getStartFolder();
 
     if (tempPath.empty())
-        tempPath = NEXTCLOUD_ROOT_PATH + this->getUsername() + "/";
+        tempPath = NEXTCLOUD_ROOT_PATH + this->getUUID() + "/";
 
     if (setItems(getDataStructure(tempPath)))
     {
@@ -106,8 +113,21 @@ bool Nextcloud::login()
 
 bool Nextcloud::login(const string &Url, const string &Username, const string &Pass)
 {
-    _url = Url;
-    string tempPath = NEXTCLOUD_ROOT_PATH + Username + "/";
+    string uuid;
+    std::size_t found = Url.find(NEXTCLOUD_ROOT_PATH);
+
+    if (found != std::string::npos)
+    {
+        _url = Url.substr(0, found);
+        uuid = Url.substr(found +NEXTCLOUD_ROOT_PATH.length());
+    }
+    else
+    {
+        _url = Url;
+        uuid = Username;
+    }
+
+    string tempPath = NEXTCLOUD_ROOT_PATH + uuid + "/";
     if (setItems(getDataStructure(tempPath, Username, Pass)))
     {
         Log::writeLog("Got items");
@@ -115,6 +135,7 @@ bool Nextcloud::login(const string &Url, const string &Username, const string &P
         if (iv_access(NEXTCLOUD_CONFIG_PATH.c_str(), W_OK) != 0)
             iv_buildpath(NEXTCLOUD_CONFIG_PATH.c_str());
         this->setUsername(Username);
+        this->setUUID(uuid);
         this->setPassword(Pass);
         this->setURL(_url);
         this->setStartFolder(tempPath);
@@ -128,7 +149,7 @@ void Nextcloud::logout(bool deleteFiles)
 {
     if (deleteFiles)
     {
-        string cmd = "rm -rf " + NEXTCLOUD_FILE_PATH + "/" + getUsername() + "/";
+        string cmd = "rm -rf " + NEXTCLOUD_FILE_PATH + "/" + getUUID() + "/";
         system(cmd.c_str());
     }
     remove(NEXTCLOUD_CONFIG_PATH.c_str());
@@ -315,7 +336,7 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
             switch (response_code)
             {
             case 404:
-                Message(ICON_ERROR, "Error", "The nextcloud URL seems to be incorrect. You can look up the WebDav URL in the files app->seetings. (The nextcloud URL is the part till \"/remote.php...\".)", 4000);
+                Message(ICON_ERROR, "Error", "The URL seems to be incorrect. You can look up the WebDav URL in the files app under settings. ", 4000);
                 break;
             case 401:
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 4000);
@@ -395,6 +416,15 @@ string Nextcloud::getUsername()
     return user;
 }
 
+string Nextcloud::getUUID()
+{
+    iconfigedit *temp = nullptr;
+    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
+    string user = ReadString(nextcloudConfig, "UUID", "");
+    CloseConfigNoSave(nextcloudConfig);
+    return user;
+}
+
 string Nextcloud::getPassword()
 {
     iconfigedit *temp = nullptr;
@@ -465,7 +495,7 @@ vector<Item> Nextcloud::getOfflineStructure(const string &pathUrl)
     }
     else
     {
-        if (pathUrl.compare(NEXTCLOUD_ROOT_PATH + getUsername() + "/") == 0)
+        if (pathUrl.compare(NEXTCLOUD_ROOT_PATH + getUUID() + "/") == 0)
         {
             Message(ICON_ERROR, "Error", "The root structure is not available offline. Please try again to login.", 2000);
             logout();

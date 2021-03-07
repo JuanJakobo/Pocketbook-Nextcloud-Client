@@ -34,6 +34,7 @@ public:
 
     void setURL(const string &Url);
     void setUsername(const string &Username);
+    void setUUID(const string &UUID);
     void setPassword(const string &Pass);
     void setStartFolder(const string &Path);
     bool setItems(const vector<Item> &tempItems);
@@ -110,6 +111,7 @@ private:
 
     string getUrl();
     string getUsername();
+    string getUUID();
     string getPassword();
     string getStartFolder();
 

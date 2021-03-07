@@ -23,7 +23,7 @@ Download and unzip the file from releases and place the nextcloud.app into the "
 * Pocketbook Aqua 2 (PB641)
 
 ## Usage
-To login type the servername (You can look up the WebDAV URL in the files app->seetings. (The nextcloud URL is the part till \"/remote.php...\".), Username and Password. You then will be redirected to the root file folder of your nextcloud instance.
+To login type the servername (e.g. https://domainname) or the WebDAV URL (e.g. htts://domainname/remote.php/dav/files/UUID) (You can look up the WebDAV URL in the files app->seetings.), Username and Password. You then will be redirected to the root file folder of your nextcloud instance.
 To download a file, click on it. A synced file can be either opened, synced or removed.
 
 ### Known issues
