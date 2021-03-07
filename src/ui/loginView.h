@@ -22,7 +22,7 @@ enum KeyboardTarget
     IPASSWORD
 };
 
-const int KEYBOARD_STRING_LENGHT = 80;
+const int KEYBOARD_STRING_LENGHT = 90;
 
 class LoginView
 {
