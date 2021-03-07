@@ -77,15 +77,6 @@ int MenuHandler::createMenu(bool loggedIn, bool workOffline, iv_menuhandler hand
             {ITEM_ACTIVE, 105, _exit, NULL},
             {0, 0, NULL, NULL}};
 
-    if (loggedIn)
-    {
-        mainMenu[3].type = ITEM_ACTIVE;
-    }
-    else
-    {
-        mainMenu[2].type = ITEM_ACTIVE;
-    }
-
     OpenMenu(mainMenu, 0, _panelMenuBeginX, _panelMenuBeginY, handler);
 
     return 1;
