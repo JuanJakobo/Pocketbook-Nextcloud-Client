@@ -31,33 +31,39 @@ public:
         */
     ListView(const irect *contentRect, const vector<Item> &items);
 
-    /**
-        * Destructor 
-        */
     ~ListView();
 
     /**
-        * draws the header including an item to navigate a page up
+        * Draws the header
+        * 
+        * @param headerText the text that shall be displayed in the header
         * 
         */
     void drawHeader(string headerText);
 
     /**
-        * draws the footer including a page changer 
-        * 
+        * Draws the footer including a page changer 
         */
     void drawFooter();
 
+    /**
+        * Draws an single entry to the screen
+        * 
+        * @param itemID the id of the item that shall be drawn
+        */
     void drawEntry(int itemID);
 
     /**
-        * iterates through the items and sends them to the listViewEntry Class for drawing
-        * 
+        * Iterates through the items and sends them to the listViewEntry Class for drawing
         */
     void drawEntries();
 
-    void actualizePage(int _pageToShown);
-
+    /**
+        * Navigates to the selected page
+        * 
+        * @param pageToShown page that shall be shown
+        */
+    void actualizePage(int pageToShown);
 
     /**
         * Checkes if the listview has been clicked and either changes the page or returns item ID
@@ -69,11 +75,11 @@ public:
     int listClicked(int x, int y);
 
 private:
-    int _footerHeight; 
-    int _headerHeight; 
+    int _footerHeight;
+    int _headerHeight;
     int _headerFontHeight;
     int _footerFontHeight;
-    int _entryFontHeight; 
+    int _entryFontHeight;
     const irect *_contentRect;
     std::unique_ptr<const vector<Item>> _items;
     vector<ListViewEntry> _entries;
@@ -88,6 +94,6 @@ private:
     irect _prevPageButton;
     irect _firstPageButton;
     irect _lastPageButton;
-   int _itemCount = 7;
+    int _itemCount = 7;
 };
 #endif

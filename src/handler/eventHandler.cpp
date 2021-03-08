@@ -22,7 +22,7 @@ std::unique_ptr<EventHandler> EventHandler::_eventHandlerStatic;
 
 EventHandler::EventHandler()
 {
-    //create a event to create handlers
+    //create an copy of the eventhandler to handle methods that require static functions
     _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
     _loginView = nullptr;
@@ -134,10 +134,12 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 {
     if (type == EVT_POINTERDOWN)
     {
+        //menu is clicked
         if (IsInRect(par1, par2, _menu.getMenuButtonRect()) == 1)
         {
             return _menu.createMenu(_nextcloud.isLoggedIn(), _nextcloud.isWorkOffline(), EventHandler::mainMenuHandlerStatic);
         }
+        //if listView is shown
         else if (_listView != nullptr)
         {
             int itemID = _listView->listClicked(par1, par2);
@@ -225,6 +227,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 
             return 1;
         }
+        //if loginView is shown
         else if (_loginView != nullptr)
         {
             if (_loginView->logginClicked(par1, par2) == 2)

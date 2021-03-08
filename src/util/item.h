@@ -32,7 +32,6 @@ enum FileState
 class Item
 {
 public:
-
     /**
         * Creates an item by receiving the xml from nextcloud and parses it into an object 
         * 
@@ -44,15 +43,15 @@ public:
      * Creates a new item by receiving localPath from the pocketbook
      * 
      * @param localPath path where the file is placed
-     * @param FileState state of the file
+     * @param state state of the file
+     * @param type type of the item (folder/file)
      */
     Item(const string &localPath, FileState state, Itemtype type);
-    
+
     /**
      * Tries to open the item by checking the file format and then executes the fitting action
      */
     void open() const;
-
 
     bool removeFile();
 
@@ -72,7 +71,7 @@ public:
     string getLastEditDate() const { return _lastEditDate; };
     void setLastEditDate(const string &date) { _lastEditDate = date; };
 
-    double getSize() const { return _size;};
+    double getSize() const { return _size; };
     string getSizeString() const;
 
     string getFiletype() const { return _fileType; };

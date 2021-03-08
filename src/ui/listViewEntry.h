@@ -30,6 +30,9 @@ public:
         * draws the listViewEntry to the screen
         * 
         * @param item item that shall be drawn
+        * @param entryFont font for the entry itself
+        * @param entryFontBold bold font for the header
+        * @param fontHeight height of the font 
         */
     void draw(const Item &item, ifont *entryFont, ifont *entryFontBold, int fontHeight);
 

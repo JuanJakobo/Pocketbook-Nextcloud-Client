@@ -62,12 +62,16 @@ public:
     static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow);
 
     /**
-    * Returns an integer representing the download progress
-    * 
+    * get an XML Attribute from the buffer
     */
     static string getXMLAttribute(const string &buffer, const string &name);
 
-    static void decodeUrl(string &item);
+    /**
+     * Decodes an URL
+     * 
+     * @param text text that shall be converted
+     */
+    static void decodeUrl(string &text);
 
 private:
     Util() {}

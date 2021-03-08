@@ -378,7 +378,7 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
                 }
                 else
                 {
-                    Log::writeLog(localPath + "Couldnt save copy of tree structure locally.");
+                    Log::writeLog(localPath + " Couldnt save copy of tree structure locally.");
                 }
 
                 outFile.close();

@@ -37,8 +37,14 @@ public:
         */
     int createMenu(bool loggedIn, bool workOffline, iv_menuhandler handler);
 
+    /**
+        * Draws a loading screen at the top of the screen 
+        */ 
     void drawLoadingScreen();
 
+    /**
+        * Clears the area of the loading screen
+        */ 
     void clearLoadingScreen();
 
 private:
@@ -62,11 +68,8 @@ private:
     char *_info = strdup("Info");
     char *_exit = strdup("Close App");
 
-
     /**
         * Functions needed to call C function, handles the panel
-        * 
-        * @return void
         */
     static void panelHandlerStatic();
 };

@@ -122,19 +122,19 @@ void ListView::drawEntries()
     }
 }
 
-void ListView::actualizePage(int _pageToShown)
+void ListView::actualizePage(int pageToShown)
 {
-    if (_pageToShown > _page)
+    if (pageToShown > _page)
     {
         Message(ICON_INFORMATION, "Info", "You have reached the last page, to return to the first, please click \"first.\"", 1200);
     }
-    else if (_pageToShown < 1)
+    else if (pageToShown < 1)
     {
         Message(ICON_INFORMATION, "Info", "You are already on the first page.", 1200);
     }
     else
     {
-        _shownPage = _pageToShown;
+        _shownPage = pageToShown;
         FillArea(_contentRect->x, _contentRect->y + _headerHeight, _contentRect->w, _contentRect->h, WHITE);
         drawEntries();
         drawFooter();

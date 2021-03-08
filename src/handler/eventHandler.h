@@ -45,21 +45,16 @@ private:
     string _tempPath;
 
     /**
-        * Functions needed to call C function, redirects to real function
+        * Function needed to call C function, redirects to real function
         * 
-        * @param type event type
-        * @param par1 first argument of the event
-        * @param par2 second argument of the event
-        * @return int returns if the event was handled
+        *  @param index int of the menu that is set
         */
     static void mainMenuHandlerStatic(const int index);
+    
     /**
         * Handles menu events and redirects them
         * 
-        * @param type event type
-        * @param par1 first argument of the event
-        * @param par2 second argument of the event
-        * @return int returns if the event was handled
+        * @param index int of the menu that is set
         */
     void mainMenuHandler(const int index);
 
@@ -73,6 +68,11 @@ private:
         */
     int pointerHandler(const int type, const int par1, const int par2);
 
-    static void DialogHandlerStatic(int clicked);
+    /**
+        * Handles the cancel button on the progressbar
+        * 
+        * @param clicked button that has been clicked
+        */
+    static void DialogHandlerStatic(const int clicked);
 };
 #endif

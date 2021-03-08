@@ -78,13 +78,13 @@ string Util::getXMLAttribute(const string &buffer, const string &name)
     return NULL;
 }
 
-void Util::decodeUrl(string &item)
+void Util::decodeUrl(string &text)
 {
     char *buffer;
     CURL *curl = curl_easy_init();
 
-    buffer = curl_easy_unescape(curl,item.c_str(),0,NULL);
-    item =  buffer;
+    buffer = curl_easy_unescape(curl,text.c_str(),0,NULL);
+    text =  buffer;
 
     curl_free(buffer);
     curl_easy_cleanup(curl);

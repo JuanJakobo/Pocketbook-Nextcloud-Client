@@ -15,7 +15,7 @@
 
 using std::string;
 
-enum KeyboardTarget 
+enum KeyboardTarget
 {
     IURL,
     IUSERNAME,
@@ -27,10 +27,22 @@ const int KEYBOARD_STRING_LENGHT = 90;
 class LoginView
 {
 public:
+    /**
+        * Draws the loginView includin URL, Username and Password buttons inside the contentRect 
+        * 
+        * @param contentRect area where the loginscreen shall be drawn
+        */
     LoginView(const irect *contentRect);
 
     ~LoginView();
-    
+
+    /**
+        * Checks which part of the loginscreen is shown and reacts accordingly
+        * 
+        * @param x x-coordinate
+        * @param y y-coordinate
+        * @return int if event has been handled. Returns 2 if login has been clicked and all items are set
+        */
     int logginClicked(int x, int y);
 
     string getUsername() { return _username; };
@@ -40,7 +52,7 @@ public:
 private:
     static LoginView *_loginViewStatic;
     int _loginFontHeight;
-    ifont *_loginFont; 
+    ifont *_loginFont;
     const irect *_contentRect;
     irect _urlButton;
     irect _loginButton;
@@ -53,12 +65,17 @@ private:
     string _temp;
 
     /**
-        * Functions needed to call C function, handles the panel
+        * Functions needed to call C function, handles the keyboard
         * 
-        * @return void
+        * @param  text text that has been typed in by the user
         */
     static void keyboardHandlerStatic(char *text);
 
+    /**
+        * Called by the static method and saves and writes the input from the user to the screen
+        * 
+        * @param text text that has been typed in by the user 
+        */ 
     void keyboardHandler(char *text);
 };
 
