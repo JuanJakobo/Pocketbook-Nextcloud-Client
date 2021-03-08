@@ -43,12 +43,12 @@ MenuHandler::~MenuHandler()
 {
     CloseFont(_menuFont);
     CloseFont(_loadingFont);
-    delete _text;
-    delete _menu;
-    delete _makeStartfolder;
-    delete _logout;
-    delete _info;
-    delete _exit;
+    free(_text);
+    free(_menu);
+    free(_makeStartfolder);
+    free(_logout);
+    free(_info);
+    free(_exit);
 }
 
 void MenuHandler::panelHandlerStatic()

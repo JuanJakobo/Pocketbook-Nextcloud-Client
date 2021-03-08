@@ -55,8 +55,6 @@ LoginView::LoginView(const irect *contentRect) : _contentRect(contentRect)
 
 LoginView::~LoginView()
 {
-    //delete _contentRect;
-    //delete _loginViewStatic;
     CloseFont(_loginFont);
 }
 

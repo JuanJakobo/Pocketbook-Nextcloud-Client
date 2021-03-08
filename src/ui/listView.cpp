@@ -74,7 +74,6 @@ ListView::ListView(const irect *contentRect, const vector<Item> &items) : _conte
 
 ListView::~ListView()
 {
-    delete _contentRect;
     CloseFont(_entryFont);
     CloseFont(_entryFontBold);
     CloseFont(_headerFont);
