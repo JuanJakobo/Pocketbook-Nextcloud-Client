@@ -20,6 +20,7 @@
 using std::ifstream;
 using std::ofstream;
 using std::string;
+using std::vector;
 
 Nextcloud::Nextcloud()
 {

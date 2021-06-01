@@ -11,8 +11,6 @@
 
 #include <string>
 
-using std::string;
-
 class MenuHandler
 {
 public:
@@ -21,7 +19,7 @@ public:
         * 
         * @param name name of the application
         */
-    MenuHandler(const string &name);
+    MenuHandler(const std::string &name);
 
     ~MenuHandler();
 

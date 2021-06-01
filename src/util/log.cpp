@@ -12,7 +12,7 @@
 #include <string>
 #include <fstream>
 
-void Log::writeLog(const string &text)
+void Log::writeLog(const std::string &text)
 {
     std::ofstream log(LOG_PATH + std::string("/logfile.txt"), std::ios_base::app | std::ios_base::out);
 

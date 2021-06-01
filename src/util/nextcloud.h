@@ -17,29 +17,26 @@
 #include <vector>
 #include <memory>
 
-using std::string;
-using std::vector;
-
-const string NEXTCLOUD_PATH = "/mnt/ext1/system/config/nextcloud";
-const string NEXTCLOUD_CONFIG_PATH = NEXTCLOUD_PATH + "/nextcloud.cfg";
-const string NEXTCLOUD_FILE_PATH = "/mnt/ext1/nextcloud";
-const string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
-const string NEXTCLOUD_STRUCTURE_EXTENSION = ".structure";
-const string NEXTCLOUD_END_PATH = "/nextcloud";
+const std::string NEXTCLOUD_PATH = "/mnt/ext1/system/config/nextcloud";
+const std::string NEXTCLOUD_CONFIG_PATH = NEXTCLOUD_PATH + "/nextcloud.cfg";
+const std::string NEXTCLOUD_FILE_PATH = "/mnt/ext1/nextcloud";
+const std::string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
+const std::string NEXTCLOUD_STRUCTURE_EXTENSION = ".structure";
+const std::string NEXTCLOUD_END_PATH = "/nextcloud";
 
 class Nextcloud
 {
 public:
     explicit Nextcloud();
 
-    void setURL(const string &Url);
-    void setUsername(const string &Username);
-    void setUUID(const string &UUID);
-    void setPassword(const string &Pass);
-    void setStartFolder(const string &Path);
-    bool setItems(const vector<Item> &tempItems);
+    void setURL(const std::string &Url);
+    void setUsername(const std::string &Username);
+    void setUUID(const std::string &UUID);
+    void setPassword(const std::string &Pass);
+    void setStartFolder(const std::string &Path);
+    bool setItems(const std::vector<Item> &tempItems);
 
-    const vector<Item> &getItems() const { return _items; };
+    const std::vector<Item> &getItems() const { return _items; };
     bool isLoggedIn() const { return _loggedIn; };
     bool isWorkOffline() const { return _workOffline; };
     void switchWorkOffline() { _workOffline = !_workOffline; };
@@ -58,7 +55,7 @@ public:
         * @param Pass the pass of the Nextcloud instance
         * @return true - login succeeded, false - login failed
          */
-    bool login(const string &Url, const string &Username, const string &Pass);
+    bool login(const std::string &Url, const std::string &Username, const std::string &Pass);
 
     /**
         * Deletes the config files and deletes are temp files 
@@ -71,14 +68,14 @@ public:
         * @param tempItems set of items where the item is in
         * @param itemID id of the item 
         */
-    void downloadItem(vector<Item> &tempItems, int itemID);
+    void downloadItem(std::vector<Item> &tempItems, int itemID);
 
     /**
         * Downloads a certain folder from the Nextcloud and saves it locally 
         * @param tempItems set of items where the item is in
         * @param itemID id of the item 
         */
-    void downloadFolder(vector<Item> &tempItems, int itemId);
+    void downloadFolder(std::vector<Item> &tempItems, int itemId);
 
     /**
         * Checks the network connection and starts the download of the certain itemId 
@@ -101,7 +98,7 @@ public:
         * @param pathUrl URL to get the dataStructure of
         * @return vector of items
         */
-    vector<Item> getDataStructure(string &pathUrl);
+    std::vector<Item> getDataStructure(std::string &pathUrl);
 
     /**
         * formats the pathUrl to a local path
@@ -109,7 +106,7 @@ public:
         * @param path online path
         * @return local path
         */
-    static string getLocalPath(string path);
+    static std::string getLocalPath(std::string path);
 
     /**
         * checks the local storage checks if the items are locally available
@@ -117,12 +114,12 @@ public:
         * @param tempItems items that shall be compared
         * @param localPath path that has to be checked
         */
-    void getLocalFileStructure(vector<Item> &tempItems, const string &localPath);
+    void getLocalFileStructure(std::vector<Item> &tempItems, const std::string &localPath);
 
 private:
-    vector<Item> _items;
+    std::vector<Item> _items;
     bool _loggedIn{false};
-    string _url;
+    std::string _url;
     bool _workOffline{false};
 
     /**
@@ -133,13 +130,13 @@ private:
         * @param Pass the pass of the Nextcloud instance
         * @return vector of Items 
         */
-    vector<Item> getDataStructure(const string &pathUrl, const string &Username, const string &Pass);
+    std::vector<Item> getDataStructure(const std::string &pathUrl, const std::string &Username, const std::string &Pass);
 
-    string getUrl();
-    string getUsername();
-    string getUUID();
-    string getPassword();
-    string getStartFolder();
+    std::string getUrl();
+    std::string getUsername();
+    std::string getUUID();
+    std::string getPassword();
+    std::string getStartFolder();
 
     /**
         * Handles the end of the game dialog and lets the user
@@ -156,14 +153,14 @@ private:
      * @param xml xml formatted result from curl call
      * @return vector<Item> the items that have been read from the xml
      */
-    vector<Item> readInXML(string xml);
+    std::vector<Item> readInXML(std::string xml);
 
     /**
      * Checks if a .structure file exists and if that is the case return a vector of items 
      * @param pathUrl path that shall be checked
      * @return return the items for the structure if available offline
      */
-    vector<Item> getOfflineStructure(const string &pathUrl);
+    std::vector<Item> getOfflineStructure(const std::string &pathUrl);
 };
 
 #endif

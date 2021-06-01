@@ -13,8 +13,6 @@
 
 #include <string>
 
-using std::string;
-
 enum Itemtype
 {
     IFILE,
@@ -37,7 +35,7 @@ public:
         * 
         * @param xmlItem result of the nextcloud request
         */
-    Item(const string &xmlItem);
+    Item(const std::string &xmlItem);
 
     /**
      * Creates a new item by receiving localPath from the pocketbook
@@ -46,7 +44,7 @@ public:
      * @param state state of the file
      * @param type type of the item (folder/file)
      */
-    Item(const string &localPath, FileState state, Itemtype type);
+    Item(const std::string &localPath, FileState state, Itemtype type);
 
     /**
      * Tries to open the item by checking the file format and then executes the fitting action
@@ -55,36 +53,36 @@ public:
 
     bool removeFile();
 
-    void setPath(const string &path) { _path = path; };
-    string getPath() const { return _path; };
+    void setPath(const std::string &path) { _path = path; };
+    std::string getPath() const { return _path; };
 
-    string getLocalPath() const { return _localPath; };
+    std::string getLocalPath() const { return _localPath; };
 
     Itemtype getType() const { return _type; };
 
-    void setTitle(const string &title) { _title = title; };
-    string getTitle() const { return _title; };
+    void setTitle(const std::string &title) { _title = title; };
+    std::string getTitle() const { return _title; };
 
     void setState(FileState state) { _state = state; };
     FileState getState() const { return _state; };
 
-    string getLastEditDate() const { return _lastEditDate; };
-    void setLastEditDate(const string &date) { _lastEditDate = date; };
+    std::string getLastEditDate() const { return _lastEditDate; };
+    void setLastEditDate(const std::string &date) { _lastEditDate = date; };
 
     double getSize() const { return _size; };
-    string getSizeString() const;
+    std::string getSizeString() const;
 
-    string getFiletype() const { return _fileType; };
+    std::string getFiletype() const { return _fileType; };
 
 private:
-    string _path;
-    string _title;
-    string _localPath;
+    std::string _path;
+    std::string _title;
+    std::string _localPath;
     FileState _state{FileState::ICLOUD};
     Itemtype _type;
-    string _lastEditDate{"Error"};
+    std::string _lastEditDate{"Error"};
     double _size;
-    string _fileType;
+    std::string _fileType;
 
     /**
      * Converts the size to an easier readble format

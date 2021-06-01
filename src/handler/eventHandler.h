@@ -16,7 +16,7 @@
 
 #include <memory>
 
-const string LOG_PATH = "/mnt/ext1/system/config/nextcloud";
+const std::string LOG_PATH = "/mnt/ext1/system/config/nextcloud";
 
 class EventHandler
 {
@@ -42,7 +42,7 @@ private:
     std::unique_ptr<LoginView> _loginView;
     MenuHandler _menu = MenuHandler("Nextcloud");
     Nextcloud _nextcloud = Nextcloud();
-    string _tempPath;
+    std::string _tempPath;
 
     /**
         * Function needed to call C function, redirects to real function

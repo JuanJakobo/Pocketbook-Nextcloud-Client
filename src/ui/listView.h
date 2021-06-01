@@ -17,9 +17,6 @@
 #include <vector>
 #include <memory>
 
-using std::string;
-using std::vector;
-
 class ListView
 {
 public:
@@ -29,7 +26,7 @@ public:
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         */
-    ListView(const irect *contentRect, const vector<Item> &items);
+    ListView(const irect *contentRect, const std::vector<Item> &items);
 
     ~ListView();
 
@@ -39,7 +36,7 @@ public:
         * @param headerText the text that shall be displayed in the header
         * 
         */
-    void drawHeader(string headerText);
+    void drawHeader(std::string headerText);
 
     /**
         * Draws the footer including a page changer 
@@ -81,8 +78,8 @@ private:
     int _footerFontHeight;
     int _entryFontHeight;
     const irect *_contentRect;
-    std::unique_ptr<const vector<Item>> _items;
-    vector<ListViewEntry> _entries;
+    std::unique_ptr<const std::vector<Item>> _items;
+    std::vector<ListViewEntry> _entries;
     ifont *_headerFont;
     ifont *_footerFont;
     ifont *_entryFont;

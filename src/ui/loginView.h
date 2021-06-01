@@ -13,8 +13,6 @@
 
 #include <string>
 
-using std::string;
-
 enum KeyboardTarget
 {
     IURL,
@@ -45,9 +43,9 @@ public:
         */
     int logginClicked(int x, int y);
 
-    string getUsername() { return _username; };
-    string getPassword() { return _password; };
-    string getURL() { return _url; };
+    std::string getUsername() { return _username; };
+    std::string getPassword() { return _password; };
+    std::string getURL() { return _url; };
 
 private:
     static LoginView *_loginViewStatic;
@@ -59,10 +57,10 @@ private:
     irect _usernameButton;
     irect _passwordButton;
     KeyboardTarget _target;
-    string _username;
-    string _password;
-    string _url;
-    string _temp;
+    std::string _username;
+    std::string _password;
+    std::string _url;
+    std::string _temp;
 
     /**
         * Functions needed to call C function, handles the keyboard
