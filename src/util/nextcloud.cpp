@@ -214,13 +214,13 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 2000);
                 break;
             default:
-                Message(ICON_ERROR, "Error", ("An unknown error occured. (Curl Response Code " + Util::valueToString(response_code) + ")").c_str(), 2000);
+                Message(ICON_ERROR, "Error", ("An unknown error occured. (Curl Response Code " + std::to_string(response_code) + ")").c_str(), 2000);
                 break;
             }
         }
         else
         {
-            Message(ICON_ERROR, "Error", ("An curl error occured (Error Code: " + Util::valueToString(res) + ").").c_str(), 4000);
+            Message(ICON_ERROR, "Error", ("An curl error occured (Error Code: " + std::to_string(res) + ").").c_str(), 4000);
         }
     }
 }
@@ -386,14 +386,14 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
                 return tempItems;
             }
             default:
-                Message(ICON_ERROR, "Error", ("An unknown error occured. Switching to offline modus. To work online turn on online modus in the menu. (Curl Response Code " + Util::valueToString(response_code) + ")").c_str(), 4000);
+                Message(ICON_ERROR, "Error", ("An unknown error occured. Switching to offline modus. To work online turn on online modus in the menu. (Curl Response Code " + std::to_string(response_code) + ")").c_str(), 4000);
                 _workOffline = true;
                 return getOfflineStructure(pathUrl);
             }
         }
         else
         {
-            Message(ICON_ERROR, "Error", ("An curl error occured (Error Code: " + Util::valueToString(res) + ").").c_str(), 4000);
+            Message(ICON_ERROR, "Error", ("An curl error occured (Error Code: " + std::to_string(res) + ").").c_str(), 4000);
         }
     }
     return {};
@@ -540,8 +540,8 @@ void Nextcloud::getLocalFileStructure(vector<Item> &tempItems, const string &loc
                 {
                     std::ifstream in(fullFileName, std::ifstream::binary | std::ifstream::ate);
                     Log::writeLog(tempItems.at(i).getTitle());
-                    Log::writeLog(Util::valueToString(in.tellg()));
-                    Log::writeLog(Util::valueToString(tempItems.at(i).getSize()));
+                    Log::writeLog(std::to_string(in.tellg()));
+                    Log::writeLog(std::to_string(tempItems.at(i).getSize()));
                     if (in.tellg() != tempItems.at(i).getSize())
                     {
                         tempItems.at(i).setState(FileState::IOUTSYNCED);

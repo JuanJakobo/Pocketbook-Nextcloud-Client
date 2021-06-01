@@ -147,5 +147,5 @@ string Item::getSizeString() const
     }
 
     tempSize = round((_size / departBy) * 10.0) / 10.0;
-    return Util::valueToString(tempSize) + " " + unit;
+    return std::to_string(tempSize) + " " + unit;
 }

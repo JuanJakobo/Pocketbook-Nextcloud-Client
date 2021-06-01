@@ -22,19 +22,6 @@ using std::string;
 class Util
 {
 public:
-    /**
-    * Converts an value to an string, as C++11 command is not supported
-    * 
-    * @param value the int value that shall be converted
-    * @return same value in string format
-    */
-    template <typename T>
-    static string valueToString(const T value)
-    {
-        ostringstream stm;
-        stm << value;
-        return stm.str();
-    };
 
     /**
     * Handles the return of curl command
