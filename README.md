@@ -34,19 +34,20 @@ To download a file, click on it. A synced file can be either opened, synced or r
 
 First you need to install the basic build tools for linux.
 
-Then you have to download the Pocketbook SDK (A Fork can be downloaded from https://github.com/JuanJakobo/pocketbook-sdk5.
+Then you have to download the Pocketbook SDK (https://github.com/pocketbook/SDK_6.3.0/tree/5.19).
 
-In the CMakeLists.txt of this project you have to set the root of the TOOLCHAIN_PATH to the location where you saved the SDK:
+In the CMakeLists.txt of this project you have to set the root of the TOOLCHAIN_PATH to the location where you saved the SDK. 
+This could be for example:
 
-`SET (TOOLCHAIN_PATH "../../SDK/pocketbook-sdk5-master")`
+`SET (TOOLCHAIN_PATH "../../SDK/SDK_6.3.0/SDK-B288")`
 
 Then you have to setup cmake by:
 
 `cmake .`
 
-To build the application you can run the makearm script.
+To build the application run:
 
-`./makearm.sh` 
+`make` 
 
 ## Disclamer
 Use as your own risk! 
