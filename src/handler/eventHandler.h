@@ -61,6 +61,21 @@ private:
     void mainMenuHandler(const int index);
 
     /**
+        * Function needed to call C function, redirects to real function
+        * 
+        *  @param index int of the menu that is set
+        */
+    static void contextMenuHandlerStatic(const int index);
+
+    /**
+        * Handlescontext  menu events and redirects them
+        * 
+        * @param index int of the menu that is set
+        */
+
+    void contextMenuHandler(const int index);
+
+    /**
         * Handles pointer Events
         * 
         * @param type event type

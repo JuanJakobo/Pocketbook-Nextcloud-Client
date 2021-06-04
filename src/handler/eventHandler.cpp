@@ -30,7 +30,6 @@ EventHandler::EventHandler()
 
     if (iv_access(NEXTCLOUD_CONFIG_PATH.c_str(), W_OK) == 0)
     {
-        _menu.drawLoadingScreen();
         if (_nextcloud.login())
         {
             _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
