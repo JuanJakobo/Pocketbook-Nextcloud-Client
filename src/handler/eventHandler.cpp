@@ -130,6 +130,63 @@ void EventHandler::mainMenuHandler(const int index)
     }
 }
 
+void EventHandler::contextMenuHandlerStatic(const int index)
+{
+    _eventHandlerStatic->contextMenuHandler(index);
+}
+std::unique_ptr<ContextMenu> _contextMenu;
+
+void EventHandler::contextMenuHandler(const int index)
+{
+    //invert color
+    switch (index)
+    {
+    //Open
+    case 101:
+    {
+        if (_nextcloud.getItems().at(tempItemID).getType() == Itemtype::IFOLDER)
+        {
+            openFolder();
+        }
+        else
+        {
+            openItem();
+        }
+
+        break;
+    }
+    //Sync
+    case 102:
+    {
+        startDownload();
+        break;
+    }
+    //remove
+    case 103:
+    {
+        OpenProgressbar(1, "Removing...", "Removing Files.", 0, EventHandler::DialogHandlerStatic);
+        if (_nextcloud.removeItem(tempItemID))
+        {
+            _listView->drawEntry(tempItemID);
+            Util::updatePBLibrary();
+        }
+        else
+        {
+            Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
+        }
+        CloseProgressbar();
+        break;
+    }
+    default:
+    {
+        _listView->invertEntryColor(tempItemID);
+        break;
+    }
+
+        _contextMenu.reset();
+    }
+}
+
 int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 {
     if (type == EVT_POINTERDOWN)
