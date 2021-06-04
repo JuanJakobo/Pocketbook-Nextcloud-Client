@@ -13,6 +13,11 @@
 #include <curl/curl.h>
 #include <tuple>
 
+#include <signal.h>
+
+pid_t child_pid = -1; //Global
+
+
 using std::string;
 
 size_t Util::writeCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -89,4 +94,31 @@ void Util::decodeUrl(string &text)
 
     curl_free(buffer);
     curl_easy_cleanup(curl);
+}
+
+void kill_child(int sig)
+{
+    //SIGKILL
+    kill(child_pid, SIGTERM);
+}
+
+void Util::updatePBLibrary()
+{
+    //TODO how determine time?
+    UpdateProgressbar("Updating PB library", 50);
+    //https://stackoverflow.com/questions/6501522/how-to-kill-a-child-process-by-the-parent-process
+    signal(SIGALRM, (void (*)(int))kill_child);
+    child_pid = fork();
+    if (child_pid > 0)
+    {
+        //parent
+        alarm(5);
+        wait(NULL);
+    }
+    else if (child_pid == 0)
+    {
+        //child
+        string cmd = "/ebrmain/bin/scanner.app";
+        execlp(cmd.c_str(), cmd.c_str(), (char *)NULL);
+    }
 }

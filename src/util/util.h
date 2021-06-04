@@ -53,6 +53,11 @@ public:
      */
     static void decodeUrl(std::string &text);
 
+        /**
+        * Updates the library of the Pocketbook
+        * 
+        */
+    static void updatePBLibrary();
 
 private:
     Util() {}

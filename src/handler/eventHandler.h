@@ -45,6 +45,7 @@ private:
     MainMenu _menu = MainMenu("Nextcloud");
     Nextcloud _nextcloud = Nextcloud();
     std::string _tempPath;
+    int tempItemID;
 
     /**
         * Function needed to call C function, redirects to real function
@@ -84,6 +85,25 @@ private:
         * @return int returns if the event was handled
         */
     int pointerHandler(const int type, const int par1, const int par2);
+
+    /**
+        * Starts the download of an item
+        * 
+        */
+    void startDownload();
+
+    /**
+        * Open a folder
+        *
+        */
+    void openFolder();
+
+
+    /**
+        * Open a item
+        *
+        */
+    void openItem();
 
     /**
         * Handles key Events
