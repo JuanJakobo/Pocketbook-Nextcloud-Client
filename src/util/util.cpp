@@ -27,6 +27,7 @@ size_t Util::writeData(void *ptr, size_t size, size_t nmemb, FILE *stream)
     return written;
 }
 
+//https://github.com/pmartin/pocketbook-demo/blob/master/devutils/wifi.cpp
 bool Util::connectToNetwork()
 {
     iv_netinfo *netinfo = NetInfo();

@@ -52,7 +52,7 @@ private:
         *  @param index int of the menu that is set
         */
     static void mainMenuHandlerStatic(const int index);
-    
+
     /**
         * Handles menu events and redirects them
         * 
@@ -90,6 +90,6 @@ private:
         * 
         * @param clicked button that has been clicked
         */
-    static void DialogHandlerStatic(const int clicked);
+    static void DialogHandlerStatic(int clicked);
 };
 #endif

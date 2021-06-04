@@ -30,7 +30,7 @@ LoginView::LoginView(const irect *contentRect) : _contentRect(contentRect)
 
     _loginFontHeight = contents / 2;
 
-    _loginFont = OpenFont("LiberationMono", _loginFontHeight, 1);
+    _loginFont = OpenFont("LiberationMono", _loginFontHeight, FONT_STD);
     SetFont(_loginFont, BLACK);
     FillAreaRect(_contentRect, WHITE);
 

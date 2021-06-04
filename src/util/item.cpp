@@ -64,7 +64,11 @@ Item::Item(const string &localPath, FileState state, Itemtype type) : _localPath
 
 void Item::open() const
 {
-    if (_fileType.find("application/epub+zip") != string::npos ||
+    if(_state==FileState::ICLOUD)
+    {
+        Message(ICON_ERROR,"File not found.","Could not find file.",1000);
+    }
+    else if (_fileType.find("application/epub+zip") != string::npos ||
         _fileType.find("application/pdf") != string::npos ||
         _fileType.find("application/octet-stream") != string::npos ||
         _fileType.find("text/plain") != string::npos ||

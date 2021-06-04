@@ -12,17 +12,10 @@
 #include "inkview.h"
 
 #include <string>
-#include <fstream>
-#include <sstream>
-
-using std::ostringstream;
-
-using std::string;
 
 class Util
 {
 public:
-
     /**
     * Handles the return of curl command
     * 
@@ -51,14 +44,15 @@ public:
     /**
     * get an XML Attribute from the buffer
     */
-    static string getXMLAttribute(const string &buffer, const string &name);
+    static std::string getXMLAttribute(const std::string &buffer, const std::string &name);
 
     /**
      * Decodes an URL
      * 
      * @param text text that shall be converted
      */
-    static void decodeUrl(string &text);
+    static void decodeUrl(std::string &text);
+
 
 private:
     Util() {}

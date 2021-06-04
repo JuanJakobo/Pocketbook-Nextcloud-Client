@@ -9,6 +9,7 @@
 #include "inkview.h"
 #include "eventHandler.h"
 #include "mainMenu.h"
+#include "contextMenu.h"
 #include "listView.h"
 #include "util.h"
 #include "log.h"
@@ -309,10 +310,9 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     return 0;
 }
 
-void EventHandler::DialogHandlerStatic(const int clicked)
+void EventHandler::DialogHandlerStatic(int clicked)
 {
     //TODO cannot interact with it
     // make download in different thread https://github.com/pmartin/pocketbook-demo/blob/master/demo08-pthreads/demo08.cpp
-    if (clicked == 1)
-        CloseProgressbar();
+    CloseProgressbar();
 }

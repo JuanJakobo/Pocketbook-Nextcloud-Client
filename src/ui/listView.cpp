@@ -34,10 +34,10 @@ ListView::ListView(const irect *contentRect, const vector<Item> &items) : _conte
     _footerFontHeight = 0.3 * _footerHeight;
     _entryFontHeight = 0.2 * entrySize;
 
-    _headerFont = OpenFont("LiberationMono", _headerFontHeight, 1);
-    _footerFont = OpenFont("LiberationMono", _footerFontHeight, 1);
-    _entryFont = OpenFont("LiberationMono", _entryFontHeight, 1);
-    _entryFontBold = OpenFont("LiberationMono-Bold", _entryFontHeight, 1);
+    _headerFont = OpenFont("LiberationMono", _headerFontHeight, FONT_STD);
+    _footerFont = OpenFont("LiberationMono", _footerFontHeight, FONT_STD);
+    _entryFont = OpenFont("LiberationMono", _entryFontHeight, FONT_STD);
+    _entryFontBold = OpenFont("LiberationMono-Bold", _entryFontHeight, FONT_BOLD);
 
     _page = 1;
     _shownPage = _page;
@@ -90,6 +90,52 @@ void ListView::drawHeader(string headerText)
     DrawLine(0, line, ScreenWidth(), line, BLACK);
 }
 
+void ListView::drawEntry(int itemID)
+{
+    FillAreaRect(_entries[itemID].getPosition(), WHITE);
+    _entries[itemID].draw(_items->at(itemID), _entryFont, _entryFontBold, _entryFontHeight);
+}
+
+void ListView::drawEntries()
+{
+    for (unsigned int i = 0; i < _entries.size(); i++)
+    {
+        if (_entries[i].getPage() == _shownPage)
+            _entries[i].draw(_items->at(i), _entryFont, _entryFontBold, _entryFontHeight);
+    }
+}
+
+int ListView::listClicked(int x, int y)
+{
+    if (IsInRect(x, y, &_firstPageButton))
+    {
+        firstPage();
+    }
+    else if (IsInRect(x, y, &_nextPageButton))
+    {
+        nextPage();
+    }
+    else if (IsInRect(x, y, &_prevPageButton))
+    {
+        prevPage();
+    }
+    else if (IsInRect(x, y, &_lastPageButton))
+    {
+        actualizePage(_page);
+    }
+    else
+    {
+        for (unsigned int i = 0; i < _entries.size(); i++)
+        {
+            if (_entries[i].getPage() == _shownPage && IsInRect(x, y, _entries[i].getPosition()) == 1)
+            {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
 void ListView::drawFooter()
 {
     SetFont(_footerFont, WHITE);
@@ -107,19 +153,9 @@ void ListView::drawFooter()
     DrawTextRect2(&_lastPageButton, "Last");
 }
 
-void ListView::drawEntry(int itemID)
+void ListView::updateEntry(int itemID)
 {
-    FillAreaRect(_entries[itemID].getPosition(), WHITE);
-    _entries[itemID].draw(_items->at(itemID), _entryFont, _entryFontBold, _entryFontHeight);
-}
-
-void ListView::drawEntries()
-{
-    for (unsigned int i = 0; i < _entries.size(); i++)
-    {
-        if (_entries[i].getPage() == _shownPage)
-            _entries[i].draw(_items->at(i), _entryFont, _entryFontBold, _entryFontHeight);
-    }
+    PartialUpdate(_entries[itemID].getPosition()->x, _entries[itemID].getPosition()->y, _entries[itemID].getPosition()->w, _entries[itemID].getPosition()->h);
 }
 
 void ListView::actualizePage(int pageToShown)
@@ -138,36 +174,6 @@ void ListView::actualizePage(int pageToShown)
         FillArea(_contentRect->x, _contentRect->y + _headerHeight, _contentRect->w, _contentRect->h, WHITE);
         drawEntries();
         drawFooter();
+        PartialUpdate(_contentRect->x, _contentRect->y + _headerHeight, _contentRect->w, _contentRect->h);
     }
-}
-
-int ListView::listClicked(int x, int y)
-{
-    if (IsInRect(x, y, &_firstPageButton))
-    {
-        actualizePage(1);
-    }
-    else if (IsInRect(x, y, &_nextPageButton))
-    {
-        actualizePage(_shownPage + 1);
-    }
-    else if (IsInRect(x, y, &_prevPageButton))
-    {
-        actualizePage(_shownPage - 1);
-    }
-    else if (IsInRect(x, y, &_lastPageButton))
-    {
-        actualizePage(_page);
-    }
-    else
-    {
-        for (unsigned int i = 0; i < _entries.size(); i++)
-        {
-            if (_entries[i].getPage() == _shownPage && IsInRect(x, y, _entries[i].getPosition()) == 1)
-            {
-                return i;
-            }
-        }
-    }
-    return -1;
 }
