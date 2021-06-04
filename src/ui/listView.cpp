@@ -94,6 +94,13 @@ void ListView::drawEntry(int itemID)
 {
     FillAreaRect(_entries[itemID].getPosition(), WHITE);
     _entries[itemID].draw(_items->at(itemID), _entryFont, _entryFontBold, _entryFontHeight);
+    updateEntry(itemID);
+}
+
+void ListView::invertEntryColor(int itemID)
+{
+    InvertAreaBW(_entries[itemID].getPosition()->x, _entries[itemID].getPosition()->y, _entries[itemID].getPosition()->w, _entries[itemID].getPosition()->h);
+    updateEntry(itemID);
 }
 
 void ListView::drawEntries()

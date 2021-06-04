@@ -46,6 +46,13 @@ public:
     void drawEntry(int itemID);
 
     /**
+        * inverts the color of an entry 
+        * 
+        * @param itemID the id of the item that shall be inverted
+        */
+    void invertEntryColor(int itemID);
+
+    /**
         * Iterates through the items and sends them to the listViewEntry Class for drawing
         */
     void drawEntries();
