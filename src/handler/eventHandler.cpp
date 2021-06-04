@@ -282,31 +282,35 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 
             PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
 
-            return 1;
-        }
-        //if loginView is shown
-        else if (_loginView != nullptr)
+int EventHandler::keyHandler(const int type, const int par1, const int par2)
+{
+    if (type == EVT_KEYPRESS)
+    {
+        //menu button
+        if (par1 == 23)
         {
-            if (_loginView->logginClicked(par1, par2) == 2)
+            _listView->firstPage();
+        }
+        else if (_listView != nullptr)
+        {
+            //left button
+            if (par1 == 24)
             {
-                _menu.drawLoadingScreen();
-
-                if (_nextcloud.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
-                {
-                    _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
-                    _loginView.reset();
-
-                    FullUpdate();
-                }
-                else
-                {
-                    _menu.clearLoadingScreen();
-                    Log::writeLog("login failed.");
-                }
-                return 1;
+                _listView->prevPage();
+            }
+            //right button
+            else if (par1 == 25)
+            {
+                _listView->nextPage();
             }
         }
+        else
+        {
+            return 0;
+        }
+        return 1;
     }
+
     return 0;
 }
 

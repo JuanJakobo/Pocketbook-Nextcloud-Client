@@ -86,6 +86,16 @@ private:
     int pointerHandler(const int type, const int par1, const int par2);
 
     /**
+        * Handles key Events
+        * 
+        * @param type event type
+        * @param par1 first argument of the event (is the key)
+        * @param par2 second argument of the event
+        * @return int returns if the event was handled
+        */
+    int keyHandler(const int type, const int par1, const int par2);
+
+    /**
         * Handles the cancel button on the progressbar
         * 
         * @param clicked button that has been clicked
