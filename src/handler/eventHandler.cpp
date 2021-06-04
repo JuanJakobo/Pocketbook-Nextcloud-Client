@@ -8,7 +8,7 @@
 
 #include "inkview.h"
 #include "eventHandler.h"
-#include "menuHandler.h"
+#include "mainMenu.h"
 #include "listView.h"
 #include "util.h"
 #include "log.h"

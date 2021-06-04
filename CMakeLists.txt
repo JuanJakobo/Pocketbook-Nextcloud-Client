@@ -50,7 +50,7 @@ list(APPEND PB_INCLUDE_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnuea
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp 
 			${CMAKE_SOURCE_DIR}/src/handler/eventHandler.cpp 		
-			${CMAKE_SOURCE_DIR}/src/handler/menuHandler.cpp 
+			${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp 
 			${CMAKE_SOURCE_DIR}/src/util/nextcloud.cpp 
 			${CMAKE_SOURCE_DIR}/src/util/item.cpp
 			${CMAKE_SOURCE_DIR}/src/ui/listView.cpp 

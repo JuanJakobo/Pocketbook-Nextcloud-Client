@@ -9,7 +9,7 @@
 #ifndef EVENT_HANDLER
 #define EVENT_HANDLER
 
-#include "menuHandler.h"
+#include "mainMenu.h"
 #include "nextcloud.h"
 #include "listView.h"
 #include "loginView.h"
@@ -40,7 +40,7 @@ private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<ListView> _listView;
     std::unique_ptr<LoginView> _loginView;
-    MenuHandler _menu = MenuHandler("Nextcloud");
+    MainMenu _menu = MainMenu("Nextcloud");
     Nextcloud _nextcloud = Nextcloud();
     std::string _tempPath;
 

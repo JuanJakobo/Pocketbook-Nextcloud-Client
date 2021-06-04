@@ -1,17 +1,19 @@
 //------------------------------------------------------------------
-// eventHandler.h
+// mainMenu.h
 //
 // Author:           JuanJakobo
 // Date:             14.06.2020
 // Description:      Handles the menubar and the menu
 //-------------------------------------------------------------------
 
-#ifndef MENU_HANDLER
-#define MENU_HANDLER
+#ifndef MAIN_MENU
+#define MAIN_MENU
+
+#include "inkview.h"
 
 #include <string>
 
-class MenuHandler
+class MainMenu
 {
 public:
     /**
@@ -19,9 +21,9 @@ public:
         * 
         * @param name name of the application
         */
-    MenuHandler(const std::string &name);
+    MainMenu(const std::string &name);
 
-    ~MenuHandler();
+    ~MainMenu();
 
     irect *getContentRect() { return &_contentRect; };
     irect *getMenuButtonRect() { return &_menuButtonRect; };
@@ -35,26 +37,14 @@ public:
         */
     int createMenu(bool loggedIn, bool workOffline, iv_menuhandler handler);
 
-    /**
-        * Draws a loading screen at the top of the screen 
-        */ 
-    void drawLoadingScreen();
-
-    /**
-        * Clears the area of the loading screen
-        */ 
-    void clearLoadingScreen();
-
 private:
     ifont *_menuFont;
-    ifont *_loadingFont;
 
     int _panelMenuBeginX;
     int _panelMenuBeginY;
     int _panelMenuHeight;
     int _mainMenuWidth;
     irect _menuButtonRect;
-    irect _loadingScreenRect;
 
     imenu _mainMenu;
     irect _contentRect;
