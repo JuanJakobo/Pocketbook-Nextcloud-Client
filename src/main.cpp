@@ -40,9 +40,17 @@ int Inkview_handler(int type, int par1, int par2)
 
 int main()
 {
-
     OpenScreen();
     SetOrientation(0);
+
+    //draw startscreen
+    auto textHeight = ScreenHeight()/30;
+    auto startscreenFont = OpenFont("LiberationMono", textHeight, FONT_BOLD);
+    SetFont(startscreenFont, BLACK);
+    DrawTextRect(0, (ScreenHeight() / 3) * 2, ScreenWidth(), textHeight, "Nextcloud Client", ALIGN_CENTER);
+    CloseFont(startscreenFont);
+    FullUpdate();
+
     InkViewMain(Inkview_handler);
     return 0;
 }
