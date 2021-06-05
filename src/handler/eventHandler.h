@@ -45,7 +45,7 @@ private:
     MainMenu _menu = MainMenu("Nextcloud");
     Nextcloud _nextcloud = Nextcloud();
     std::string _tempPath;
-    int tempItemID;
+    int _tempItemID;
 
     /**
         * Function needed to call C function, redirects to real function

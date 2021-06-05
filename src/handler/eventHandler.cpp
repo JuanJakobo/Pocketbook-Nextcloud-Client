@@ -146,7 +146,7 @@ void EventHandler::contextMenuHandler(const int index)
     //Open
     case 101:
     {
-        if (_nextcloud.getItems().at(tempItemID).getType() == Itemtype::IFOLDER)
+        if (_nextcloud.getItems().at(_tempItemID).getType() == Itemtype::IFOLDER)
         {
             openFolder();
         }
@@ -167,9 +167,9 @@ void EventHandler::contextMenuHandler(const int index)
     case 103:
     {
         OpenProgressbar(1, "Removing...", "Removing Files.", 0, EventHandler::DialogHandlerStatic);
-        if (_nextcloud.removeItem(tempItemID))
+        if (_nextcloud.removeItem(_tempItemID))
         {
-            _listView->drawEntry(tempItemID);
+            _listView->drawEntry(_tempItemID);
             Util::updatePBLibrary();
         }
         else
@@ -181,7 +181,7 @@ void EventHandler::contextMenuHandler(const int index)
     }
     default:
     {
-        _listView->invertEntryColor(tempItemID);
+        _listView->invertEntryColor(_tempItemID);
         break;
     }
 
@@ -196,14 +196,14 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     {
         if (_listView != nullptr)
         {
-            tempItemID = _listView->listClicked(par1, par2);
-            _listView->invertEntryColor(tempItemID);
-            if (tempItemID != -1)
+            _tempItemID = _listView->listClicked(par1, par2);
+            _listView->invertEntryColor(_tempItemID);
+            if (_tempItemID != -1)
             {
-                if (_nextcloud.getItems().at(tempItemID).getTitle().compare("...") != 0)
+                if (_nextcloud.getItems().at(_tempItemID).getTitle().compare("...") != 0)
                 {
                     _contextMenu = std::unique_ptr<ContextMenu>(new ContextMenu());
-                    _contextMenu->createMenu(par2, _nextcloud.getItems().at(tempItemID).getState(), EventHandler::contextMenuHandlerStatic);
+                    _contextMenu->createMenu(par2, _nextcloud.getItems().at(_tempItemID).getState(), EventHandler::contextMenuHandlerStatic);
                 }
             }
         }
@@ -218,17 +218,17 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         //if listView is shown
         else if (_listView != nullptr)
         {
-            tempItemID = _listView->listClicked(par1, par2);
-            _listView->invertEntryColor(tempItemID);
-            if (tempItemID != -1)
+            _tempItemID = _listView->listClicked(par1, par2);
+            _listView->invertEntryColor(_tempItemID);
+            if (_tempItemID != -1)
             {
-                if (_nextcloud.getItems().at(tempItemID).getType() == Itemtype::IFOLDER)
+                if (_nextcloud.getItems().at(_tempItemID).getType() == Itemtype::IFOLDER)
                 {
                     openFolder();
                 }
                 else
                 {
-                    if (_nextcloud.getItems().at(tempItemID).getState() == FileState::ISYNCED || (_nextcloud.isWorkOffline() && _nextcloud.getItems().at(tempItemID).getState() == FileState::IOUTSYNCED))
+                    if (_nextcloud.getItems().at(_tempItemID).getState() == FileState::ISYNCED || (_nextcloud.isWorkOffline() && _nextcloud.getItems().at(_tempItemID).getState() == FileState::IOUTSYNCED))
                     {
                         openItem();
                     }
@@ -279,7 +279,7 @@ void EventHandler::startDownload()
     OpenProgressbar(1, "Downloading...", "Check network connection", 0, EventHandler::DialogHandlerStatic);
     try
     {
-        _nextcloud.download(tempItemID);
+        _nextcloud.download(_tempItemID);
     }
     catch (const std::exception &e)
     {
@@ -289,13 +289,13 @@ void EventHandler::startDownload()
     Util::updatePBLibrary();
 
     CloseProgressbar();
-    _listView->drawEntry(tempItemID);
+    _listView->drawEntry(_tempItemID);
 }
 
 void EventHandler::openItem()
 {
-    _listView->invertEntryColor(tempItemID);
-    _nextcloud.getItems().at(tempItemID).open();
+    _listView->invertEntryColor(_tempItemID);
+    _nextcloud.getItems().at(_tempItemID).open();
 }
 
 void EventHandler::openFolder()
@@ -303,7 +303,7 @@ void EventHandler::openFolder()
     FillAreaRect(_menu.getContentRect(), WHITE);
     ShowHourglassForce();
 
-    _tempPath = _nextcloud.getItems().at(tempItemID).getPath();
+    _tempPath = _nextcloud.getItems().at(_tempItemID).getPath();
     if (!_tempPath.empty())
         _nextcloud.setItems(_nextcloud.getDataStructure(_tempPath));
     _listView.release();
