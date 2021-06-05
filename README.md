@@ -6,12 +6,13 @@ A basic client to access an existing nextcloud instance via Pocketbook.
 ## Features
 * Display and navigate nextcloud file structure
 * Download files to local storage system
-* Sync folders to local storage system
+* Sync folders to local storage system (long click on folders to open context menu for sync)
 * Remove files from local storage system
 * Show local files that are saved but no longer available in the cloud
 * Open epub, pdf, text, html, word and mobi with default ebook reader application
 * Set Start folder to custom path
 * Offline Modus
+* Navigaten via keys and touch
 
 ## Installation
 Download and unzip the file from releases and place the nextcloud.app into the "applications" folder of your pocketbook. Once you disconnect the Pocketbook from the PC, the application should be visibile in the application launcher.
