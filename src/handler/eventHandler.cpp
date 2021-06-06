@@ -170,13 +170,14 @@ void EventHandler::contextMenuHandler(const int index)
         if (_nextcloud.removeItem(_tempItemID))
         {
             updatePBLibrary();
+            CloseProgressbar();
             _listView->drawEntry(_tempItemID);
         }
         else
         {
+            CloseProgressbar();
             Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
         }
-        CloseProgressbar();
         break;
     }
     default:
