@@ -62,13 +62,9 @@ Item::Item(const string &localPath, FileState state, Itemtype type) : _localPath
     Util::decodeUrl(_title);
 }
 
-void Item::open() const
+bool Item::isBook() const
 {
-    if(_state==FileState::ICLOUD)
-    {
-        Message(ICON_ERROR,"File not found.","Could not find file.",1000);
-    }
-    else if (_fileType.find("application/epub+zip") != string::npos ||
+    if (_fileType.find("application/epub+zip") != string::npos ||
         _fileType.find("application/pdf") != string::npos ||
         _fileType.find("application/octet-stream") != string::npos ||
         _fileType.find("text/plain") != string::npos ||
@@ -78,6 +74,17 @@ void Item::open() const
         _fileType.find("application/x-mobipocket-ebook") != string::npos ||
         _fileType.find("application/vnd.openxmlformats-officedocument.wordprocessingml.document") != string::npos ||
         _fileType.find("application/x-fictionbook+xml") != string::npos)
+        return true;
+    return false;
+}
+
+void Item::open() const
+{
+    if (_state == FileState::ICLOUD)
+    {
+        Message(ICON_ERROR, "File not found.", "Could not find file.", 1000);
+    }
+    else if(isBook())
     {
 
         OpenBook(_localPath.c_str(), "", 0);

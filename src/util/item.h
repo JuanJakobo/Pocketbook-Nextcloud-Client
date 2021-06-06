@@ -46,6 +46,12 @@ public:
      */
     Item(const std::string &localPath, FileState state, Itemtype type);
 
+
+    /**
+     * Checks if item is a book
+     */
+    bool isBook() const;
+
     /**
      * Tries to open the item by checking the file format and then executes the fitting action
      */

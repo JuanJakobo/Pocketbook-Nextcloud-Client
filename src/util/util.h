@@ -57,7 +57,7 @@ public:
         * Updates the library of the Pocketbook
         * 
         */
-    static void updatePBLibrary();
+    static void updatePBLibrary(int seconds);
 
 private:
     Util() {}

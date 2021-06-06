@@ -87,6 +87,12 @@ private:
     int pointerHandler(const int type, const int par1, const int par2);
 
     /**
+     * Updates PB Library
+     * 
+     */
+    void updatePBLibrary();
+
+    /**
         * Starts the download of an item
         * 
         */

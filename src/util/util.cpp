@@ -7,16 +7,17 @@
 //-------------------------------------------------------------------
 #include "util.h"
 #include "inkview.h"
+#include "log.h"
 
 #include <string>
 #include <math.h>
 #include <curl/curl.h>
 #include <tuple>
 
+
 #include <signal.h>
 
 pid_t child_pid = -1; //Global
-
 
 using std::string;
 
@@ -89,8 +90,8 @@ void Util::decodeUrl(string &text)
     char *buffer;
     CURL *curl = curl_easy_init();
 
-    buffer = curl_easy_unescape(curl,text.c_str(),0,NULL);
-    text =  buffer;
+    buffer = curl_easy_unescape(curl, text.c_str(), 0, NULL);
+    text = buffer;
 
     curl_free(buffer);
     curl_easy_cleanup(curl);
@@ -102,23 +103,24 @@ void kill_child(int sig)
     kill(child_pid, SIGTERM);
 }
 
-void Util::updatePBLibrary()
+void Util::updatePBLibrary(int seconds)
 {
-    //TODO how determine time?
-    UpdateProgressbar("Updating PB library", 50);
+    UpdateProgressbar("Updating PB library", 99);
     //https://stackoverflow.com/questions/6501522/how-to-kill-a-child-process-by-the-parent-process
     signal(SIGALRM, (void (*)(int))kill_child);
     child_pid = fork();
     if (child_pid > 0)
     {
         //parent
-        alarm(5);
+        alarm(seconds);
         wait(NULL);
     }
     else if (child_pid == 0)
     {
         //child
         string cmd = "/ebrmain/bin/scanner.app";
+        //TODO parse in response of exec to determine when to kill?
         execlp(cmd.c_str(), cmd.c_str(), (char *)NULL);
+        exit(1);
     }
 }

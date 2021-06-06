@@ -169,8 +169,8 @@ void EventHandler::contextMenuHandler(const int index)
         OpenProgressbar(1, "Removing...", "Removing Files.", 0, EventHandler::DialogHandlerStatic);
         if (_nextcloud.removeItem(_tempItemID))
         {
+            updatePBLibrary();
             _listView->drawEntry(_tempItemID);
-            Util::updatePBLibrary();
         }
         else
         {
@@ -267,6 +267,19 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     return 0;
 }
 
+void EventHandler::updatePBLibrary()
+{
+    if (_nextcloud.getItems().at(_tempItemID).getType() == Itemtype::IFOLDER)
+    {
+        Util::updatePBLibrary(15);
+    }
+    else
+    {
+        if (_nextcloud.getItems().at(_tempItemID).isBook())
+            Util::updatePBLibrary(5);
+    }
+}
+
 void EventHandler::startDownload()
 {
     if (_nextcloud.isWorkOffline())
@@ -286,7 +299,7 @@ void EventHandler::startDownload()
         Log::writeLog(e.what());
         Message(ICON_ERROR, "Error", "Something has gone wrong. Please check the logs. (/system/config/nextcloud/)", 1200);
     }
-    Util::updatePBLibrary();
+    updatePBLibrary();
 
     CloseProgressbar();
     _listView->drawEntry(_tempItemID);
