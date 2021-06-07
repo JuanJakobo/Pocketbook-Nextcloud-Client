@@ -120,7 +120,7 @@ bool Nextcloud::login(const string &Url, const string &Username, const string &P
     if (found != std::string::npos)
     {
         _url = Url.substr(0, found);
-        uuid = Url.substr(found +NEXTCLOUD_ROOT_PATH.length());
+        uuid = Url.substr(found + NEXTCLOUD_ROOT_PATH.length());
     }
     else
     {
@@ -220,7 +220,8 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
         }
         else
         {
-            Message(ICON_ERROR, "Error", ("An curl error occured (Error Code: " + std::to_string(res) + ").").c_str(), 4000);
+            string response = std::string("An error occured. (") + curl_easy_strerror(res) +  " (Curl Error Code: " + std::to_string(res) + ")). Please try again.";
+            Message(ICON_ERROR, "Error", response.c_str(), 4000);
         }
     }
 }
@@ -393,7 +394,8 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
         }
         else
         {
-            Message(ICON_ERROR, "Error", ("An curl error occured (Error Code: " + std::to_string(res) + ").").c_str(), 4000);
+            string response = std::string("An error occured. (") + curl_easy_strerror(res) +  " (Curl Error Code: " + std::to_string(res) + ")). Please try again.";
+            Message(ICON_ERROR, "Error", response.c_str(), 4000);
         }
     }
     return {};
