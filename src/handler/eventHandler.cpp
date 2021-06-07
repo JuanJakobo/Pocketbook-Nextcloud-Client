@@ -291,7 +291,7 @@ void EventHandler::startDownload()
             return; // 1;
         _nextcloud.switchWorkOffline();
     }
-    OpenProgressbar(1, "Downloading...", "Check network connection", 0, EventHandler::DialogHandlerStatic);
+    OpenProgressbar(1, "Downloading...", "Checking network connection", 0, EventHandler::DialogHandlerStatic);
     try
     {
         _nextcloud.download(_tempItemID);
