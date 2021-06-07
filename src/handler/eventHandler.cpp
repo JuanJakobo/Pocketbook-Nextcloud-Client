@@ -220,9 +220,10 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         else if (_listView != nullptr)
         {
             _tempItemID = _listView->listClicked(par1, par2);
-            _listView->invertEntryColor(_tempItemID);
             if (_tempItemID != -1)
             {
+                _listView->invertEntryColor(_tempItemID);
+
                 if (_nextcloud.getItems().at(_tempItemID).getType() == Itemtype::IFOLDER)
                 {
                     openFolder();
