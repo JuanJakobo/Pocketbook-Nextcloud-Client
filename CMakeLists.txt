@@ -1,6 +1,6 @@
-PROJECT (Pocketbook-Nextcloud-Client)
-
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.1)
+
+PROJECT (Pocketbook-Miniflux-Reader VERSION 0.72)
 set(CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_SYSTEM_NAME Linux)

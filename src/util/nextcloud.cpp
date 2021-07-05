@@ -309,6 +309,7 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
     }
 
     Log::writeLog("Starting download of DataStructure");
+    Log::writeLog(_url + pathUrl);
 
     string readBuffer;
     CURLcode res;

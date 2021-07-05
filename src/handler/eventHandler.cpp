@@ -120,7 +120,7 @@ void EventHandler::mainMenuHandler(const int index)
     //Info
     case 104:
     {
-        Message(ICON_INFORMATION, "Warning", "Version 0.62 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
+        Message(ICON_INFORMATION, "Information", "Version 0.72 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
         break;
     }
     //Exit

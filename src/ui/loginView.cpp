@@ -58,47 +58,6 @@ LoginView::~LoginView()
     CloseFont(_loginFont);
 }
 
-void LoginView::keyboardHandlerStatic(char *text)
-{
-    _loginViewStatic->keyboardHandler(text);
-}
-
-void LoginView::keyboardHandler(char *text)
-{
-    if (!text)
-        return;
-
-    string s(text);
-    if (s.empty())
-        return;
-
-    if (_target == KeyboardTarget::IURL)
-    {
-        _url = s.c_str();
-        FillAreaRect(&_urlButton, WHITE);
-        DrawTextRect2(&_urlButton, s.c_str());
-    }
-    else if (_target == KeyboardTarget::IUSERNAME)
-    {
-        _username = s.c_str();
-        FillAreaRect(&_usernameButton, WHITE);
-        DrawTextRect2(&_usernameButton, s.c_str());
-    }
-    else
-    {
-        _password = s.c_str();
-        FillAreaRect(&_passwordButton, WHITE);
-
-        string pass;
-        for (unsigned int i = 0; i < s.length(); i++)
-        {
-            pass += "*";
-        }
-
-        DrawTextRect2(&_passwordButton, pass.c_str());
-    }
-}
-
 int LoginView::logginClicked(int x, int y)
 {
     _temp = "";
@@ -142,4 +101,45 @@ int LoginView::logginClicked(int x, int y)
     }
 
     return 0;
+}
+
+void LoginView::keyboardHandlerStatic(char *text)
+{
+    _loginViewStatic->keyboardHandler(text);
+}
+
+void LoginView::keyboardHandler(char *text)
+{
+    if (!text)
+        return;
+
+    string s(text);
+    if (s.empty())
+        return;
+
+    if (_target == KeyboardTarget::IURL)
+    {
+        _url = s.c_str();
+        FillAreaRect(&_urlButton, WHITE);
+        DrawTextRect2(&_urlButton, s.c_str());
+    }
+    else if (_target == KeyboardTarget::IUSERNAME)
+    {
+        _username = s.c_str();
+        FillAreaRect(&_usernameButton, WHITE);
+        DrawTextRect2(&_usernameButton, s.c_str());
+    }
+    else
+    {
+        _password = s.c_str();
+        FillAreaRect(&_passwordButton, WHITE);
+
+        string pass;
+        for (unsigned int i = 0; i < s.length(); i++)
+        {
+            pass += "*";
+        }
+
+        DrawTextRect2(&_passwordButton, pass.c_str());
+    }
 }
