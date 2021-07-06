@@ -22,7 +22,7 @@ const std::string NEXTCLOUD_CONFIG_PATH = NEXTCLOUD_PATH + "/nextcloud.cfg";
 const std::string NEXTCLOUD_FILE_PATH = "/mnt/ext1/nextcloud";
 const std::string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
 const std::string NEXTCLOUD_STRUCTURE_EXTENSION = ".structure";
-const std::string NEXTCLOUD_END_PATH = "/nextcloud";
+const std::string NEXTCLOUD_START_PATH = "/remote.php/";
 
 class Nextcloud
 {

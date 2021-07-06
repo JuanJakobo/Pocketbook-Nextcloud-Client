@@ -21,8 +21,14 @@ using namespace std;
 Item::Item(const string &xmlItem)
 {
     _path = Util::getXMLAttribute(xmlItem, "d:href");
-    if (_path.find(NEXTCLOUD_END_PATH) != std::string::npos)
-        _path.erase(0, NEXTCLOUD_END_PATH.length());
+    
+    //replaces everthing in front of /remote.php as this is already part of the url
+    Log::writeLog("path before transformation " + _path);
+    if(_path.find(NEXTCLOUD_START_PATH) != 0)
+    {
+        _path.erase(0,_path.find(NEXTCLOUD_START_PATH));
+        Log::writeLog("path after transformation " + _path);
+    }
 
     _lastEditDate = Util::getXMLAttribute(xmlItem, "d:getlastmodified");
     _title = _path;
