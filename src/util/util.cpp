@@ -8,12 +8,12 @@
 #include "util.h"
 #include "inkview.h"
 #include "log.h"
+#include "nextcloud.h"
 
 #include <string>
 #include <math.h>
 #include <curl/curl.h>
 #include <tuple>
-
 
 #include <signal.h>
 
@@ -52,6 +52,40 @@ bool Util::connectToNetwork()
         return true;
 
     return false;
+}
+
+//make template?
+
+string Util::accessConfig(const Action &action, const string &name, const string &value)
+{
+    iconfigedit *temp = nullptr;
+    iconfig *config = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
+    string returnValue;
+
+    switch (action)
+    {
+    case Action::IWriteSecret:
+        if (!value.empty())
+            WriteSecret(config, name.c_str(), value.c_str());
+        returnValue = {};
+        break;
+    case Action::IReadSecret:
+        returnValue = ReadSecret(config, name.c_str(), "");
+        break;
+    case Action::IWriteString:
+        if (!value.empty())
+            WriteString(config, name.c_str(), value.c_str());
+        returnValue = {};
+        break;
+    case Action::IReadString:
+        returnValue = ReadString(config, name.c_str(), "");
+        break;
+    default:
+        break;
+    }
+    CloseConfig(config);
+
+    return returnValue;
 }
 
 int Util::progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)

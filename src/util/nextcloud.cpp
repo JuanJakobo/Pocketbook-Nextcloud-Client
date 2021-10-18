@@ -30,46 +30,8 @@ Nextcloud::Nextcloud()
 
     if (iv_access(NEXTCLOUD_FILE_PATH.c_str(), W_OK) != 0)
         iv_mkdir(NEXTCLOUD_FILE_PATH.c_str(), 0777);
-}
+//create database
 
-void Nextcloud::setURL(const string &Url)
-{
-    iconfigedit *temp = nullptr;
-    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
-    WriteString(nextcloudConfig, "url", Url.c_str());
-    CloseConfig(nextcloudConfig);
-}
-
-void Nextcloud::setUsername(const string &Username)
-{
-    iconfigedit *temp = nullptr;
-    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
-    WriteString(nextcloudConfig, "username", Username.c_str());
-    CloseConfig(nextcloudConfig);
-}
-
-void Nextcloud::setUUID(const string &UUID)
-{
-    iconfigedit *temp = nullptr;
-    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
-    WriteString(nextcloudConfig, "UUID", UUID.c_str());
-    CloseConfig(nextcloudConfig);
-}
-
-void Nextcloud::setPassword(const string &Pass)
-{
-    iconfigedit *temp = nullptr;
-    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
-    WriteSecret(nextcloudConfig, "password", Pass.c_str());
-    CloseConfig(nextcloudConfig);
-}
-
-void Nextcloud::setStartFolder(const string &Path)
-{
-    iconfigedit *temp = nullptr;
-    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
-    WriteString(nextcloudConfig, "startFolder", Path.c_str());
-    CloseConfig(nextcloudConfig);
 }
 
 bool Nextcloud::setItems(const vector<Item> &tempItems)
@@ -416,51 +378,8 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
     return {};
 }
 
-string Nextcloud::getUrl()
-{
-    iconfigedit *temp = nullptr;
-    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
-    string url = ReadString(nextcloudConfig, "url", "");
-    CloseConfigNoSave(nextcloudConfig);
-    return url;
-}
-
-string Nextcloud::getUsername()
-{
-    iconfigedit *temp = nullptr;
-    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
-    string user = ReadString(nextcloudConfig, "username", "");
-    CloseConfigNoSave(nextcloudConfig);
-    return user;
-}
-
-string Nextcloud::getUUID()
-{
-    iconfigedit *temp = nullptr;
-    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
-    string user = ReadString(nextcloudConfig, "UUID", "");
-    CloseConfigNoSave(nextcloudConfig);
-    return user;
-}
-
-string Nextcloud::getPassword()
-{
-    iconfigedit *temp = nullptr;
-    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
-    string pass = ReadSecret(nextcloudConfig, "password", "");
-    CloseConfigNoSave(nextcloudConfig);
-    return pass;
-}
-
-string Nextcloud::getStartFolder()
-{
-    iconfigedit *temp = nullptr;
-    iconfig *nextcloudConfig = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
-    string startFolder = ReadString(nextcloudConfig, "startFolder", "");
-    CloseConfigNoSave(nextcloudConfig);
-    return startFolder;
-}
-
+//TODO Do generic?
+//use boost xml
 vector<Item> Nextcloud::readInXML(string xml)
 {
     size_t begin;

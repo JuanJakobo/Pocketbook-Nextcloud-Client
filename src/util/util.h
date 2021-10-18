@@ -13,6 +13,14 @@
 
 #include <string>
 
+enum Action
+{
+    IWriteSecret,
+    IReadSecret,
+    IWriteString,
+    IReadString
+};
+
 class Util
 {
 public:
@@ -35,6 +43,8 @@ public:
     */
     static bool connectToNetwork();
 
+    //TODO Doku
+    static std::string accessConfig(const Action &action, const std::string &name, const std::string &value = std::string());
     /**
     * Returns an integer representing the download progress
     * 

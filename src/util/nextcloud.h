@@ -11,6 +11,7 @@
 #define NEXTCLOUD
 
 #include "inkview.h"
+#include "util.h"
 #include "item.h"
 
 #include <string>
@@ -29,12 +30,15 @@ class Nextcloud
 {
 public:
     explicit Nextcloud();
+    //TODO public?
+    void setURL(const std::string &Url) { Util::accessConfig(Action::IWriteString, "url", Url); };
+    void setUsername(const std::string &Username) { Util::accessConfig(Action::IWriteString, "username", Username); };
+    void setUUID(const std::string &UUID) { Util::accessConfig(Action::IWriteString, "UUID", UUID); };
+    void setPassword(const std::string &Pass) { Util::accessConfig(Action::IWriteSecret, "password", Pass); };
+    void setStartFolder(const std::string &Path) { Util::accessConfig(Action::IReadString, "startFolder", Path); };
 
-    void setURL(const std::string &Url);
-    void setUsername(const std::string &Username);
-    void setUUID(const std::string &UUID);
-    void setPassword(const std::string &Pass);
-    void setStartFolder(const std::string &Path);
+    std::string getUsername() { return Util::accessConfig(Action::IReadString, "username"); };
+
     bool setItems(const std::vector<Item> &tempItems);
 
     const std::vector<Item> &getItems() const { return _items; };
@@ -121,6 +125,8 @@ private:
     std::vector<Item> _items;
     bool _loggedIn{false};
     std::string _url;
+    std::string _username;
+    std::string _password;
     bool _workOffline{false};
 
     /**
@@ -133,11 +139,10 @@ private:
         */
     std::vector<Item> getDataStructure(const std::string &pathUrl, const std::string &Username, const std::string &Pass);
 
-    std::string getUrl();
-    std::string getUsername();
-    std::string getUUID();
-    std::string getPassword();
-    std::string getStartFolder();
+    std::string getUrl() { return Util::accessConfig(Action::IReadString, "url"); };
+    std::string getUUID() { return Util::accessConfig(Action::IReadString, "UUID"); };
+    std::string getPassword() { return Util::accessConfig(Action::IReadSecret, "password"); };
+    std::string getStartFolder() { return Util::accessConfig(Action::IReadString, "startFolder"); };
 
     /**
         * Handles the end of the game dialog and lets the user
