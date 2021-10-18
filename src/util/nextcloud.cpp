@@ -193,6 +193,11 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, Util::progress_callback);
+        //in case that cacert is available use it
+        if (iv_access(CACERT_PATH.c_str(), W_OK) == 0)
+            curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH.c_str());
+        else
+            Log::writeLog("could not find cacert");
         //Follow redirects
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         res = curl_easy_perform(curl);
@@ -220,7 +225,9 @@ void Nextcloud::downloadItem(vector<Item> &tempItems, int itemID)
         }
         else
         {
-            string response = std::string("An error occured. (") + curl_easy_strerror(res) +  " (Curl Error Code: " + std::to_string(res) + ")). Please try again.";
+            string response = std::string("An error occured. (") + curl_easy_strerror(res) + " (Curl Error Code: " + std::to_string(res) + ")). Please try again.";
+            if(res == 60)
+                response = "Seems as if you are using Let's Encrypt Certs. Please follow the guide on Github (https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client) to use a custom Cert Store on PB.";
             Message(ICON_ERROR, "Error", response.c_str(), 4000);
         }
     }
@@ -328,6 +335,11 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
+        if (iv_access(CACERT_PATH.c_str(), R_OK) == 0)
+            curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH.c_str());
+        else
+            Log::writeLog("could not find cacert");
+
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
 
@@ -395,7 +407,9 @@ vector<Item> Nextcloud::getDataStructure(const string &pathUrl, const string &Us
         }
         else
         {
-            string response = std::string("An error occured. (") + curl_easy_strerror(res) +  " (Curl Error Code: " + std::to_string(res) + ")). Please try again.";
+            string response = std::string("An error occured. (") + curl_easy_strerror(res) + " (Curl Error Code: " + std::to_string(res) + ")). Please try again.";
+            if(res == 60)
+                response = "Seems as if you are using Let's Encrypt Certs. Please follow the guide on Github (https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client) to use a custom Cert Store on PB.";
             Message(ICON_ERROR, "Error", response.c_str(), 4000);
         }
     }
