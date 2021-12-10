@@ -50,6 +50,11 @@ $ sudo ln -s /snap/bin/certbot /usr/bin/certbot
 certbot certonly --apache -d www.yourdomain.com --preferred-chain "ISRG Root X1"
 service apache2 reload
 ```
+To verify if the changes were applied successfully please run
+```
+openssl s_client -showcerts -connect <HOSTNAME>:443 | grep Root
+```
+
 ## How to build
 
 First you need to install the basic build tools for linux.
