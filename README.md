@@ -28,33 +28,6 @@ Download and unzip the file from releases and place the nextcloud.app into the "
 To login type the servername (e.g. https://domainname) or the WebDAV URL (e.g. htts://domainname/remote.php/dav/files/UUID) (You can look up the WebDAV URL in the files app->seetings.), Username and Password. You then will be redirected to the root file folder of your nextcloud instance.
 To download a file, click on it. A synced file can be either opened, synced or removed.
 
-## Known Errors
-### Let's Encrypt root CA isn't working properly
-Due to the Expiration of DST Root CA X3 in September 2021 (https://letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021/) and the fact that the OpenSSL Version of the PB is rather old (1.0.2) (https://www.openssl.org/blog/blog/2021/09/13/LetsEncryptRootCertExpire/) some adjustments by the user have to be made.
-#### 1. Copy an new pem file to your PB
-Download an export from the newest CA certifictes from Mozilla https://curl.se/docs/caextract.html "cacert.pem" and place it inside the applications folder of your Pocketbook.
-
-#### 2. Update your Server
-In some cases you furthermore have to update certbot on your server.(https://github.com/electron/electron/issues/31212#issuecomment-933721249)
-
-##### Update the certbot to the last version using snap (certbot instructions)
-```
-$ sudo snap install core
-$ sudo snap refresh core
-$ sudo apt-get remove certbot
-$ sudo snap install --classic certbot
-$ sudo ln -s /snap/bin/certbot /usr/bin/certbot
-```
- ##### Renew & replace the certificate
-```
-certbot certonly --apache -d www.yourdomain.com --preferred-chain "ISRG Root X1"
-service apache2 reload
-```
-To verify if the changes were applied successfully please run
-```
-openssl s_client -showcerts -connect <HOSTNAME>:443 | grep Root
-```
-
 ## How to build
 
 First you need to install the basic build tools for linux.
