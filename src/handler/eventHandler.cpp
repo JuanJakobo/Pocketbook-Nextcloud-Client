@@ -56,7 +56,7 @@ int EventHandler::eventDistributor(const int type, const int par1, const int par
     else if (ISKEYEVENT(type))
         return EventHandler::keyHandler(type, par1, par2);
 
-    return 0;
+    return 1;
 }
 
 void EventHandler::mainMenuHandlerStatic(const int index)
@@ -241,7 +241,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 }
             }
 
-            return 1;
+            return 0;
         }
         //if loginView is shown
         else if (_loginView != nullptr)
@@ -262,11 +262,11 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     HideHourglass();
                     Log::writeLog("login failed.");
                 }
-                return 1;
+                return 0;
             }
         }
     }
-    return 0;
+    return 1;
 }
 
 void EventHandler::updatePBLibrary()
@@ -351,12 +351,12 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
         }
         else
         {
-            return 0;
+            return 1;
         }
-        return 1;
+        return 0;
     }
 
-    return 0;
+    return 1;
 }
 
 void EventHandler::DialogHandlerStatic(int clicked)
