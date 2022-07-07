@@ -166,7 +166,7 @@ void EventHandler::contextMenuHandler(const int index)
     //remove
     case 103:
     {
-        OpenProgressbar(1, "Removing...", "Removing Files.", 0, EventHandler::DialogHandlerStatic);
+        OpenProgressbar(1, "Removing...", "Removing Files.", 0, NULL);
         if (_nextcloud.removeItem(_tempItemID))
         {
             updatePBLibrary();
@@ -291,7 +291,7 @@ void EventHandler::startDownload()
             return; // 1;
         _nextcloud.switchWorkOffline();
     }
-    OpenProgressbar(1, "Downloading...", "Checking network connection", 0, EventHandler::DialogHandlerStatic);
+    OpenProgressbar(1, "Downloading...", "Checking network connection", 0, NULL);
     try
     {
         _nextcloud.download(_tempItemID);
@@ -357,11 +357,4 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
     }
 
     return 1;
-}
-
-void EventHandler::DialogHandlerStatic(int clicked)
-{
-    //TODO cannot interact with it
-    // make download in different thread https://github.com/pmartin/pocketbook-demo/blob/master/demo08-pthreads/demo08.cpp
-    CloseProgressbar();
 }

@@ -121,11 +121,5 @@ private:
         */
     int keyHandler(const int type, const int par1, const int par2);
 
-    /**
-        * Handles the cancel button on the progressbar
-        * 
-        * @param clicked button that has been clicked
-        */
-    static void DialogHandlerStatic(int clicked);
 };
 #endif
