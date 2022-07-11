@@ -15,10 +15,9 @@ using std::string;
 
 MainMenu::MainMenu(const string &name)
 {
-    //Define panel size
     _panelMenuHeight = ScreenHeight() / 18;
-    _panelMenuBeginY = 0;
     _mainMenuWidth = ScreenWidth() / 3;
+    _panelMenuBeginY = 0;
     _panelMenuBeginX = ScreenWidth() - _mainMenuWidth;
 
     _menuButtonRect = iRect(_mainMenuWidth * 2, _panelMenuBeginY, _mainMenuWidth, _panelMenuHeight, ALIGN_RIGHT);
@@ -30,10 +29,10 @@ MainMenu::MainMenu(const string &name)
     DrawTextRect2(&_menuButtonRect, "Menu");
     DrawLine(0, _panelMenuHeight - 1, ScreenWidth(), _panelMenuHeight - 1, BLACK);
 
-    _contentRect = iRect(0, _panelMenuHeight, ScreenWidth(), (ScreenHeight() - PanelHeight() - _panelMenuHeight), 0);
+    _contentRect = iRect(0, _panelMenuHeight, ScreenWidth(), (ScreenHeight() - _panelMenuHeight), 0);
 
-    SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
-    DrawPanel(NULL, "", NULL, -1);
+    SetPanelType(0);
+    PartialUpdate(0, _panelMenuBeginY, ScreenWidth(), _panelMenuHeight);
 }
 
 MainMenu::~MainMenu()
