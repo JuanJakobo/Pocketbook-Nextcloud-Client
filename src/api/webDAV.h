@@ -10,7 +10,7 @@
 #ifndef WEBDAV
 #define WEBDAV
 
-#include "webDAVItemModel.h"
+#include "webDAVModel.h"
 #include "eventHandler.h"
 
 #include <string>
