@@ -10,14 +10,17 @@
 #include "eventHandler.h"
 #include "mainMenu.h"
 #include "contextMenu.h"
-#include "listView.h"
+#include "webDAVView.h"
 #include "util.h"
 #include "log.h"
+#include "webDAV.h"
+#include "webDAVModel.h"
 
 #include <string>
 #include <memory>
 
 using std::string;
+using std::vector;
 
 std::unique_ptr<EventHandler> EventHandler::_eventHandlerStatic;
 
@@ -27,25 +30,34 @@ EventHandler::EventHandler()
     _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
     _loginView = nullptr;
-    _listView = nullptr;
+    _webDAVView = nullptr;
 
     if (iv_access(NEXTCLOUD_CONFIG_PATH.c_str(), W_OK) == 0)
     {
-        if (_nextcloud.login())
-        {
-            _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
-            FullUpdate();
-            return;
-        }
-        else
+        //if (_nextcloud.login())
+        //this one is always required --> if does not work -> say to the user that it did not work, to sync use
+        //menubar
+        //explanation on first login?
+        //TODO here mark folders that are unsynced?
+        //compare both datasets, if fromDB etag is different, mark as unsycned
+        WebDAV test = WebDAV();
+        _currentWebDAVItems = test.getDataStructure(Util::accessConfig(Action::IReadString,"UUID"));
+        //vector<WebDAVItem> fromDB = _sqllite.getItemsChildren(_tempPath);
+        if(_currentWebDAVItems.empty())
         {
             Message(ICON_ERROR, "Error", "Could not login, please try again.", 1200);
             _nextcloud.logout();
         }
+        else
+        {
+            _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu.getContentRect(), _currentWebDAVItems,1));
+            _sqllite.saveItemsChildren(_currentWebDAVItems);
+            FullUpdate();
+            //TODO avoid
+            return;
+        }
     }
-
     _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
-
     FullUpdate();
 }
 
@@ -112,7 +124,7 @@ void EventHandler::mainMenuHandler(const int index)
             _nextcloud.logout();
             break;
         }
-        _listView.release();
+        _webDAVView.release();
         _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
         FullUpdate();
         break;
@@ -171,7 +183,7 @@ void EventHandler::contextMenuHandler(const int index)
         {
             updatePBLibrary();
             CloseProgressbar();
-            _listView->drawEntry(_tempItemID);
+            _webDAVView->reDrawCurrentEntry();
         }
         else
         {
@@ -182,7 +194,7 @@ void EventHandler::contextMenuHandler(const int index)
     }
     default:
     {
-        _listView->invertEntryColor(_tempItemID);
+        _webDAVView->invertCurrentEntryColor();
         break;
     }
 
@@ -195,13 +207,13 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     //long press to open up context menu
     if (type == EVT_POINTERLONG)
     {
-        if (_listView != nullptr)
+        if (_webDAVView != nullptr)
         {
-            _tempItemID = _listView->listClicked(par1, par2);
-            _listView->invertEntryColor(_tempItemID);
+            _webDAVView->checkIfEntryClicked(par1, par2);
+            _webDAVView->invertCurrentEntryColor();
             if (_tempItemID != -1)
             {
-                if (_nextcloud.getItems().at(_tempItemID).getTitle().compare("...") != 0)
+                if (_webDAVView->getCurrentEntry()->title.compare("...") != 0)
                 {
                     _contextMenu = std::unique_ptr<ContextMenu>(new ContextMenu());
                     _contextMenu->createMenu(par2, _nextcloud.getItems().at(_tempItemID).getState(), EventHandler::contextMenuHandlerStatic);
@@ -216,21 +228,20 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         {
             return _menu.createMenu(_nextcloud.isLoggedIn(), _nextcloud.isWorkOffline(), EventHandler::mainMenuHandlerStatic);
         }
-        //if listView is shown
-        else if (_listView != nullptr)
+        //if webDAVView is shown
+        else if (_webDAVView != nullptr)
         {
-            _tempItemID = _listView->listClicked(par1, par2);
-            if (_tempItemID != -1)
+            if(_webDAVView->checkIfEntryClicked(par1, par2))
             {
-                _listView->invertEntryColor(_tempItemID);
+                _webDAVView->invertCurrentEntryColor();
 
-                if (_nextcloud.getItems().at(_tempItemID).getType() == Itemtype::IFOLDER)
+                if (_webDAVView->getCurrentEntry()->type == Itemtype::IFOLDER)
                 {
                     openFolder();
                 }
                 else
                 {
-                    if (_nextcloud.getItems().at(_tempItemID).getState() == FileState::ISYNCED || (_nextcloud.isWorkOffline() && _nextcloud.getItems().at(_tempItemID).getState() == FileState::IOUTSYNCED))
+                    if (_webDAVView->getCurrentEntry()->state == FileState::ISYNCED || (_nextcloud.isWorkOffline() && _nextcloud.getItems().at(_tempItemID).getState() == FileState::IOUTSYNCED))
                     {
                         openItem();
                     }
@@ -250,9 +261,10 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             {
                 ShowHourglassForce();
 
+                //TODO replace
                 if (_nextcloud.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
                 {
-                    _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
+                    _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu.getContentRect(), _currentWebDAVItems,1));
                     _loginView.reset();
 
                     FullUpdate();
@@ -284,13 +296,6 @@ void EventHandler::updatePBLibrary()
 
 void EventHandler::startDownload()
 {
-    if (_nextcloud.isWorkOffline())
-    {
-        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "You are in offline modus. Go back online?", "Yes", "No", "Cancel");
-        if (dialogResult == 2 || dialogResult == 3)
-            return; // 1;
-        _nextcloud.switchWorkOffline();
-    }
     OpenProgressbar(1, "Downloading...", "Checking network connection", 0, NULL);
     try
     {
@@ -298,32 +303,45 @@ void EventHandler::startDownload()
     }
     catch (const std::exception &e)
     {
-        Log::writeLog(e.what());
+        Log::writeErrorLog(e.what());
         Message(ICON_ERROR, "Error", "Something has gone wrong. Please check the logs. (/system/config/nextcloud/)", 1200);
     }
     updatePBLibrary();
 
     CloseProgressbar();
-    _listView->drawEntry(_tempItemID);
+    _webDAVView->reDrawCurrentEntry();
 }
 
 void EventHandler::openItem()
 {
-    _listView->invertEntryColor(_tempItemID);
+    _webDAVView->invertCurrentEntryColor();
     _nextcloud.getItems().at(_tempItemID).open();
 }
 
 void EventHandler::openFolder()
 {
     FillAreaRect(_menu.getContentRect(), WHITE);
+    ////TODO hourglass needed?
     ShowHourglassForce();
 
     _tempPath = _nextcloud.getItems().at(_tempItemID).getPath();
     if (!_tempPath.empty())
+    {
         _nextcloud.setItems(_nextcloud.getDataStructure(_tempPath));
-    _listView.release();
-    _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _nextcloud.getItems()));
-    _listView->drawHeader(_tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
+        //if folder is unsynced sync
+        WebDAV test = WebDAV();
+        vector<WebDAVItem> testitems = test.getDataStructure(_tempPath);
+        _sqllite.saveItemsChildren(testitems);
+
+        //if folder is synced, get only from DB
+        vector<WebDAVItem> fromDB = _sqllite.getItemsChildren(_tempPath);
+        //get etags from DB, if etag for path is unchanged, stays the same, same for foldersjj
+    }
+    _webDAVView.release();
+    _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu.getContentRect(), _currentWebDAVItems,1));
+    //_sqllite.saveItemsChildren(_nextcloud.getItems());
+    //TODO include the header (where am i currently aka)
+    //_webDAVView->drawHeader(_tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
     PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
 }
 
@@ -334,19 +352,19 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
         //menu button
         if (par1 == 23)
         {
-            _listView->firstPage();
+            _webDAVView->firstPage();
         }
-        else if (_listView != nullptr)
+        else if (_webDAVView != nullptr)
         {
             //left button
             if (par1 == 24)
             {
-                _listView->prevPage();
+                _webDAVView->prevPage();
             }
             //right button
             else if (par1 == 25)
             {
-                _listView->nextPage();
+                _webDAVView->nextPage();
             }
         }
         else

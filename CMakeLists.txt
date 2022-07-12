@@ -54,9 +54,11 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp
 			${CMAKE_SOURCE_DIR}/src/util/nextcloud.cpp
 			${CMAKE_SOURCE_DIR}/src/util/item.cpp
-			${CMAKE_SOURCE_DIR}/src/ui/listView.cpp
-			${CMAKE_SOURCE_DIR}/src/ui/listViewEntry.cpp
-			${CMAKE_SOURCE_DIR}/src/ui/loginView.cpp
+            ${CMAKE_SOURCE_DIR}/src/ui/listView/listView.cpp
+			${CMAKE_SOURCE_DIR}/src/ui/listView/listViewEntry.cpp
+            ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/webDAVView.cpp
+            ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/webDAVViewEntry.cpp
+			${CMAKE_SOURCE_DIR}/src/ui/loginView/loginView.cpp
 			${CMAKE_SOURCE_DIR}/src/util/util.cpp
 			${CMAKE_SOURCE_DIR}/src/util/log.cpp
             ${CMAKE_SOURCE_DIR}/src/api/webDAV.cpp
@@ -72,6 +74,9 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/handler/
     ${CMAKE_SOURCE_DIR}/src/util/
     ${CMAKE_SOURCE_DIR}/src/ui/
+    ${CMAKE_SOURCE_DIR}/src/ui/listView/
+    ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/
+    ${CMAKE_SOURCE_DIR}/src/ui/loginView/
     ${CMAKE_SOURCE_DIR}/src/api/
 )
 

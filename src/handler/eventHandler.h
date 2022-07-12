@@ -12,12 +12,15 @@
 #include "contextMenu.h"
 #include "mainMenu.h"
 #include "nextcloud.h"
-#include "listView.h"
+#include "webDAVView.h"
 #include "loginView.h"
+#include "sqliteConnector.h"
 
 #include <memory>
 
-const std::string LOG_PATH = "/mnt/ext1/system/config/nextcloud";
+const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/nextcloud";
+//TODO use folder of nextcloud conifg temp
+const std::string DB_PATH = CONFIG_FOLDER + "/data.db";
 
 class EventHandler
 {
@@ -39,11 +42,13 @@ public:
 
 private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
-    std::unique_ptr<ListView> _listView;
+    std::unique_ptr<WebDAVView> _webDAVView;
     std::unique_ptr<LoginView> _loginView;
     std::unique_ptr<ContextMenu> _contextMenu;
+    std::vector<WebDAVItem> _currentWebDAVItems;
     MainMenu _menu = MainMenu("Nextcloud");
     Nextcloud _nextcloud = Nextcloud();
+    SqliteConnector _sqllite = SqliteConnector(DB_PATH);
     std::string _tempPath;
     int _tempItemID;
 
