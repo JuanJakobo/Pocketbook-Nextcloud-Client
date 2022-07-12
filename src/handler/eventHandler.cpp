@@ -272,7 +272,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 else
                 {
                     HideHourglass();
-                    Log::writeLog("login failed.");
+                    Log::writeErrorLog("login failed.");
                 }
                 return 0;
             }
