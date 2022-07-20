@@ -11,6 +11,7 @@
 
 #include "contextMenu.h"
 #include "mainMenu.h"
+#include "webDAV.h"
 #include "webDAVView.h"
 #include "loginView.h"
 #include "sqliteConnector.h"

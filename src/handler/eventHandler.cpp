@@ -31,34 +31,61 @@ EventHandler::EventHandler()
 
     _loginView = nullptr;
     _webDAVView = nullptr;
+    vector<WebDAVItem> fromDB;
 
-    if (iv_access(NEXTCLOUD_CONFIG_PATH.c_str(), W_OK) == 0)
+    if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
-        //if (_nextcloud.login())
-        //this one is always required --> if does not work -> say to the user that it did not work, to sync use
         //menubar
         //explanation on first login?
         //TODO here mark folders that are unsynced?
         //compare both datasets, if fromDB etag is different, mark as unsycned
-        WebDAV test = WebDAV();
-        _currentWebDAVItems = test.getDataStructure(Util::accessConfig(Action::IReadString,"UUID"));
-        //vector<WebDAVItem> fromDB = _sqllite.getItemsChildren(_tempPath);
-        if(_currentWebDAVItems.empty())
+        //std::string getStartFolder() { return Util::accessConfig(Action::IReadString, "startFolder"); };
+        string tempPath = NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID");
+        _currentWebDAVItems = _webDAV.getDataStructure(tempPath);
+        fromDB = _sqllite.getItemsChildren(tempPath);
+    }
+    //TODO here or father below?
+    _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
+
+    if(_currentWebDAVItems.empty())
+    {
+        //use from DB
+        //this one is always required --> if does not work -> say to the user that it did not work, to sync use
+        /*
+           vector<Item> Nextcloud::getOfflineStructure(const string &pathUrl)
+           {
+           if (pathUrl.compare(NEXTCLOUD_ROOT_PATH + getUUID() + "/") == 0)
+           {
+           Message(ICON_ERROR, "Error", "The root structure is not available offline. Please try again to login.", 2000);
+           logout();
+           }
+           */
+        Message(ICON_ERROR, "Error", "Could not login, please try again.", 1200);
+        if(fromDB.empty())
         {
-            Message(ICON_ERROR, "Error", "Could not login, please try again.", 1200);
-            _nextcloud.logout();
-        }
-        else
-        {
-            _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu.getContentRect(), _currentWebDAVItems,1));
-            _sqllite.saveItemsChildren(_currentWebDAVItems);
-            FullUpdate();
-            //TODO avoid
-            return;
+            int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Could not login and there is no DB available to restore information. What would you like to do?", "Logout", "Close App", NULL);
+            switch (dialogResult)
+            {
+                case 1:
+                    {
+                        _webDAV.logout();
+                        _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
+                        FullUpdate();
+                    }
+                    break;
+                case 2:
+                default:
+                    CloseApp();
+                    break;
+            }
         }
     }
-    _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
-    FullUpdate();
+    else
+    {
+        _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu->getContentRect(), _currentWebDAVItems,1));
+        _sqllite.saveItemsChildren(_currentWebDAVItems);
+        FullUpdate();
+    }
 }
 
 int EventHandler::eventDistributor(const int type, const int par1, const int par2)
@@ -80,32 +107,17 @@ void EventHandler::mainMenuHandler(const int index)
 {
     switch (index)
     {
+        //TODO resync button
     //offlineModus
     case 101:
     {
-        if (_nextcloud.isWorkOffline())
-        {
-            if (Util::connectToNetwork())
-            {
-                _nextcloud.switchWorkOffline();
-            }
-            else
-            {
-                Message(ICON_WARNING, "Warning", "Could not connect to the internet.", 1200);
-            }
-        }
-        else
-        {
-            _nextcloud.switchWorkOffline();
-        }
-
         break;
     }
     //Make startfolder
     case 102:
     {
-        _nextcloud.setStartFolder(_tempPath);
-        Message(ICON_INFORMATION, "Info", ("On the next startup the folder" + _tempPath + " will be shown.").c_str(), 1200);
+        //Util::accessConfig(Action::IWriteString, "startFolder", Path);
+        //Message(ICON_INFORMATION, "Info", ("On the next startup the folder" + _tempPath + " will be shown.").c_str(), 1200);
 
         break;
     }
@@ -116,16 +128,16 @@ void EventHandler::mainMenuHandler(const int index)
         switch (dialogResult)
         {
         case 1:
-            _nextcloud.logout(true);
+            _webDAV.logout(true);
             break;
         case 3:
             return;
         default:
-            _nextcloud.logout();
+            _webDAV.logout();
             break;
         }
         _webDAVView.release();
-        _loginView = std::unique_ptr<LoginView>(new LoginView(_menu.getContentRect()));
+        _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
         FullUpdate();
         break;
     }
@@ -158,7 +170,7 @@ void EventHandler::contextMenuHandler(const int index)
     //Open
     case 101:
     {
-        if (_nextcloud.getItems().at(_tempItemID).getType() == Itemtype::IFOLDER)
+        if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
         {
             openFolder();
         }
@@ -179,6 +191,14 @@ void EventHandler::contextMenuHandler(const int index)
     case 103:
     {
         OpenProgressbar(1, "Removing...", "Removing Files.", 0, NULL);
+        /*
+    Log::writeInfoLog("removing file " + _items.at(itemID).getPath());
+    if (!_items.at(itemID).removeFile())
+        return false;
+
+    return true;
+    */
+        /*
         if (_nextcloud.removeItem(_tempItemID))
         {
             updatePBLibrary();
@@ -186,10 +206,9 @@ void EventHandler::contextMenuHandler(const int index)
             _webDAVView->reDrawCurrentEntry();
         }
         else
-        {
-            CloseProgressbar();
-            Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
-        }
+        */
+        CloseProgressbar();
+        Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
         break;
     }
     default:
@@ -211,37 +230,32 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         {
             _webDAVView->checkIfEntryClicked(par1, par2);
             _webDAVView->invertCurrentEntryColor();
-            if (_tempItemID != -1)
+            if (_webDAVView->getCurrentEntry().title.compare("...") != 0)
             {
-                if (_webDAVView->getCurrentEntry()->title.compare("...") != 0)
-                {
-                    _contextMenu = std::unique_ptr<ContextMenu>(new ContextMenu());
-                    _contextMenu->createMenu(par2, _nextcloud.getItems().at(_tempItemID).getState(), EventHandler::contextMenuHandlerStatic);
-                }
+                _contextMenu = std::unique_ptr<ContextMenu>(new ContextMenu());
+                _contextMenu->createMenu(par2, _webDAVView->getCurrentEntry().state, EventHandler::contextMenuHandlerStatic);
             }
         }
     }
     else if (type == EVT_POINTERUP)
     {
-        //menu is clicked
-        if (IsInRect(par1, par2, _menu.getMenuButtonRect()) == 1)
+        if (IsInRect(par1, par2, &_menu->getMenuButtonRect()) == 1)
         {
-            return _menu.createMenu(_nextcloud.isLoggedIn(), _nextcloud.isWorkOffline(), EventHandler::mainMenuHandlerStatic);
+            return _menu->createMenu((_webDAVView != nullptr), EventHandler::mainMenuHandlerStatic);
         }
-        //if webDAVView is shown
         else if (_webDAVView != nullptr)
         {
             if(_webDAVView->checkIfEntryClicked(par1, par2))
             {
                 _webDAVView->invertCurrentEntryColor();
 
-                if (_webDAVView->getCurrentEntry()->type == Itemtype::IFOLDER)
+                if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
                 {
                     openFolder();
                 }
                 else
                 {
-                    if (_webDAVView->getCurrentEntry()->state == FileState::ISYNCED || (_nextcloud.isWorkOffline() && _nextcloud.getItems().at(_tempItemID).getState() == FileState::IOUTSYNCED))
+                    if (_webDAVView->getCurrentEntry().state != FileState::ICLOUD)
                     {
                         openItem();
                     }
@@ -261,18 +275,17 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             {
                 ShowHourglassForce();
 
-                //TODO replace
-                if (_nextcloud.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword()))
-                {
-                    _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu.getContentRect(), _currentWebDAVItems,1));
-                    _loginView.reset();
-
-                    FullUpdate();
-                }
-                else
+                _currentWebDAVItems = _webDAV.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword());
+                if(_currentWebDAVItems.empty())
                 {
                     HideHourglass();
                     Log::writeErrorLog("login failed.");
+                }
+                else
+                {
+                    _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu->getContentRect(), _currentWebDAVItems,1));
+                    _loginView.reset();
+                    FullUpdate();
                 }
                 return 0;
             }
@@ -283,14 +296,27 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 
 void EventHandler::updatePBLibrary()
 {
-    if (_nextcloud.getItems().at(_tempItemID).getType() == Itemtype::IFOLDER)
+    if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
     {
         Util::updatePBLibrary(15);
     }
     else
     {
-        if (_nextcloud.getItems().at(_tempItemID).isBook())
+        //if (_nextcloud.getItems().at(_tempItemID).isBook())
+        /*
+         * is needed twice!
+            if (_fileType.find("application/epub+zip") != string::npos ||
+                    _fileType.find("application/pdf") != string::npos ||
+                    _fileType.find("application/octet-stream") != string::npos ||
+                    _fileType.find("text/plain") != string::npos ||
+                    _fileType.find("text/html") != string::npos ||
+                    _fileType.find("text/rtf") != string::npos ||
+                    _fileType.find("application/msword") != string::npos ||
+                    _fileType.find("application/x-mobipocket-ebook") != string::npos ||
+                    _fileType.find("application/vnd.openxmlformats-officedocument.wordprocessingml.document") != string::npos ||
+                    _fileType.find("application/x-fictionbook+xml") != string::npos)
             Util::updatePBLibrary(5);
+            */
     }
 }
 
@@ -299,7 +325,7 @@ void EventHandler::startDownload()
     OpenProgressbar(1, "Downloading...", "Checking network connection", 0, NULL);
     try
     {
-        _nextcloud.download(_tempItemID);
+        //_nextcloud.download(_tempItemID);
     }
     catch (const std::exception &e)
     {
@@ -315,34 +341,54 @@ void EventHandler::startDownload()
 void EventHandler::openItem()
 {
     _webDAVView->invertCurrentEntryColor();
-    _nextcloud.getItems().at(_tempItemID).open();
+    /*
+    if (_state == FileState::ICLOUD)
+    {
+        Message(ICON_ERROR, "File not found.", "Could not find file.", 1000);
+    }
+    else if(isBook())
+    {
+
+        OpenBook(_localPath.c_str(), "", 0);
+    }
+    else
+    {
+        Message(ICON_INFORMATION, "Warning", "The filetype is currently not supported.", 1200);
+    }
+    */
+    //webDAVView->getCurrentEntry
+    //_nextcloud.getItems().at(_tempItemID).open();
 }
 
 void EventHandler::openFolder()
 {
-    FillAreaRect(_menu.getContentRect(), WHITE);
-    ////TODO hourglass needed?
     ShowHourglassForce();
-
-    _tempPath = _nextcloud.getItems().at(_tempItemID).getPath();
-    if (!_tempPath.empty())
+    //_nextcloud.setItems(_nextcloud.getDataStructure(_tempPath));
+    //TODO if folder is unsynced sync
+    WebDAV test = WebDAV();
+    _currentWebDAVItems =  test.getDataStructure(_webDAVView->getCurrentEntry().path);
+    if(_currentWebDAVItems.empty())
     {
-        _nextcloud.setItems(_nextcloud.getDataStructure(_tempPath));
-        //if folder is unsynced sync
-        WebDAV test = WebDAV();
-        vector<WebDAVItem> testitems = test.getDataStructure(_tempPath);
-        _sqllite.saveItemsChildren(testitems);
+        Log::writeErrorLog("items empty");
+        HideHourglass();
+        _webDAVView->invertCurrentEntryColor();
+    }
+    else
+    {
+        Log::writeInfoLog("got new items");
+        _sqllite.saveItemsChildren(_currentWebDAVItems);
 
         //if folder is synced, get only from DB
-        vector<WebDAVItem> fromDB = _sqllite.getItemsChildren(_tempPath);
+        //vector<WebDAVItem> fromDB = _sqllite.getItemsChildren(_tempPath);
         //get etags from DB, if etag for path is unchanged, stays the same, same for foldersjj
+        FillAreaRect(&_menu->getContentRect(), WHITE);
+        _webDAVView.release();
+        _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu->getContentRect(), _currentWebDAVItems,1));
+        //_sqllite.saveItemsChildren(_nextcloud.getItems());
+        //TODO include the header (where am i currently aka)
+        //_webDAVView->drawHeader(_tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
+        PartialUpdate(_menu->getContentRect().x, _menu->getContentRect().y, _menu->getContentRect().w, _menu->getContentRect().h);
     }
-    _webDAVView.release();
-    _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu.getContentRect(), _currentWebDAVItems,1));
-    //_sqllite.saveItemsChildren(_nextcloud.getItems());
-    //TODO include the header (where am i currently aka)
-    //_webDAVView->drawHeader(_tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
-    PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
 }
 
 int EventHandler::keyHandler(const int type, const int par1, const int par2)
@@ -376,3 +422,82 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
 
     return 1;
 }
+
+
+/*
+void Nextcloud::getLocalFileStructure(vector<Item> &tempItems, const string &localPath)
+{
+    //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
+    DIR *dir;
+    class dirent *ent;
+    class stat st;
+
+    dir = opendir(localPath.c_str());
+    while ((ent = readdir(dir)) != NULL)
+    {
+        const string fileName = ent->d_name;
+        const string fullFileName = localPath + fileName;
+
+        if (fileName[0] == '.')
+            continue;
+
+        if (stat(fullFileName.c_str(), &st) == -1)
+            continue;
+
+        const bool isDirectory = (st.st_mode & S_IFDIR) != 0;
+
+        bool found = false;
+        //looks if files have been modified
+        for (unsigned int i = 1; i < tempItems.size(); i++)
+        {
+            if (tempItems.at(i).getLocalPath().compare(fullFileName) == 0)
+            {
+                //do via etag and not outsync !
+                if (!isDirectory)
+                {
+                    //check if was changed on the cloud and here and then update...
+                    //if etag ist different and last modifcated changed local --> create conflict
+                    //compare by etag
+                    //get last modification date and compare; if is different upload this
+
+                    std::ifstream in(fullFileName, std::ifstream::binary | std::ifstream::ate);
+                    Log::writeInfoLog(tempItems.at(i).getTitle());
+                    Log::writeInfoLog(std::to_string(in.tellg()));
+
+                    Log::writeInfoLog(std::to_string(tempItems.at(i).getSize()));
+                    if (in.tellg() != tempItems.at(i).getSize())
+                    {
+                        tempItems.at(i).setState(FileState::IOUTSYNCED);
+                    }
+                }
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            if (isDirectory)
+            {
+                //create new dir in cloud
+                tempItems.push_back(Item(fullFileName, FileState::ILOCAL, Itemtype::IFOLDER));
+                   Item::Item(const string &localPath, FileState state, Itemtype type) : _localPath(localPath), _state(state), _type(type)
+                   {
+                   _title = _localPath;
+                   _title = _title.substr(_title.find_last_of("/") + 1, _title.length());
+                   Util::decodeUrl(_title);
+                   }
+            }
+            else
+            {
+                //put to coud
+                tempItems.push_back(Item(fullFileName, FileState::ILOCAL, Itemtype::IFILE));
+            }
+        }
+    }
+    closedir(dir);
+}
+
+
+
+*/
+
