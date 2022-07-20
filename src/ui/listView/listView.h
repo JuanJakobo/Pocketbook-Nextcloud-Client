@@ -55,13 +55,13 @@ public:
     void reDrawCurrentEntry();
 
     /**
-        * inverts the color of the currently selected entry 
+        * inverts the color of the currently selected entry
         */
     void invertCurrentEntryColor();
 
     /**
         * Checkes if the listview has been clicked and either changes the page or returns item ID
-        * 
+        *
         * @param x x-coordinate
         * @param y y-coordinate
         * @return true if was clicked
@@ -71,11 +71,11 @@ public:
     int getCurrentEntryItertator() const {return _selectedEntry;};
 
     /**
-        * Clears the screen and draws entries and footer 
-        * 
+        * Clears the screen and draws entries and footer
+        *
         */
     void draw();
-    
+
 protected:
     int _footerHeight;
     int _footerFontHeight;
@@ -101,20 +101,20 @@ protected:
     void drawEntries();
 
     /**
-        * Draws the footer including a page changer 
+        * Draws the footer including a page changer
         */
     void drawFooter();
 
     /**
-        * updates an entry 
-        * 
+        * updates an entry
+        *
         * @param entryID the id of the item that shall be inverted
         */
     void updateEntry(int entryID);
 
     /**
         * Navigates to the selected page
-        * 
+        *
         * @param pageToShow page that shall be shown
         */
     void actualizePage(int pageToShow);

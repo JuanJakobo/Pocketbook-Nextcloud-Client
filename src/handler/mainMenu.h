@@ -17,8 +17,8 @@ class MainMenu
 {
 public:
     /**
-        * Defines fonds, sets global Event Handler and starts new content 
-        * 
+        * Defines fonds, sets global Event Handler and starts new content
+        *
         * @param name name of the application
         */
     MainMenu(const std::string &name);
@@ -30,9 +30,9 @@ public:
 
     /**
         * Shows the menu on the screen, lets the user choose menu options and then redirects the handler to the caller
-        * 
+        *
         * @param loogedIn the status if the user is logged in
-        * @param handler handles the clicks on the menu 
+        * @param handler handles the clicks on the menu
         * @return int returns if the event was handled
         */
     int createMenu(bool loggedIn, bool workOffline, iv_menuhandler handler);

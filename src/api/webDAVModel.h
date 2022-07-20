@@ -10,12 +10,9 @@
 #define WEBDAVITEM
 
 #include "model.h"
-//TODO use own
-#include "item.h"
 
 #include <string>
 
-/*
 enum Itemtype
 {
     IFILE,
@@ -29,7 +26,6 @@ enum FileState
     IOUTSYNCED,
     ILOCAL
 };
-*/
 
 struct WebDAVItem : Entry{
     std::string etag;
@@ -39,7 +35,7 @@ struct WebDAVItem : Entry{
     FileState state{FileState::ICLOUD};
     Itemtype type;
     std::string lastEditDate{"Error"};
-    double size;
+    std::string size;
     std::string fileType;
 };
 

@@ -10,7 +10,7 @@
 #define CONTEXT_MENU
 
 #include "inkview.h"
-#include "item.h"
+#include "webDAVModel.h"
 
 #include <string>
 
@@ -23,10 +23,10 @@ public:
 
     /**
         * Shows the menu on the screen, lets the user choose menu options and then redirects the handler to the caller
-        * 
-        * @param y y-coordinate of the item 
+        *
+        * @param y y-coordinate of the item
         * @param FileState status of the item for that the menu is created
-        * @param handler  which action does the menu buttons start 
+        * @param handler  which action does the menu buttons start
         * @return int returns if the event was handled
         */
     int createMenu(int y, FileState itemstate, iv_menuhandler handler);

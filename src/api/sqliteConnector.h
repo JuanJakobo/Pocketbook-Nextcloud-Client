@@ -25,7 +25,6 @@ public:
 
     ~SqliteConnector();
 
-    //TODO DOKU, open neede?
     bool open();
 
     std::vector<WebDAVItem> getItemsChildren(const std::string &parenthPath);

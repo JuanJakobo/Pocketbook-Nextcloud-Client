@@ -26,8 +26,8 @@ class LoginView
 {
 public:
     /**
-        * Draws the loginView includin URL, Username and Password buttons inside the contentRect 
-        * 
+        * Draws the loginView includin URL, Username and Password buttons inside the contentRect
+        *
         * @param contentRect area where the loginscreen shall be drawn
         */
     LoginView(const irect *contentRect);
@@ -36,7 +36,7 @@ public:
 
     /**
         * Checks which part of the loginscreen is shown and reacts accordingly
-        * 
+        *
         * @param x x-coordinate
         * @param y y-coordinate
         * @return int if event has been handled. Returns 2 if login has been clicked and all items are set
@@ -64,16 +64,16 @@ private:
 
     /**
         * Functions needed to call C function, handles the keyboard
-        * 
+        *
         * @param  text text that has been typed in by the user
         */
     static void keyboardHandlerStatic(char *text);
 
     /**
         * Called by the static method and saves and writes the input from the user to the screen
-        * 
-        * @param text text that has been typed in by the user 
-        */ 
+        *
+        * @param text text that has been typed in by the user
+        */
     void keyboardHandler(char *text);
 };
 

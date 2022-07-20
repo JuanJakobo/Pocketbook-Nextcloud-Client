@@ -26,13 +26,13 @@ class EventHandler
 {
 public:
     /**
-        * Defines fonds, sets global Event Handler and starts new content 
+        * Defines fonds, sets global Event Handler and starts new content
         */
     EventHandler();
 
     /**
         * Handles events and redirects them
-        * 
+        *
         * @param type event type
         * @param par1 first argument of the event
         * @param par2 second argument of the event
@@ -46,36 +46,35 @@ private:
     std::unique_ptr<LoginView> _loginView;
     std::unique_ptr<ContextMenu> _contextMenu;
     std::vector<WebDAVItem> _currentWebDAVItems;
-    MainMenu _menu = MainMenu("Nextcloud");
-    Nextcloud _nextcloud = Nextcloud();
+    std::unique_ptr<MainMenu> _menu;
+
+    WebDAV _webDAV = WebDAV();
     SqliteConnector _sqllite = SqliteConnector(DB_PATH);
-    std::string _tempPath;
-    int _tempItemID;
 
     /**
         * Function needed to call C function, redirects to real function
-        * 
+        *
         *  @param index int of the menu that is set
         */
     static void mainMenuHandlerStatic(const int index);
 
     /**
         * Handles menu events and redirects them
-        * 
+        *
         * @param index int of the menu that is set
         */
     void mainMenuHandler(const int index);
 
     /**
         * Function needed to call C function, redirects to real function
-        * 
+        *
         *  @param index int of the menu that is set
         */
     static void contextMenuHandlerStatic(const int index);
 
     /**
         * Handlescontext  menu events and redirects them
-        * 
+        *
         * @param index int of the menu that is set
         */
 
@@ -83,7 +82,7 @@ private:
 
     /**
         * Handles pointer Events
-        * 
+        *
         * @param type event type
         * @param par1 first argument of the event
         * @param par2 second argument of the event
@@ -93,13 +92,13 @@ private:
 
     /**
      * Updates PB Library
-     * 
+     *
      */
     void updatePBLibrary();
 
     /**
         * Starts the download of an item
-        * 
+        *
         */
     void startDownload();
 
@@ -118,7 +117,7 @@ private:
 
     /**
         * Handles key Events
-        * 
+        *
         * @param type event type
         * @param par1 first argument of the event (is the key)
         * @param par2 second argument of the event
