@@ -14,17 +14,17 @@
 
 using std::string;
 
-LoginView *LoginView::_loginViewStatic;
+std::unique_ptr<LoginView> LoginView::_loginViewStatic;
 
-LoginView::LoginView(const irect *contentRect) : _contentRect(contentRect)
+LoginView::LoginView(const irect &contentRect) : _contentRect(contentRect)
 {
-    _loginViewStatic = this;
+    _loginViewStatic = std::unique_ptr<LoginView>(this);
 
-    int contentHeight = contentRect->h / 2;
-    int contentWidth = _contentRect->w * 0.9;
+    int contentHeight = contentRect.h / 2;
+    int contentWidth = _contentRect.w * 0.9;
 
     int beginY = 0.4 * contentHeight;
-    int beginX = (_contentRect->w - contentWidth) / 2;
+    int beginX = (_contentRect.w - contentWidth) / 2;
 
     int contents = contentHeight / 7;
 
@@ -32,7 +32,7 @@ LoginView::LoginView(const irect *contentRect) : _contentRect(contentRect)
 
     _loginFont = OpenFont("LiberationMono", _loginFontHeight, FONT_STD);
     SetFont(_loginFont, BLACK);
-    FillAreaRect(_contentRect, WHITE);
+    FillAreaRect(&_contentRect, WHITE);
 
     _urlButton = iRect(beginX, beginY, contentWidth, contents, ALIGN_CENTER);
     DrawTextRect(_urlButton.x, _urlButton.y - _loginFontHeight - _loginFontHeight/2, _urlButton.w, _urlButton.h, "Server address:", ALIGN_LEFT);

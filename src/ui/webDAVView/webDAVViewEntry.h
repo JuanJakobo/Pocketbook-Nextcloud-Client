@@ -33,7 +33,7 @@ public:
         */
     void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) override;
 
-    WebDAVItem *get() override { return &_entry; };
+    WebDAVItem &get() { return _entry; };
 
 private:
     WebDAVItem _entry;

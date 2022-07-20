@@ -12,6 +12,7 @@
 #include "inkview.h"
 
 #include <string>
+#include <memory>
 
 enum KeyboardTarget
 {
@@ -30,7 +31,7 @@ public:
         *
         * @param contentRect area where the loginscreen shall be drawn
         */
-    LoginView(const irect *contentRect);
+    LoginView(const irect &contentRect);
 
     ~LoginView();
 
@@ -48,10 +49,10 @@ public:
     std::string getURL() { return _url; };
 
 private:
-    static LoginView *_loginViewStatic;
+    static std::unique_ptr<LoginView> _loginViewStatic;
     int _loginFontHeight;
     ifont *_loginFont;
-    const irect *_contentRect;
+    const irect _contentRect;
     irect _urlButton;
     irect _loginButton;
     irect _usernameButton;

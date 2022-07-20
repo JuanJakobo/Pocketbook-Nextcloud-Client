@@ -25,7 +25,7 @@ public:
 
     virtual ~ListViewEntry(){};
 
-    irect *getPosition() { return &_position; }
+    irect &getPosition() { return _position; }
     int getPage() const { return _page; }
 
     /**
@@ -36,8 +36,6 @@ public:
         * @param fontHeight height of the font
         */
     virtual void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) = 0;
-    
-    virtual Entry* get() = 0;
 
 protected:
     int _page;

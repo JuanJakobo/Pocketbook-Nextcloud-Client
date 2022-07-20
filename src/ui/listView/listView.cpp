@@ -16,13 +16,13 @@
 using std::string;
 using std::vector;
 
-ListView::ListView(const irect *contentRect, int page) : _contentRect(contentRect), _shownPage(page)
+ListView::ListView(const irect &contentRect, int page) : _contentRect(contentRect), _shownPage(page)
 {
     _entries.clear();
 
-    _footerHeight = _contentRect->h / 10;
+    _footerHeight = _contentRect.h / 15;
     _footerFontHeight = 0.3 * _footerHeight;
-    _entryFontHeight = 30; //0.2 * _footerFontHeight;//entrySize; //TODO how much?
+    _entryFontHeight = contentRect.h/45;
 
     _footerFont = OpenFont("LiberationMono", _footerFontHeight, 1);
     _entryFont = OpenFont("LiberationMono", _entryFontHeight, 1);
@@ -30,11 +30,17 @@ ListView::ListView(const irect *contentRect, int page) : _contentRect(contentRec
 
     SetFont(_entryFont, BLACK);
 
-    _pageIcon = iRect(_contentRect->w - 100, _contentRect->h - _footerHeight, 100, _footerHeight, ALIGN_CENTER);
-    _firstPageButton = iRect(_contentRect->x, _contentRect->h - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
-    _prevPageButton = iRect(_contentRect->x + 150, _contentRect->h - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
-    _nextPageButton = iRect(_contentRect->x + 300, _contentRect->h - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
-    _lastPageButton = iRect(_contentRect->x + 450, _contentRect->h - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
+    int footerWidth = contentRect.w/20;
+
+    _pageIcon = iRect(_contentRect.w - footerWidth*2, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w/10, _footerHeight, ALIGN_CENTER);
+
+    _firstPageButton = iRect(_contentRect.x, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w/8, _footerHeight, ALIGN_CENTER);
+
+    _prevPageButton = iRect(_contentRect.x + footerWidth*3, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w/8, _footerHeight, ALIGN_CENTER);
+
+    _nextPageButton = iRect(_contentRect.x + footerWidth*6, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w/8, _footerHeight, ALIGN_CENTER);
+
+    _lastPageButton = iRect(_contentRect.x + footerWidth*9, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w/8, _footerHeight, ALIGN_CENTER);
 }
 
 ListView::~ListView()
@@ -46,22 +52,22 @@ ListView::~ListView()
 
 void ListView::draw()
 {
-    FillAreaRect(_contentRect, WHITE);
+    FillAreaRect(&_contentRect, WHITE);
     drawEntries();
     drawFooter();
-    PartialUpdate(_contentRect->x, _contentRect->y, _contentRect->w, _contentRect->h);
+    PartialUpdate(_contentRect.x, _contentRect.y, _contentRect.w, _contentRect.h);
 }
 
 void ListView::reDrawCurrentEntry()
 {
-    FillAreaRect(_entries.at(_selectedEntry)->getPosition(), WHITE);
+    FillAreaRect(&_entries.at(_selectedEntry)->getPosition(), WHITE);
     _entries.at(_selectedEntry)->draw(_entryFont, _entryFontBold, _entryFontHeight);
     updateEntry(_selectedEntry);
 }
 
 void ListView::invertCurrentEntryColor()
 {
-    InvertAreaBW(_entries.at(_selectedEntry)->getPosition()->x, _entries.at(_selectedEntry)->getPosition()->y, _entries.at(_selectedEntry)->getPosition()->w, _entries.at(_selectedEntry)->getPosition()->h);
+    InvertAreaBW(_entries.at(_selectedEntry)->getPosition().x, _entries.at(_selectedEntry)->getPosition().y, _entries.at(_selectedEntry)->getPosition().w, _entries.at(_selectedEntry)->getPosition().h);
     updateEntry(_selectedEntry);
 }
 
@@ -96,7 +102,7 @@ bool ListView::checkIfEntryClicked(int x, int y)
     {
         for (unsigned int i = 0; i < _entries.size(); i++)
         {
-            if (_entries.at(i)->getPage() == _shownPage && IsInRect(x, y, _entries.at(i)->getPosition()) == 1)
+            if (_entries.at(i)->getPage() == _shownPage && IsInRect(x, y, &_entries.at(i)->getPosition()) == 1)
             {
                 _selectedEntry = i;
                 return true;
@@ -125,7 +131,7 @@ void ListView::drawFooter()
 
 void ListView::updateEntry(int entryID)
 {
-    PartialUpdate(_entries.at(entryID)->getPosition()->x, _entries.at(entryID)->getPosition()->y, _entries.at(entryID)->getPosition()->w, _entries.at(entryID)->getPosition()->h);
+    PartialUpdate(_entries.at(entryID)->getPosition().x, _entries.at(entryID)->getPosition().y, _entries.at(entryID)->getPosition().w, _entries.at(entryID)->getPosition().h);
 }
 
 void ListView::actualizePage(int pageToShow)
@@ -141,9 +147,9 @@ void ListView::actualizePage(int pageToShow)
     else
     {
         _shownPage = pageToShow;
-        FillArea(_contentRect->x, _contentRect->y, _contentRect->w, _contentRect->h, WHITE);
+        FillArea(_contentRect.x, _contentRect.y, _contentRect.w, _contentRect.h, WHITE);
         drawEntries();
         drawFooter();
-        PartialUpdate(_contentRect->x, _contentRect->y, _contentRect->w, _contentRect->h);
+        PartialUpdate(_contentRect.x, _contentRect.y, _contentRect.w, _contentRect.h);
     }
 }

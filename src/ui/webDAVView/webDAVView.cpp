@@ -14,10 +14,11 @@
 
 using std::vector;
 
-WebDAVView::WebDAVView(const irect *contentRect, const vector<WebDAVItem> &items, int page) : ListView(contentRect, page)
+WebDAVView::WebDAVView(const irect &contentRect, const vector<WebDAVItem> &items, int page) : ListView(contentRect, page)
 {
+    //TODO add line above!
     auto pageHeight = 0;
-    auto contentHeight = _contentRect->h - _footerHeight;
+    auto contentHeight = _contentRect.h - _footerHeight;
     auto entrycount = items.size();
 
     _entries.reserve(entrycount);
@@ -25,13 +26,17 @@ WebDAVView::WebDAVView(const irect *contentRect, const vector<WebDAVItem> &items
     auto i = 0;
     while (i < entrycount)
     {
-        auto entrySize = TextRectHeight(contentRect->w, items.at(i).title.c_str(), 0) + 2.5 * _entryFontHeight;
+        auto entrySize = TextRectHeight(contentRect.w, items.at(i).title.c_str(), 0) + 2.5 * _entryFontHeight;
+        if(items.at(i).type == IFILE)
+        {
+            entrySize += _entryFontHeight;
+        }
         if ((pageHeight + entrySize) > contentHeight)
         {
             pageHeight = 0;
             _page++;
         }
-        irect rect = iRect(_contentRect->x, _contentRect->y + pageHeight, _contentRect->w, entrySize, 0);
+        irect rect = iRect(_contentRect.x, _contentRect.y + pageHeight, _contentRect.w, entrySize, 0);
 
         _entries.emplace_back(std::unique_ptr<WebDAVViewEntry>(new WebDAVViewEntry(_page, rect, items.at(i))));
 
