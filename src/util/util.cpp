@@ -8,7 +8,6 @@
 #include "util.h"
 #include "inkview.h"
 #include "log.h"
-#include "nextcloud.h"
 
 #include <string>
 #include <math.h>
@@ -54,12 +53,10 @@ bool Util::connectToNetwork()
     return false;
 }
 
-//make template?
-
-string Util::accessConfig(const Action &action, const string &name, const string &value)
+string Util::accessConfig(const string &path, const Action &action, const string &name, const string &value)
 {
     iconfigedit *temp = nullptr;
-    iconfig *config = OpenConfig(NEXTCLOUD_CONFIG_PATH.c_str(), temp);
+    iconfig *config = OpenConfig(path.c_str(), temp);
     string returnValue;
 
     switch (action)
