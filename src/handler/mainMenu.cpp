@@ -40,7 +40,6 @@ MainMenu::~MainMenu()
     CloseFont(_menuFont);
     free(_syncFolder);
     free(_menu);
-    free(_makeStartfolder);
     free(_logout);
     free(_info);
     free(_exit);
@@ -59,11 +58,10 @@ int MainMenu::createMenu(bool loggedIn, iv_menuhandler handler)
             {ITEM_HEADER, 0, _menu, NULL},
             //show logged in
             {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _syncFolder, NULL},
-            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _makeStartfolder, NULL},
-            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _logout, NULL},
+            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _logout, NULL},
             //show always
-            {ITEM_ACTIVE, 104, _info, NULL},
-            {ITEM_ACTIVE, 105, _exit, NULL},
+            {ITEM_ACTIVE, 103, _info, NULL},
+            {ITEM_ACTIVE, 104, _exit, NULL},
             {0, 0, NULL, NULL}};
 
     OpenMenu(mainMenu, 0, _panelMenuBeginX, _panelMenuBeginY, handler);

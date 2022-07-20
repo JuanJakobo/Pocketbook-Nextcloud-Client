@@ -43,24 +43,6 @@ WebDAV::WebDAV()
         _url = Util::accessConfig(CONFIG_PATH, Action::IReadString, "url");
     }
 }
-/*
-   //TODO is just getDatastructure?
-bool Nextcloud::login()
-{
-    string tempPath = getStartFolder();
-
-    if (tempPath.empty())
-        tempPath = NEXTCLOUD_ROOT_PATH + this->getUUID() + "/";
-
-    if (setItems(getDataStructure(tempPath)))
-    {
-        _loggedIn = true;
-        return true;
-    }
-
-    return false;
-}
-*/
 
 
 //TODO pass in vector and change that one?
@@ -90,7 +72,6 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
         Util::accessConfig(CONFIG_PATH, Action::IWriteString, "username", Username);
         Util::accessConfig(CONFIG_PATH, Action::IWriteString, "uuid", uuid);
         Util::accessConfig(CONFIG_PATH, Action::IWriteSecret, "password", Pass);
-        Util::accessConfig(CONFIG_PATH, Action::IWriteString, "startFolder", tempPath);
     }
     return tempItems;
 }

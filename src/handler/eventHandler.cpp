@@ -39,7 +39,6 @@ EventHandler::EventHandler()
         //explanation on first login?
         //TODO here mark folders that are unsynced?
         //compare both datasets, if fromDB etag is different, mark as unsycned
-        //std::string getStartFolder() { return Util::accessConfig(Action::IReadString, "startFolder"); };
         string tempPath = NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID");
         _currentWebDAVItems = _webDAV.getDataStructure(tempPath);
         fromDB = _sqllite.getItemsChildren(tempPath);
@@ -107,22 +106,13 @@ void EventHandler::mainMenuHandler(const int index)
 {
     switch (index)
     {
-        //TODO resync button
-    //offlineModus
+        //TODO  actualize current folder
     case 101:
     {
         break;
     }
-    //Make startfolder
-    case 102:
-    {
-        //Util::accessConfig(Action::IWriteString, "startFolder", Path);
-        //Message(ICON_INFORMATION, "Info", ("On the next startup the folder" + _tempPath + " will be shown.").c_str(), 1200);
-
-        break;
-    }
     //Logout
-    case 103:
+    case 102:
     {
         int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to delete local files?", "Yes", "No", "Cancel");
         switch (dialogResult)
@@ -142,13 +132,13 @@ void EventHandler::mainMenuHandler(const int index)
         break;
     }
     //Info
-    case 104:
+    case 103:
     {
         Message(ICON_INFORMATION, "Information", "Version 0.73 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
         break;
     }
     //Exit
-    case 105:
+    case 104:
         CloseApp();
         break;
     default:

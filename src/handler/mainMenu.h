@@ -50,8 +50,7 @@ private:
     irect _contentRect;
 
     char *_menu = strdup("Menu");
-    char *_syncFolder = strdup("Sync folder");
-    char *_makeStartfolder = strdup("Make startfolder");
+    char *_syncFolder = strdup("Actualize folder");
     char *_logout = strdup("Logout");
     char *_info = strdup("Info");
     char *_exit = strdup("Close App");
