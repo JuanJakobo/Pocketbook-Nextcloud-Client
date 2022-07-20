@@ -11,6 +11,7 @@
 #define SQLITECONNECTOR
 
 #include "webDAVModel.h"
+#include "sqlite3.h"
 
 #include <string>
 #include <vector>
@@ -31,7 +32,8 @@ public:
     bool saveItemsChildren(const std::vector<WebDAVItem> &children);
 
 private:
-    std::string _path;
+    std::string _dbpath;
+    sqlite3 *_db;
 };
 
 #endif

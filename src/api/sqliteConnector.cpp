@@ -15,50 +15,41 @@
 #include <vector>
 using std::string;
 
-SqliteConnector::SqliteConnector(const string &DBpath) : _path(DBpath)
+SqliteConnector::SqliteConnector(const string &DBpath) : _dbpath(DBpath)
 {
-    //TODO create sql Database at root and this one is the check
-    sqlite3 *db;
-
-    int result;
-    //change this
-
-    //iv_unlink(DB_FILE);
-
-    result = sqlite3_open(_path.c_str(), &db);
-
-
-    if (result)
-    {
-        //could not open
-    }
-    //modtime INTEGER,
-    result = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS metadata (etag VARCHAR, path VARCHAR, parentPath VARCHAR, PRIMARY KEY (path))", NULL, 0, NULL);
-
-    //TODO move
-    sqlite3_close(db);
 }
 
 SqliteConnector::~SqliteConnector()
 {
-    //TODO DB does 
-    //sqlite3_close(_db);
+    sqlite3_close(_db);
     Log::writeInfoLog("closed DB");
+}
+
+bool SqliteConnector::open()
+{
+    int rs;
+
+    rs = sqlite3_open(_dbpath.c_str(), &_db);
+
+    if (rs)
+    {
+        Log::writeErrorLog("Could not open DB at " + _dbpath);
+        return false;
+    }
+    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS metadata (etag VARCHAR, path VARCHAR, parentPath VARCHAR, PRIMARY KEY (path))", NULL, 0, NULL);
+
+    return true;
 }
 
 std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPath)
 {
-    //TODO call open?
-    //open();
-    //
-    sqlite3 *db;
-    int result = sqlite3_open(_path.c_str(), &db);
+    open();
 
     int rs;
     sqlite3_stmt *stmt = 0;
     std::vector<WebDAVItem> items;
 
-    rs = sqlite3_prepare_v2(db, "SELECT etag, path FROM 'metadata' WHERE parentPath = ?;", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db, "SELECT etag, path FROM 'metadata' WHERE parentPath = ?;", -1, &stmt, 0);
     rs = sqlite3_bind_text(stmt, 1, parentPath.c_str(), parentPath.length(), NULL);
 
     while (sqlite3_step(stmt) == SQLITE_ROW)
@@ -82,20 +73,15 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
     }
 
     sqlite3_finalize(stmt);
-    sqlite3_close(db);
+    sqlite3_close(_db);
     return items;
 }
 
 //the first one is the parent and therefor should not be saved
 bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &children)
 {
-    sqlite3 *db;
-
-    int result;
-    //TODO change this
-    //iv_unlink(DB_FILE);
-
-    result = sqlite3_open(_path.c_str(), &db);
+    open();
+    int rs;
 
     //if (result)
         //could not open
@@ -119,15 +105,15 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &children)
         }
     }
 
-    result = sqlite3_exec(db, stmt.c_str(), NULL, 0, NULL);
+    rs = sqlite3_exec(_db, stmt.c_str(), NULL, 0, NULL);
 
-    if (result == SQLITE_CONSTRAINT)
+    if (rs == SQLITE_CONSTRAINT)
     {
         //TODO what if item is already there? update? --> use replace?
     }
-    else if (result != SQLITE_DONE)
+    else if (rs != SQLITE_DONE)
     {
-        Log::writeErrorLog(sqlite3_errmsg(db) + std::string(" (Error Code: ") + std::to_string(result) + ")");
+        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
 
     /*
@@ -142,7 +128,7 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &children)
           std::string _fileType;
           */
 
-    sqlite3_close(db);
+    sqlite3_close(_db);
     return true;
     //never need to get structure under the folder, as it is better to get it anyway?
 }
