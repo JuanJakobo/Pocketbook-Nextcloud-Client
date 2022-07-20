@@ -88,7 +88,7 @@ void WebDAV::logout(bool deleteFiles)
 
     //_url.clear();
     //TODO where?
-    //_items.clear();
+    //tempItems.clear();
 }
 
 //TODO pas as reversne and no return
@@ -105,18 +105,6 @@ string WebDAV::getLocalPath(string path)
 ///TODO rename function
 vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
 {
-    /*
-     *TODO resize item one and make clickable, what to do with the start?
-    //resize item 1
-    string header = _items.at(0).getPath();
-    header = header.substr(0, header.find_last_of("/"));
-    header = header.substr(0, header.find_last_of("/") + 1);
-    _items.at(0).setPath(header);
-    _items.at(0).setTitle("...");
-    _items.at(0).setLastEditDate("");
-    if (_items.at(0).getPath().compare(NEXTCLOUD_ROOT_PATH) == 0)
-        _items.erase(_items.begin());
-        */
     string xmlItem = propfind(pathUrl);
     if(!xmlItem.empty())
     {
@@ -206,6 +194,16 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
         //TODO doppelt
         if (tempItems.empty())
             return {};
+
+        //resize item 1
+        string header = tempItems.at(0).path;
+        header = header.substr(0, header.find_last_of("/"));
+        header = header.substr(0, header.find_last_of("/") + 1);
+        tempItems.at(0).path = header;
+        tempItems.at(0).title += "\nclick to go back";
+        tempItems.at(0).lastEditDate = "";
+        if (tempItems.at(0).path.compare(NEXTCLOUD_ROOT_PATH) == 0)
+            tempItems.erase(tempItems.begin());
 
         string localPath = getLocalPath(pathUrl);
 
@@ -298,7 +296,7 @@ void Nextcloud::download(int itemID)
         return;
     }
 
-    this->downloadFolder(_items, itemID);
+    this->downloadFolder(tempItems, itemID);
 
     UpdateProgressbar("Download completed", 100);
 }

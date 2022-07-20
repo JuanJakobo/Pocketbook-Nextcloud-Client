@@ -16,7 +16,6 @@ using std::vector;
 
 WebDAVView::WebDAVView(const irect &contentRect, const vector<WebDAVItem> &items, int page) : ListView(contentRect, page)
 {
-    //TODO add line above!
     auto pageHeight = 0;
     auto contentHeight = _contentRect.h - _footerHeight;
     auto entrycount = items.size();
@@ -26,11 +25,17 @@ WebDAVView::WebDAVView(const irect &contentRect, const vector<WebDAVItem> &items
     auto i = 0;
     while (i < entrycount)
     {
-        auto entrySize = TextRectHeight(contentRect.w, items.at(i).title.c_str(), 0) + 2.5 * _entryFontHeight;
+        auto entrySize = TextRectHeight(contentRect.w, items.at(i).title.c_str(), 0);
+
         if(items.at(i).type == IFILE)
-        {
             entrySize += _entryFontHeight;
-        }
+
+        if(items.at(i).title.find("click to go back") != std::string::npos)
+            entrySize += 0.5 * _entryFontHeight;
+        else
+            entrySize += 2.5 * _entryFontHeight;
+
+
         if ((pageHeight + entrySize) > contentHeight)
         {
             pageHeight = 0;
