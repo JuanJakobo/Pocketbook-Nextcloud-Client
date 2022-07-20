@@ -24,11 +24,48 @@ void WebDAVViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, i
     SetFont(entryFont, BLACK);
 
     //DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, _entry.name.c_str(), ALIGN_LEFT);
-    DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, _entry.path.c_str(), ALIGN_LEFT);
-    std::string type = "File";
-    //if(_entry.type == Itemtype::FOLDER)
+    //DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, _entry.path.c_str(), ALIGN_LEFT);
+    //std::string type = "File";
+    //if(_entry.type == _entrytype::FOLDER)
         //type = "Folder";
-    DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, type.c_str(), ALIGN_RIGHT);
+    //DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, type.c_str(), ALIGN_RIGHT);
+
+    if (_entry.state == FileState::ILOCAL)
+    {
+        DrawTextRect(_position.x, _position.y + heightOfTitle + 2 * fontHeight, _position.w, fontHeight, "Local", ALIGN_RIGHT);
+    }
+    else
+    {
+        if (_entry.type == IFILE)
+        {
+            DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, _entry.fileType.c_str(), ALIGN_LEFT);
+
+            switch(_entry.state)
+            {
+                case FileState::ISYNCED:
+                    DrawTextRect(_position.x, _position.y + heightOfTitle + 2 * fontHeight, _position.w, fontHeight, "Synced", ALIGN_RIGHT);
+                    break;
+                case FileState::IOUTSYNCED:
+                    DrawTextRect(_position.x, _position.y + heightOfTitle + 2 * fontHeight, _position.w, fontHeight, "Out of sync", ALIGN_RIGHT);
+                    break;
+                default:
+                    DrawTextRect(_position.x, _position.y + heightOfTitle + 2 * fontHeight, _position.w, fontHeight, "Click to Download", ALIGN_RIGHT);
+            }
+
+            DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, _entry.lastEditDate.c_str(), ALIGN_LEFT);
+            DrawTextRect(_position.x, _position.y + heightOfTitle + 2 * fontHeight, _position.w, fontHeight, _entry.size.c_str(), ALIGN_LEFT);
+        }
+        else
+        {
+            if (_entry.state == FileState::ISYNCED)
+            {
+                DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "Folder synced", ALIGN_RIGHT);
+            }
+            DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, _entry.lastEditDate.c_str(), ALIGN_LEFT);
+            DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, _entry.size.c_str(), ALIGN_LEFT);
+        }
+
+    }
 
     int line = (_position.y + _position.h) - 1;
     DrawLine(0, line, ScreenWidth(), line, BLACK);
