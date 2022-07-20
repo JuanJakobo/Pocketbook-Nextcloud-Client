@@ -25,8 +25,8 @@ public:
 
     ~MainMenu();
 
-    irect *getContentRect() { return &_contentRect; };
-    irect *getMenuButtonRect() { return &_menuButtonRect; };
+    irect &getContentRect() { return _contentRect; };
+    irect &getMenuButtonRect() { return _menuButtonRect; };
 
     /**
         * Shows the menu on the screen, lets the user choose menu options and then redirects the handler to the caller
@@ -35,7 +35,7 @@ public:
         * @param handler handles the clicks on the menu
         * @return int returns if the event was handled
         */
-    int createMenu(bool loggedIn, bool workOffline, iv_menuhandler handler);
+    int createMenu(bool loggedIn, iv_menuhandler handler);
 
 private:
     ifont *_menuFont;
@@ -49,8 +49,8 @@ private:
     imenu _mainMenu;
     irect _contentRect;
 
-    char *_text;
     char *_menu = strdup("Menu");
+    char *_syncFolder = strdup("Sync folder");
     char *_makeStartfolder = strdup("Make startfolder");
     char *_logout = strdup("Logout");
     char *_info = strdup("Info");

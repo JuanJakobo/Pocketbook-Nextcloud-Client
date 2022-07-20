@@ -38,7 +38,7 @@ MainMenu::MainMenu(const string &name)
 MainMenu::~MainMenu()
 {
     CloseFont(_menuFont);
-    free(_text);
+    free(_syncFolder);
     free(_menu);
     free(_makeStartfolder);
     free(_logout);
@@ -52,19 +52,13 @@ void MainMenu::panelHandlerStatic()
     SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
 }
 
-int MainMenu::createMenu(bool loggedIn, bool workOffline, iv_menuhandler handler)
+int MainMenu::createMenu(bool loggedIn, iv_menuhandler handler)
 {
-    string text = "Work offline";
-    if (workOffline)
-        text = "Work online";
-
-    _text = strdup(text.c_str());
-
     imenu mainMenu[] =
         {
             {ITEM_HEADER, 0, _menu, NULL},
             //show logged in
-            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _text, NULL},
+            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _syncFolder, NULL},
             {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _makeStartfolder, NULL},
             {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _logout, NULL},
             //show always
