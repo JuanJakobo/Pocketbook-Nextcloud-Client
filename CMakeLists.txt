@@ -52,8 +52,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/contextMenu.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/eventHandler.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp
-			${CMAKE_SOURCE_DIR}/src/util/nextcloud.cpp
-			${CMAKE_SOURCE_DIR}/src/util/item.cpp
             ${CMAKE_SOURCE_DIR}/src/ui/listView/listView.cpp
 			${CMAKE_SOURCE_DIR}/src/ui/listView/listViewEntry.cpp
             ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/webDAVView.cpp

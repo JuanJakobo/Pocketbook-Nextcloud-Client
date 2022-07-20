@@ -3,7 +3,7 @@
 //
 // Author:           JuanJakobo
 // Date:             23.04.2021
-// Description:      
+// Description: Base model
 //-------------------------------------------------------------------
 
 #ifndef MODEL

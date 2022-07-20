@@ -11,17 +11,16 @@
 #define WEBDAV
 
 #include "webDAVModel.h"
-#include "eventHandler.h"
 
 #include <string>
 #include <vector>
 
-const std::string CONFIG_PATH = CONFIG_FOLDER + "/nextcloud.cfg";
-//const std::string NEXTCLOUD_FILE_PATH = "/mnt/ext1/nextcloud";
-//const std::string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
-//const std::string NEXTCLOUD_STRUCTURE_EXTENSION = ".structure";
-//const std::string NEXTCLOUD_START_PATH = "/remote.php/";
-//const std::string CACERT_PATH = "/mnt/ext1/applications/cacert.pem";
+//TODO rename
+const std::string NEXTCLOUD_FILE_PATH = "/mnt/ext1/nextcloud";
+const std::string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
+const std::string NEXTCLOUD_START_PATH = "/remote.php/";
+const std::string CACERT_PATH = "/mnt/ext1/applications/cacert.pem";
+const std::string NEXTCLOUD_PATH = "/mnt/ext1/system/config/nextcloud";
 
 class WebDAV
 {
@@ -31,6 +30,10 @@ class WebDAV
          *
          */
         WebDAV();
+
+        std::vector<WebDAVItem> login(const std::string &Url, const std::string &Username, const std::string &Pass);
+
+        void logout(bool deleteFiles = false);
 
         std::string getLocalPath(std::string path);
 
@@ -45,12 +48,12 @@ class WebDAV
         * @param Pass the pass of the Nextcloud instance
         * @return vector of Items
         */
-        //TODO return xml argument?h
         std::string propfind(const std::string &pathUrl);
 
     private:
         std::string _username;
         std::string _password;
+        std::string _url;
 
 };
 #endif
