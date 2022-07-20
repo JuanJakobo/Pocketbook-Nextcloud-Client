@@ -46,7 +46,6 @@ private:
     std::unique_ptr<WebDAVView> _webDAVView;
     std::unique_ptr<LoginView> _loginView;
     std::unique_ptr<ContextMenu> _contextMenu;
-    std::vector<WebDAVItem> _currentWebDAVItems;
     std::unique_ptr<MainMenu> _menu;
 
     WebDAV _webDAV = WebDAV();

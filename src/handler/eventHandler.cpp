@@ -32,6 +32,7 @@ EventHandler::EventHandler()
     _loginView = nullptr;
     _webDAVView = nullptr;
     vector<WebDAVItem> fromDB;
+    std::vector<WebDAVItem> currentWebDAVItems;
 
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
@@ -40,13 +41,13 @@ EventHandler::EventHandler()
         //TODO here mark folders that are unsynced?
         //compare both datasets, if fromDB etag is different, mark as unsycned
         string tempPath = NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID");
-        _currentWebDAVItems = _webDAV.getDataStructure(tempPath);
+        currentWebDAVItems = _webDAV.getDataStructure(tempPath);
         fromDB = _sqllite.getItemsChildren(tempPath);
     }
     //TODO here or father below?
     _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
 
-    if(_currentWebDAVItems.empty())
+    if(currentWebDAVItems.empty())
     {
         //use from DB
         //this one is always required --> if does not work -> say to the user that it did not work, to sync use
@@ -265,15 +266,15 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             {
                 ShowHourglassForce();
 
-                _currentWebDAVItems = _webDAV.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword());
-                if(_currentWebDAVItems.empty())
+                std::vector<WebDAVItem> currentWebDAVItems = _webDAV.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword());
+                if(currentWebDAVItems.empty())
                 {
                     HideHourglass();
                     Log::writeErrorLog("login failed.");
                 }
                 else
                 {
-                    _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu->getContentRect(), _currentWebDAVItems,1));
+                    _webDAVView = std::make_unique<WebDAVView>(WebDAVView(_menu->getContentRect(), currentWebDAVItems,1));
                     _loginView.reset();
                     FullUpdate();
                 }
@@ -355,9 +356,8 @@ void EventHandler::openFolder()
     ShowHourglassForce();
     //_nextcloud.setItems(_nextcloud.getDataStructure(_tempPath));
     //TODO if folder is unsynced sync
-    WebDAV test = WebDAV();
-    _currentWebDAVItems =  test.getDataStructure(_webDAVView->getCurrentEntry().path);
-    if(_currentWebDAVItems.empty())
+    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(_webDAVView->getCurrentEntry().path);
+    if(currentWebDAVItems.empty())
     {
         Log::writeErrorLog("items empty");
         HideHourglass();
@@ -366,7 +366,7 @@ void EventHandler::openFolder()
     else
     {
         Log::writeInfoLog("got new items");
-        _sqllite.saveItemsChildren(_currentWebDAVItems);
+        _sqllite.saveItemsChildren(currentWebDAVItems);
 
         //if folder is synced, get only from DB
         //vector<WebDAVItem> fromDB = _sqllite.getItemsChildren(_tempPath);
@@ -375,8 +375,6 @@ void EventHandler::openFolder()
         _webDAVView.release();
         _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu->getContentRect(), _currentWebDAVItems,1));
         //_sqllite.saveItemsChildren(_nextcloud.getItems());
-        //TODO include the header (where am i currently aka)
-        //_webDAVView->drawHeader(_tempPath.substr(NEXTCLOUD_ROOT_PATH.length()));
         PartialUpdate(_menu->getContentRect().x, _menu->getContentRect().y, _menu->getContentRect().w, _menu->getContentRect().h);
     }
 }
