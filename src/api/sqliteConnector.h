@@ -28,6 +28,8 @@ public:
 
     bool open();
 
+    std::string getEtag(std::string path);
+
     std::vector<WebDAVItem> getItemsChildren(const std::string &parenthPath);
 
     void deleteChildren(const std::string &parentPath);

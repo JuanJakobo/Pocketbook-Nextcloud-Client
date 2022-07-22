@@ -42,6 +42,29 @@ bool SqliteConnector::open()
     return true;
 }
 
+string SqliteConnector::getEtag(string path)
+{
+    open();
+
+    int rs;
+    sqlite3_stmt *stmt = 0;
+    std::vector<WebDAVItem> items;
+
+
+    rs = sqlite3_prepare_v2(_db, "SELECT etag FROM 'metadata' WHERE path = ? LIMIT 1;", -1, &stmt, 0);
+    rs = sqlite3_bind_text(stmt, 1, path.c_str(), path.length(), NULL);
+
+    //TODO erase while
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        path = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(_db);
+    return path;
+}
+
 std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPath)
 {
     open();
