@@ -29,6 +29,9 @@ public:
     bool open();
 
     std::vector<WebDAVItem> getItemsChildren(const std::string &parenthPath);
+
+    void deleteChildren(const std::string &parentPath);
+
     bool saveItemsChildren(const std::vector<WebDAVItem> &children);
 
 private:
