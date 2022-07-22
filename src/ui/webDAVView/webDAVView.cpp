@@ -8,13 +8,14 @@
 
 #include "webDAVView.h"
 #include "webDAVModel.h"
+#include "webDAV.h"
 
 #include <string>
 #include <vector>
 
 using std::vector;
 
-WebDAVView::WebDAVView(const irect &contentRect, const vector<WebDAVItem> &items, int page) : ListView(contentRect, page)
+WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &items, int page) : ListView(contentRect, page)
 {
     auto pageHeight = 0;
     auto contentHeight = _contentRect.h - _footerHeight;
@@ -22,15 +23,24 @@ WebDAVView::WebDAVView(const irect &contentRect, const vector<WebDAVItem> &items
 
     _entries.reserve(entrycount);
 
-    auto i = 0;
-    while (i < entrycount)
-    {
-        auto entrySize = TextRectHeight(contentRect.w, items.at(i).title.c_str(), 0);
+    //resize item 1
+    std::string header = items.at(0).path;
+    header = header.substr(0, header.find_last_of("/"));
+    header = header.substr(0, header.find_last_of("/") + 1);
+    items.at(0).path = header;
+    items.at(0).title += "\nclick to go back";
+    items.at(0).lastEditDate = "";
+    if (items.at(0).path.compare(NEXTCLOUD_ROOT_PATH) == 0)
+        items.erase(items.begin());
 
-        if(items.at(i).type == IFILE)
+    for(auto item : items)
+    {
+        auto entrySize = TextRectHeight(contentRect.w, item.title.c_str(), 0);
+
+        if(item.type == IFILE)
             entrySize += _entryFontHeight;
 
-        if(items.at(i).title.find("click to go back") != std::string::npos)
+        if(item.title.find("click to go back") != std::string::npos)
             entrySize += 0.5 * _entryFontHeight;
         else
             entrySize += 2.5 * _entryFontHeight;
@@ -43,9 +53,8 @@ WebDAVView::WebDAVView(const irect &contentRect, const vector<WebDAVItem> &items
         }
         irect rect = iRect(_contentRect.x, _contentRect.y + pageHeight, _contentRect.w, entrySize, 0);
 
-        _entries.emplace_back(std::unique_ptr<WebDAVViewEntry>(new WebDAVViewEntry(_page, rect, items.at(i))));
+        _entries.emplace_back(std::unique_ptr<WebDAVViewEntry>(new WebDAVViewEntry(_page, rect, item)));
 
-        i++;
         pageHeight = pageHeight + entrySize;
     }
     draw();

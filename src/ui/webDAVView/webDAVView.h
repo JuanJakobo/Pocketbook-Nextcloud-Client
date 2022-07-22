@@ -26,7 +26,7 @@ public:
         * @param Items items that shall be shown in the listview
         * @param page page that is shown, default is 1
         */
-    WebDAVView(const irect &contentRect, const std::vector<WebDAVItem> &items, int page = 1);
+    WebDAVView(const irect &contentRect, std::vector<WebDAVItem> &items, int page = 1);
 
     WebDAVItem &getCurrentEntry() { return getEntry(_selectedEntry); };
 
