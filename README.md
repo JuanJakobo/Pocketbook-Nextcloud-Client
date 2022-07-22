@@ -10,7 +10,6 @@ A basic client to access an existing nextcloud instance via Pocketbook.
 * Remove files from local storage system
 * Show local files that are saved but no longer available in the cloud
 * Open epub, pdf, text, html, word and mobi with default ebook reader application
-* Set Start folder to custom path
 * Offline Modus
 * Navigaten via keys and touch
 

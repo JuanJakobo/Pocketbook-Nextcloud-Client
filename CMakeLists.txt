@@ -48,18 +48,19 @@ list(APPEND PB_LINK_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnueabi/
 list(APPEND PB_LINK_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnueabi/sysroot/usr/local/lib")
 list(APPEND PB_INCLUDE_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnueabi/sysroot/usr/include")
 
-set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp 
+set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/contextMenu.cpp
-			${CMAKE_SOURCE_DIR}/src/handler/eventHandler.cpp 		
-			${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp 
-			${CMAKE_SOURCE_DIR}/src/util/nextcloud.cpp 
-			${CMAKE_SOURCE_DIR}/src/util/item.cpp
-			${CMAKE_SOURCE_DIR}/src/ui/listView.cpp 
-			${CMAKE_SOURCE_DIR}/src/ui/listViewEntry.cpp 
-			${CMAKE_SOURCE_DIR}/src/ui/loginView.cpp
-			${CMAKE_SOURCE_DIR}/src/util/util.cpp 
-			${CMAKE_SOURCE_DIR}/src/util/log.cpp 
-
+			${CMAKE_SOURCE_DIR}/src/handler/eventHandler.cpp
+			${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp
+            ${CMAKE_SOURCE_DIR}/src/ui/listView/listView.cpp
+			${CMAKE_SOURCE_DIR}/src/ui/listView/listViewEntry.cpp
+            ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/webDAVView.cpp
+            ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/webDAVViewEntry.cpp
+			${CMAKE_SOURCE_DIR}/src/ui/loginView/loginView.cpp
+			${CMAKE_SOURCE_DIR}/src/util/util.cpp
+			${CMAKE_SOURCE_DIR}/src/util/log.cpp
+            ${CMAKE_SOURCE_DIR}/src/api/webDAV.cpp
+            ${CMAKE_SOURCE_DIR}/src/api/sqliteConnector.cpp
 )
 
 add_executable(Nextcloud.app ${SOURCES})
@@ -71,9 +72,13 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/handler/
     ${CMAKE_SOURCE_DIR}/src/util/
     ${CMAKE_SOURCE_DIR}/src/ui/
+    ${CMAKE_SOURCE_DIR}/src/ui/listView/
+    ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/
+    ${CMAKE_SOURCE_DIR}/src/ui/loginView/
+    ${CMAKE_SOURCE_DIR}/src/api/
 )
 
-TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype curl)
+TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype curl sqlite3)
 
 INSTALL (TARGETS Nextcloud.app)
 

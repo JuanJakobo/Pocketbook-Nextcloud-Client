@@ -11,25 +11,29 @@
 
 #include "contextMenu.h"
 #include "mainMenu.h"
-#include "nextcloud.h"
-#include "listView.h"
+#include "webDAV.h"
+#include "webDAVView.h"
 #include "loginView.h"
+#include "sqliteConnector.h"
 
 #include <memory>
 
-const std::string LOG_PATH = "/mnt/ext1/system/config/nextcloud";
+const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/nextcloud";
+const std::string CONFIG_PATH = CONFIG_FOLDER + "/nextcloud.cfg";
+//TODO use folder of nextcloud conifg temp
+const std::string DB_PATH = CONFIG_FOLDER + "/data.db";
 
 class EventHandler
 {
 public:
     /**
-        * Defines fonds, sets global Event Handler and starts new content 
+        * Defines fonds, sets global Event Handler and starts new content
         */
     EventHandler();
 
     /**
         * Handles events and redirects them
-        * 
+        *
         * @param type event type
         * @param par1 first argument of the event
         * @param par2 second argument of the event
@@ -39,38 +43,38 @@ public:
 
 private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
-    std::unique_ptr<ListView> _listView;
+    std::unique_ptr<WebDAVView> _webDAVView;
     std::unique_ptr<LoginView> _loginView;
     std::unique_ptr<ContextMenu> _contextMenu;
-    MainMenu _menu = MainMenu("Nextcloud");
-    Nextcloud _nextcloud = Nextcloud();
-    std::string _tempPath;
-    int _tempItemID;
+    std::unique_ptr<MainMenu> _menu;
+
+    WebDAV _webDAV = WebDAV();
+    SqliteConnector _sqllite = SqliteConnector(DB_PATH);
 
     /**
         * Function needed to call C function, redirects to real function
-        * 
+        *
         *  @param index int of the menu that is set
         */
     static void mainMenuHandlerStatic(const int index);
 
     /**
         * Handles menu events and redirects them
-        * 
+        *
         * @param index int of the menu that is set
         */
     void mainMenuHandler(const int index);
 
     /**
         * Function needed to call C function, redirects to real function
-        * 
+        *
         *  @param index int of the menu that is set
         */
     static void contextMenuHandlerStatic(const int index);
 
     /**
         * Handlescontext  menu events and redirects them
-        * 
+        *
         * @param index int of the menu that is set
         */
 
@@ -78,7 +82,7 @@ private:
 
     /**
         * Handles pointer Events
-        * 
+        *
         * @param type event type
         * @param par1 first argument of the event
         * @param par2 second argument of the event
@@ -88,13 +92,13 @@ private:
 
     /**
      * Updates PB Library
-     * 
+     *
      */
     void updatePBLibrary();
 
     /**
         * Starts the download of an item
-        * 
+        *
         */
     void startDownload();
 
@@ -113,7 +117,7 @@ private:
 
     /**
         * Handles key Events
-        * 
+        *
         * @param type event type
         * @param par1 first argument of the event (is the key)
         * @param par2 second argument of the event
