@@ -31,61 +31,41 @@ EventHandler::EventHandler()
 
     _loginView = nullptr;
     _webDAVView = nullptr;
-    vector<WebDAVItem> fromDB;
     std::vector<WebDAVItem> currentWebDAVItems;
+    string path = NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID") + '/';
 
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
-    {
-        //menubar
-        //explanation on first login?
-        //TODO here mark folders that are unsynced?
-        //compare both datasets, if fromDB etag is different, mark as unsycned
-        string tempPath = NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID");
-        currentWebDAVItems = _webDAV.getDataStructure(tempPath);
-        fromDB = _sqllite.getItemsChildren(tempPath);
-    }
-    //TODO here or father below?
+        currentWebDAVItems = _webDAV.getDataStructure(path);
+
     _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
 
     if(currentWebDAVItems.empty())
+        currentWebDAVItems = _sqllite.getItemsChildren(path);
+    else
+        updateItems(currentWebDAVItems);
+
+    if(currentWebDAVItems.empty())
     {
-        //use from DB
-        //this one is always required --> if does not work -> say to the user that it did not work, to sync use
-        /*
-           vector<Item> Nextcloud::getOfflineStructure(const string &pathUrl)
-           {
-           if (pathUrl.compare(NEXTCLOUD_ROOT_PATH + getUUID() + "/") == 0)
-           {
-           Message(ICON_ERROR, "Error", "The root structure is not available offline. Please try again to login.", 2000);
-           logout();
-           }
-           */
-        Message(ICON_ERROR, "Error", "Could not login, please try again.", 1200);
-        if(fromDB.empty())
+        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Could not login and there is no DB available to restore information. What would you like to do?", "Logout", "Close App", NULL);
+        switch (dialogResult)
         {
-            int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Could not login and there is no DB available to restore information. What would you like to do?", "Logout", "Close App", NULL);
-            switch (dialogResult)
-            {
-                case 1:
-                    {
-                        _webDAV.logout();
-                        _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
-                        FullUpdate();
-                    }
-                    break;
-                case 2:
-                default:
-                    CloseApp();
-                    break;
-            }
+            case 1:
+                {
+                    _webDAV.logout();
+                    _loginView = std::make_unique<LoginView>(LoginView(_menu->getContentRect()));
+                }
+                break;
+            case 2:
+            default:
+                CloseApp();
+                break;
         }
     }
     else
     {
-        _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu->getContentRect(), _currentWebDAVItems,1));
-        _sqllite.saveItemsChildren(_currentWebDAVItems);
-        FullUpdate();
+        drawWebDAVItems(currentWebDAVItems);
     }
+
 }
 
 int EventHandler::eventDistributor(const int type, const int par1, const int par2)
@@ -236,7 +216,6 @@ std::unique_ptr<ContextMenu> _contextMenu;
 
 void EventHandler::contextMenuHandler(const int index)
 {
-    //invert color
     switch (index)
     {
     //Open
@@ -364,97 +343,57 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     return 1;
 }
 
-void EventHandler::updatePBLibrary()
-{
-    if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
-    {
-        Util::updatePBLibrary(15);
-    }
-    else
-    {
-        //if (_nextcloud.getItems().at(_tempItemID).isBook())
-        /*
-         * is needed twice!
-            if (_fileType.find("application/epub+zip") != string::npos ||
-                    _fileType.find("application/pdf") != string::npos ||
-                    _fileType.find("application/octet-stream") != string::npos ||
-                    _fileType.find("text/plain") != string::npos ||
-                    _fileType.find("text/html") != string::npos ||
-                    _fileType.find("text/rtf") != string::npos ||
-                    _fileType.find("application/msword") != string::npos ||
-                    _fileType.find("application/x-mobipocket-ebook") != string::npos ||
-                    _fileType.find("application/vnd.openxmlformats-officedocument.wordprocessingml.document") != string::npos ||
-                    _fileType.find("application/x-fictionbook+xml") != string::npos)
-            Util::updatePBLibrary(5);
-            */
-    }
-}
-
-void EventHandler::startDownload()
-{
-    OpenProgressbar(1, "Downloading...", "Checking network connection", 0, NULL);
-    try
-    {
-        //_nextcloud.download(_tempItemID);
-    }
-    catch (const std::exception &e)
-    {
-        Log::writeErrorLog(e.what());
-        Message(ICON_ERROR, "Error", "Something has gone wrong. Please check the logs. (/system/config/nextcloud/)", 1200);
-    }
-    updatePBLibrary();
-
-    CloseProgressbar();
-    _webDAVView->reDrawCurrentEntry();
-}
-
 void EventHandler::openItem()
 {
     _webDAVView->invertCurrentEntryColor();
-    /*
-    if (_state == FileState::ICLOUD)
+    if (_webDAVView->getCurrentEntry().state == FileState::ICLOUD)
     {
         Message(ICON_ERROR, "File not found.", "Could not find file.", 1000);
     }
-    else if(isBook())
+    else if(_webDAVView->getCurrentEntry().fileType.find("application/epub+zip") != string::npos ||
+                    _webDAVView->getCurrentEntry().fileType.find("application/pdf") != string::npos ||
+                    _webDAVView->getCurrentEntry().fileType.find("application/octet-stream") != string::npos ||
+                    _webDAVView->getCurrentEntry().fileType.find("text/plain") != string::npos ||
+                    _webDAVView->getCurrentEntry().fileType.find("text/html") != string::npos ||
+                    _webDAVView->getCurrentEntry().fileType.find("text/rtf") != string::npos ||
+                    _webDAVView->getCurrentEntry().fileType.find("application/msword") != string::npos ||
+                    _webDAVView->getCurrentEntry().fileType.find("application/x-mobipocket-ebook") != string::npos ||
+                    _webDAVView->getCurrentEntry().fileType.find("application/vnd.openxmlformats-officedocument.wordprocessingml.document") != string::npos ||
+                    _webDAVView->getCurrentEntry().fileType.find("application/x-fictionbook+xml") != string::npos)
     {
-
-        OpenBook(_localPath.c_str(), "", 0);
+        OpenBook(_webDAVView->getCurrentEntry().localPath.c_str(), "", 0);
     }
     else
     {
         Message(ICON_INFORMATION, "Warning", "The filetype is currently not supported.", 1200);
     }
-    */
-    //webDAVView->getCurrentEntry
-    //_nextcloud.getItems().at(_tempItemID).open();
 }
 
 void EventHandler::openFolder()
 {
     ShowHourglassForce();
-    //_nextcloud.setItems(_nextcloud.getDataStructure(_tempPath));
-    //TODO if folder is unsynced sync
-    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(_webDAVView->getCurrentEntry().path);
+
+    std::vector<WebDAVItem> currentWebDAVItems;
+
+    if(_webDAVView->getCurrentEntry().state == FileState::IOUTSYNCED || _webDAVView->getCurrentEntry().state == FileState::ICLOUD)
+         currentWebDAVItems = _webDAV.getDataStructure(_webDAVView->getCurrentEntry().path);
+
+    if(currentWebDAVItems.empty())
+        currentWebDAVItems = _sqllite.getItemsChildren(_webDAVView->getCurrentEntry().path);
+    else
+        updateItems(currentWebDAVItems);
+
+
+
     if(currentWebDAVItems.empty())
     {
-        Log::writeErrorLog("items empty");
+        Message(ICON_ERROR, "Error", "Could not sync the items and there is no offline copy available.", 1200);
         HideHourglass();
         _webDAVView->invertCurrentEntryColor();
     }
     else
     {
-        Log::writeInfoLog("got new items");
-        _sqllite.saveItemsChildren(currentWebDAVItems);
-
-        //if folder is synced, get only from DB
-        //vector<WebDAVItem> fromDB = _sqllite.getItemsChildren(_tempPath);
-        //get etags from DB, if etag for path is unchanged, stays the same, same for foldersjj
-        FillAreaRect(&_menu->getContentRect(), WHITE);
-        _webDAVView.release();
-        _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu->getContentRect(), _currentWebDAVItems,1));
-        //_sqllite.saveItemsChildren(_nextcloud.getItems());
-        PartialUpdate(_menu->getContentRect().x, _menu->getContentRect().y, _menu->getContentRect().w, _menu->getContentRect().h);
+        drawWebDAVItems(currentWebDAVItems);
     }
 }
 
