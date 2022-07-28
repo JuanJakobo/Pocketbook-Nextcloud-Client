@@ -288,8 +288,6 @@ void EventHandler::contextMenuHandler(const int index)
         _webDAVView->invertCurrentEntryColor();
         break;
     }
-
-        _contextMenu.reset();
     }
 }
 
@@ -355,9 +353,9 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 }
                 else
                 {
-                    _webDAVView = std::make_unique<WebDAVView>(WebDAVView(_menu->getContentRect(), currentWebDAVItems,1));
+                    //TODO storagelocation picker
+                    drawWebDAVItems(currentWebDAVItems);
                     _loginView.reset();
-                    FullUpdate();
                 }
                 return 0;
             }
@@ -493,80 +491,178 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
 }
 
 
-/*
-void Nextcloud::getLocalFileStructure(vector<Item> &tempItems, const string &localPath)
+void EventHandler::getLocalFileStructure(vector<WebDAVItem> &items)
 {
     //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
     DIR *dir;
     class dirent *ent;
     class stat st;
 
-    dir = opendir(localPath.c_str());
-    while ((ent = readdir(dir)) != NULL)
+    string localPath = items.at(0).localPath + '/';
+    if (iv_access(localPath.c_str(), W_OK) == 0)
     {
-        const string fileName = ent->d_name;
-        const string fullFileName = localPath + fileName;
 
-        if (fileName[0] == '.')
-            continue;
-
-        if (stat(fullFileName.c_str(), &st) == -1)
-            continue;
-
-        const bool isDirectory = (st.st_mode & S_IFDIR) != 0;
-
-        bool found = false;
-        //looks if files have been modified
-        for (unsigned int i = 1; i < tempItems.size(); i++)
+        dir = opendir(localPath.c_str());
+        Log::writeInfoLog("localPath = " + localPath);
+        while ((ent = readdir(dir)) != NULL)
         {
-            if (tempItems.at(i).getLocalPath().compare(fullFileName) == 0)
+            const string fileName = ent->d_name;
+            const string fullFileName = localPath + fileName;
+
+            if (fileName[0] == '.')
+                continue;
+
+            if (stat(fullFileName.c_str(), &st) == -1)
+                continue;
+
+            const bool isDirectory = (st.st_mode & S_IFDIR) != 0;
+
+            bool found = false;
+            for (unsigned int i = 1; i < items.size(); i++)
             {
-                //do via etag and not outsync !
-                if (!isDirectory)
+                if (items.at(i).localPath.compare(fullFileName) == 0)
                 {
-                    //check if was changed on the cloud and here and then update...
-                    //if etag ist different and last modifcated changed local --> create conflict
-                    //compare by etag
-                    //get last modification date and compare; if is different upload this
-
-                    std::ifstream in(fullFileName, std::ifstream::binary | std::ifstream::ate);
-                    Log::writeInfoLog(tempItems.at(i).getTitle());
-                    Log::writeInfoLog(std::to_string(in.tellg()));
-
-                    Log::writeInfoLog(std::to_string(tempItems.at(i).getSize()));
-                    if (in.tellg() != tempItems.at(i).getSize())
-                    {
-                        tempItems.at(i).setState(FileState::IOUTSYNCED);
-                    }
+                    found = true;
+                    break;
                 }
-                found = true;
-                break;
+            }
+            if (!found)
+            {
+                WebDAVItem temp;
+                temp.localPath = fullFileName;
+                temp.state = FileState::ILOCAL;
+                temp.title = fullFileName.substr(fullFileName.find_last_of("/") + 1, fullFileName.length());
+                Util::decodeUrl(temp.title);
+                if (isDirectory)
+                {
+                    //create new dir in cloud
+                    temp.type = Itemtype::IFOLDER;
+                }
+                else
+                {
+                    //put to cloud
+                    temp.type = Itemtype::IFILE;
+                }
+                items.push_back(temp);
             }
         }
-        if (!found)
+        closedir(dir);
+    }
+}
+
+void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
+{
+    //BanSleep(2000);
+    string path = items.at(itemID).path;
+    Log::writeInfoLog("Path to look for " + path);
+
+    if (items.at(itemID).type == Itemtype::IFOLDER)
+    {
+        vector<WebDAVItem> tempItems;
+        if(items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
         {
-            if (isDirectory)
+            Log::writeInfoLog("outsynced");
+            tempItems = _webDAV.getDataStructure(path);
+            //TODO twice?
+            updateItems(tempItems);
+        }
+        else
+        {
+            Log::writeInfoLog("synced");
+            tempItems = _sqllite.getItemsChildren(path);
+        }
+        //first item of the vector is the root path itself
+        for (size_t i = 1; i < tempItems.size(); i++)
+        {
+            Log::writeInfoLog("Item: " + tempItems.at(i).path);
+            downloadFolder(tempItems, i);
+        }
+        //TODO remove file parts that are no longer there, check for local path and delete these
+        //TODO else use offline structure to go down
+
+    }
+    else
+    {
+        if(items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
+        {
+            Log::writeInfoLog("outsynced");
+            //TODO
+            //1. check etag --> if is differnt, cloud has been updated
+            //2. check modification date and file size locally --> if is different, local has been updated
+            //3. if both --> create conflict
+            //4. if first, renew file --> reset etag
+            //5. if second --> upload the local file; test if it has not been update in the cloud
+            Log::writeInfoLog("started download of " + items.at(itemID).path + " to " + items.at(itemID).localPath);
+            if(_webDAV.get(items.at(itemID)))
             {
-                //create new dir in cloud
-                tempItems.push_back(Item(fullFileName, FileState::ILOCAL, Itemtype::IFOLDER));
-                   Item::Item(const string &localPath, FileState state, Itemtype type) : _localPath(localPath), _state(state), _type(type)
-                   {
-                   _title = _localPath;
-                   _title = _title.substr(_title.find_last_of("/") + 1, _title.length());
-                   Util::decodeUrl(_title);
-                   }
-            }
-            else
-            {
-                //put to coud
-                tempItems.push_back(Item(fullFileName, FileState::ILOCAL, Itemtype::IFILE));
+                items.at(itemID).state = FileState::ISYNCED;
+                _sqllite.updateState(items.at(itemID).path,FileState::ISYNCED);
             }
         }
     }
-    closedir(dir);
+
+
+    return;
+}
+
+void EventHandler::startDownload()
+{
+    OpenProgressbar(1, "Downloading...", "Starting Download.", 0, NULL);
+
+    if(_webDAVView->getCurrentEntry().type == Itemtype::IFILE)
+    {
+        Log::writeInfoLog("Started download of " + _webDAVView->getCurrentEntry().path + " to " + _webDAVView->getCurrentEntry().localPath);
+        if(_webDAV.get(_webDAVView->getCurrentEntry()))
+        {
+            _webDAVView->getCurrentEntry().state = FileState::ISYNCED;
+            _sqllite.updateState(_webDAVView->getCurrentEntry().path,FileState::ISYNCED);
+        }
+    }
+    else
+    {
+        vector<WebDAVItem> currentItems = _sqllite.getItemsChildren(_webDAVView->getCurrentEntry().path);
+        this->downloadFolder(currentItems, 0);
+        UpdateProgressbar("Download completed", 100);
+    }
+
+    //Util::updatePBLibrary(15);
+    CloseProgressbar();
+    //TODO does not work
+    _webDAVView->reDrawCurrentEntry();
+}
+
+void EventHandler::updateItems(vector<WebDAVItem> &items)
+{
+    for(auto &item : items)
+    {
+        item.state = _sqllite.getState(item.path);
+
+        //TODO integrate for files
+        //if (iv_access(temp.localPath.c_str(), W_OK) != 0)
+            //temp.state = FileState::ICLOUD;
+        if(_sqllite.getEtag(item.path).compare(item.etag) != 0)
+        {
+                if( item.state == FileState::ISYNCED)
+                    item.state = FileState::IOUTSYNCED;
+                else
+                    item.state = FileState::ICLOUD;
+        }
+    }
+    items.at(0).state =FileState::ISYNCED;
+    _sqllite.saveItemsChildren(items);
+
+    //TODO sync delete when not parentPath existend --> "select * from metadata where parentPath NOT IN (Select
+    //DISTINCT(parentPath) from metadata;
+    //what happens with the entries below?
 }
 
 
-
-*/
-
+void EventHandler::drawWebDAVItems(vector<WebDAVItem> &items)
+{
+    FillAreaRect(&_menu->getContentRect(), WHITE);
+    _webDAVView.release();
+    _currentPath = items.at(0).path;
+    getLocalFileStructure(items);
+    _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu->getContentRect(), items,1));
+    PartialUpdate(_menu->getContentRect().x, _menu->getContentRect().y, _menu->getContentRect().w, _menu->getContentRect().h);
+}
