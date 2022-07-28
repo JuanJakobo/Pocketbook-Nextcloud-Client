@@ -50,6 +50,7 @@ private:
 
     WebDAV _webDAV = WebDAV();
     SqliteConnector _sqllite = SqliteConnector(DB_PATH);
+    std::string _currentPath;
 
     /**
         * Function needed to call C function, redirects to real function
