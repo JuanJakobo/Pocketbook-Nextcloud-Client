@@ -107,19 +107,100 @@ void EventHandler::mainMenuHandler(const int index)
 {
     switch (index)
     {
-        //TODO  actualize current folder
-    case 101:
-    {
-        break;
-    }
-    //Logout
-    case 102:
-    {
-        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to delete local files?", "Yes", "No", "Cancel");
-        switch (dialogResult)
-        {
-        case 1:
-            _webDAV.logout(true);
+        //Actualize the current folder
+        case 101:
+            {
+                //TODO startfolder use same as above
+                //TODO parent path not needed
+                OpenProgressbar(1, "Actualizing current folder", ("Actualizing path" + _currentPath).c_str(), 0, NULL);
+                string childrenPath = _currentPath;
+                childrenPath = childrenPath.substr(NEXTCLOUD_ROOT_PATH.length(), childrenPath.length());
+                std::string path = NEXTCLOUD_ROOT_PATH;
+                std::vector<WebDAVItem> currentWebDAVItems;
+                size_t found = 0;
+                int i = 0;
+                while((found = childrenPath.find("/"),found) != std::string::npos)
+                {
+                    path += childrenPath.substr(0, found+1);
+                    childrenPath = childrenPath.substr(found+1,childrenPath.length());
+                    auto state = _sqllite.getState(path);
+                    Log::writeInfoLog("cur path " + path);
+                    if(i < 1 || state == FileState::IOUTSYNCED || state == FileState::ICLOUD)
+                    {
+                        UpdateProgressbar(("Upgrading " + path).c_str(), 0);
+                        currentWebDAVItems = _webDAV.getDataStructure(path);
+                        Log::writeInfoLog("syncing");
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    if(currentWebDAVItems.empty())
+                    {
+                        Log::writeErrorLog("Could not sync " + path + " via actualize.");
+                        Message(ICON_WARNING, "Warning", "Could not sync the file structure.", 2000);
+                        HideHourglass();
+                        break;
+                    }
+                    else
+                    {
+                        updateItems(currentWebDAVItems);
+                    }
+                    i++;
+                }
+
+                Log::writeInfoLog("stopped at " + path );
+                currentWebDAVItems = _sqllite.getItemsChildren(_currentPath);
+
+                for(auto &item : currentWebDAVItems)
+                {
+                    Log::writeInfoLog(item.path);
+                    if(item.state == FileState::IOUTSYNCED || item.state == FileState::ICLOUD)
+                    {
+                        UpdateProgressbar(("Upgrading " + item.path).c_str(), 0);
+                        vector<WebDAVItem> tempWebDAVItems = _webDAV.getDataStructure(item.path);
+                        updateItems(tempWebDAVItems);
+                    }
+
+                }
+                //TODO twice
+                currentWebDAVItems = _sqllite.getItemsChildren(_currentPath);
+
+                CloseProgressbar();
+                if(!currentWebDAVItems.empty())
+                    drawWebDAVItems(currentWebDAVItems);
+                break;
+            }
+            //Logout
+        case 102:
+            {
+                int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to delete local files?", "Yes", "No", "Cancel");
+                switch (dialogResult)
+                {
+                    case 1:
+                        _webDAV.logout(true);
+                        break;
+                    case 3:
+                        return;
+                    default:
+                        _webDAV.logout();
+                        break;
+                }
+                _webDAVView.release();
+                _loginView = std::make_unique<LoginView>(LoginView(_menu->getContentRect()));
+                FullUpdate();
+                break;
+            }
+            //Info
+        case 103:
+            {
+                Message(ICON_INFORMATION, "Information", "Version 0.98 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
+                break;
+            }
+            //Exit
+        case 104:
+            CloseApp();
             break;
         case 3:
             return;
