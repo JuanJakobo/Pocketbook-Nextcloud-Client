@@ -28,7 +28,11 @@ public:
 
     bool open();
 
-    std::string getEtag(std::string path);
+    std::string getEtag(const std::string &path);
+
+    FileState getState(const std::string &path);
+
+    bool updateState(const std::string &path, FileState state);
 
     std::vector<WebDAVItem> getItemsChildren(const std::string &parenthPath);
 
