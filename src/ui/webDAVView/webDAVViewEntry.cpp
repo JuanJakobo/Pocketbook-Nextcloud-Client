@@ -56,9 +56,19 @@ void WebDAVViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, i
             }
             else
             {
-                if (_entry.state == FileState::ISYNCED)
+                switch(_entry.state)
                 {
-                    DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "Folder synced", ALIGN_RIGHT);
+                    case FileState::ISYNCED:
+                        DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "Structure synced", ALIGN_RIGHT);
+                        break;
+                    case FileState::IOUTSYNCED:
+                        DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "Structure out of sync", ALIGN_RIGHT);
+                        break;
+                    case FileState::ICLOUD:
+                        DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "Cloud", ALIGN_RIGHT);
+                        break;
+                    default:
+                        break;
                 }
                 DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, _entry.lastEditDate.c_str(), ALIGN_LEFT);
                 DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, _entry.size.c_str(), ALIGN_LEFT);
