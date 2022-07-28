@@ -182,29 +182,8 @@ void EventHandler::mainMenuHandler(const int index)
         case 104:
             CloseApp();
             break;
-        case 3:
-            return;
         default:
-            _webDAV.logout();
             break;
-        }
-        _webDAVView.release();
-        _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
-        FullUpdate();
-        break;
-    }
-    //Info
-    case 103:
-    {
-        Message(ICON_INFORMATION, "Information", "Version 0.73 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
-        break;
-    }
-    //Exit
-    case 104:
-        CloseApp();
-        break;
-    default:
-        break;
     }
 }
 
@@ -241,24 +220,23 @@ void EventHandler::contextMenuHandler(const int index)
     //remove
     case 103:
     {
-        OpenProgressbar(1, "Removing...", "Removing Files.", 0, NULL);
-        /*
-    Log::writeInfoLog("removing file " + _items.at(itemID).getPath());
-    if (!_items.at(itemID).removeFile())
-        return false;
+        //TODO remove
+        //OpenProgressbar(1, "Removing...", "Removing Files.", 0, NULL);
+        //Log::writeInfoLog("removing file " + _items.at(itemID).getPath());
+        //if (!_items.at(itemID).removeFile())
+        //return false;
 
-    return true;
-    */
+        //return true;
         /*
-        if (_nextcloud.removeItem(_tempItemID))
-        {
-            updatePBLibrary();
-            CloseProgressbar();
-            _webDAVView->reDrawCurrentEntry();
-        }
-        else
-        */
-        CloseProgressbar();
+           if (_nextcloud.removeItem(_ItemID))
+           {
+           updatePBLibrary();
+           CloseProgressbar();
+           _webDAVView->reDrawCurrentEntry();
+           }
+           else
+           */
+        //CloseProgressbar();
         Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
         break;
     }
