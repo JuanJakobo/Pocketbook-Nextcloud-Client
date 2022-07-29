@@ -34,41 +34,50 @@ EventHandler::EventHandler()
 
     _loginView = nullptr;
     _webDAVView = nullptr;
-    std::vector<WebDAVItem> currentWebDAVItems;
-    string path = NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID") + '/';
-
-    if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
-        currentWebDAVItems = _webDAV.getDataStructure(path);
 
     _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
-
-    if(currentWebDAVItems.empty())
-        currentWebDAVItems = _sqllite.getItemsChildren(path);
-    else
-        updateItems(currentWebDAVItems);
-
-    if(currentWebDAVItems.empty())
+    if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
-        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Could not login and there is no DB available to restore information. What would you like to do?", "Logout", "Close App", NULL);
-        switch (dialogResult)
+        if (iv_access(Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation").c_str(), W_OK) != 0)
+            iv_mkdir(Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation").c_str(), 0777);
+        std::vector<WebDAVItem> currentWebDAVItems;
+        string path = NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID") + '/';
+
+        currentWebDAVItems = _webDAV.getDataStructure(path);
+        _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
+
+        if(currentWebDAVItems.empty())
+            currentWebDAVItems = _sqllite.getItemsChildren(path);
+        else
+            updateItems(currentWebDAVItems);
+
+        if(currentWebDAVItems.empty())
         {
-            case 1:
-                {
-                    _webDAV.logout();
-                    _loginView = std::make_unique<LoginView>(LoginView(_menu->getContentRect()));
-                }
-                break;
-            case 2:
-            default:
-                CloseApp();
-                break;
+            int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Could not login and there is no DB available to restore information. What would you like to do?", "Logout", "Close App", NULL);
+            switch (dialogResult)
+            {
+                case 1:
+                    {
+                        _webDAV.logout(true);
+                        _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
+                    }
+                    break;
+                case 2:
+                default:
+                    CloseApp();
+                    break;
+            }
+        }
+        else
+        {
+            drawWebDAVItems(currentWebDAVItems);
         }
     }
     else
     {
-        drawWebDAVItems(currentWebDAVItems);
+        _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
+        _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
     }
-
 }
 
 int EventHandler::eventDistributor(const int type, const int par1, const int par2)
