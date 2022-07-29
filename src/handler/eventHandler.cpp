@@ -554,9 +554,14 @@ void EventHandler::updateItems(vector<WebDAVItem> &items)
     {
         item.state = _sqllite.getState(item.path);
 
-        //TODO integrate for files
-        //if (iv_access(temp.localPath.c_str(), W_OK) != 0)
-            //temp.state = FileState::ICLOUD;
+        if(iv_access(item.localPath.c_str(), W_OK) != 0)
+        {
+            if(item.type == Itemtype::IFILE)
+                item.state = FileState::ICLOUD;
+            else
+                iv_mkdir(item.localPath.c_str(), 0777);
+        }
+
         if(_sqllite.getEtag(item.path).compare(item.etag) != 0)
         {
                 if( item.state == FileState::ISYNCED)
