@@ -51,6 +51,7 @@ LoginView::LoginView(const irect &contentRect) : _contentRect(contentRect)
     FillAreaRect(&_loginButton, BLACK);
     SetFont(_loginFont, WHITE);
     DrawTextRect2(&_loginButton, "Login");
+    PartialUpdate(_contentRect.x, _contentRect.y, _contentRect.w, _contentRect.h);
 }
 
 LoginView::~LoginView()

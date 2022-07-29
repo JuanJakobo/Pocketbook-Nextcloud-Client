@@ -625,6 +625,7 @@ void EventHandler::startDownload()
         vector<WebDAVItem> currentItems = _sqllite.getItemsChildren(_webDAVView->getCurrentEntry().path);
         this->downloadFolder(currentItems, 0);
         UpdateProgressbar("Download completed", 100);
+        _webDAVView->getCurrentEntry().state = FileState::ISYNCED;
     }
 
     //TODO implement
@@ -666,10 +667,8 @@ void EventHandler::updateItems(vector<WebDAVItem> &items)
 
 void EventHandler::drawWebDAVItems(vector<WebDAVItem> &items)
 {
-    FillAreaRect(&_menu->getContentRect(), WHITE);
     _webDAVView.release();
     _currentPath = items.at(0).path;
     getLocalFileStructure(items);
     _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu->getContentRect(), items,1));
-    PartialUpdate(_menu->getContentRect().x, _menu->getContentRect().y, _menu->getContentRect().w, _menu->getContentRect().h);
 }
