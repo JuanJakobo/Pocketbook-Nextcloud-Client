@@ -35,8 +35,6 @@ class WebDAV
 
         void logout(bool deleteFiles = false);
 
-        std::string getLocalPath(std::string path);
-
         std::vector<WebDAVItem> getDataStructure(const std::string &pathUrl);
 
     /**

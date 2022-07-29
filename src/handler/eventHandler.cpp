@@ -220,24 +220,24 @@ void EventHandler::contextMenuHandler(const int index)
     //remove
     case 103:
     {
-        //TODO remove
-        //OpenProgressbar(1, "Removing...", "Removing Files.", 0, NULL);
-        //Log::writeInfoLog("removing file " + _items.at(itemID).getPath());
-        //if (!_items.at(itemID).removeFile())
-        //return false;
+        ShowHourglassForce();
+        if (_webDAVView->getCurrentEntry().state == FileState::ISYNCED || _webDAVView->getCurrentEntry().state == FileState::IOUTSYNCED)
+        {
+            if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
+            {
+                string cmd = "rm -rf " + _webDAVView->getCurrentEntry().localPath + "/";
+                system(cmd.c_str());
+            }
+            else
+            {
+                remove(_webDAVView->getCurrentEntry().localPath.c_str());
+            }
+            vector<WebDAVItem> currentWebDAVItems = _sqllite.getItemsChildren(_currentPath);
+            updateItems(currentWebDAVItems);
+            drawWebDAVItems(currentWebDAVItems);
+        }
 
-        //return true;
-        /*
-           if (_nextcloud.removeItem(_ItemID))
-           {
-           updatePBLibrary();
-           CloseProgressbar();
-           _webDAVView->reDrawCurrentEntry();
-           }
-           else
-           */
-        //CloseProgressbar();
-        Message(ICON_WARNING, "Warning", "Could not delete the file, please try again.", 1200);
+        HideHourglass();
         break;
     }
     default:

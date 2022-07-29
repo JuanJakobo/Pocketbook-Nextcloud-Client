@@ -46,6 +46,8 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
     string uuid;
     std::size_t found = Url.find(NEXTCLOUD_ROOT_PATH);
 
+    _password = Pass;
+    _username = Username;
     if (found != std::string::npos)
     {
         _url = Url.substr(0, found);
@@ -56,7 +58,6 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
         _url = Url;
         uuid = Username;
     }
-
     auto tempPath = NEXTCLOUD_ROOT_PATH + uuid + "/";
     std::vector<WebDAVItem> tempItems = getDataStructure(tempPath);
     if (!tempItems.empty())
@@ -64,14 +65,19 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
         if (iv_access(CONFIG_PATH.c_str(), W_OK) != 0)
             iv_buildpath(CONFIG_PATH.c_str());
         Util::accessConfig(CONFIG_PATH, Action::IWriteString, "url", _url);
-        Util::accessConfig(CONFIG_PATH, Action::IWriteString, "username", Username);
-        Util::accessConfig(CONFIG_PATH, Action::IWriteString, "uuid", uuid);
-        Util::accessConfig(CONFIG_PATH, Action::IWriteSecret, "password", Pass);
+        Util::accessConfig(CONFIG_PATH, Action::IWriteString, "username", _username);
+        Util::accessConfig(CONFIG_PATH, Action::IWriteString, "UUID", uuid);
+        Util::accessConfig(CONFIG_PATH, Action::IWriteSecret, "password", _password);
+    }
+    else
+    {
+        _password = "";
+        _username = "";
+        _url = "";
     }
     return tempItems;
 }
 
-//TODO implement logout
 void WebDAV::logout(bool deleteFiles)
 {
     if (deleteFiles)
@@ -81,19 +87,10 @@ void WebDAV::logout(bool deleteFiles)
     }
     remove(CONFIG_PATH.c_str());
     remove((CONFIG_PATH + ".back.").c_str());
-
-    //_url.clear();
-    //TODO where?
-    //tempItems.clear();
-}
-
-string WebDAV::getLocalPath(string path)
-{
-    Util::decodeUrl(path);
-    if (path.find(NEXTCLOUD_ROOT_PATH) != string::npos)
-        path = path.substr(NEXTCLOUD_ROOT_PATH.length());
-
-    return NEXTCLOUD_FILE_PATH + "/" + path;
+    remove(DB_PATH.c_str());
+    _url = "";
+    _password = "";
+    _username = "";
 }
 
 vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
@@ -181,59 +178,19 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
             begin = xmlItem.find(beginItem);
         }
 
-        if (tempItems.empty())
-            return {};
-
-        string localPath = getLocalPath(pathUrl);
-
-        //if the current folder does not exist locally, create it
-        if (iv_access(localPath.c_str(), W_OK) != 0)
-        {
-            Log::writeInfoLog("Local folder does not exists, creating at " + localPath);
-            iv_mkdir(localPath.c_str(), 0777);
-        }
-
-        return tempItems;
+        if (!tempItems.empty())
+            return tempItems;
     }
     return {};
 }
 
-//REMOVE FILE implement TODO
-    /*
-    if (tempItems.at(itemID).getState() == FileState::ILOCAL)
-    {
-        UpdateProgressbar(("Removing local item " + tempItems.at(itemID).getLocalPath()).c_str(), 0);
-        tempItems.at(itemID).removeFile();
-    if (_type == Itemtype::IFOLDER)
-    {
-        string cmd = "rm -rf " + _localPath + "/";
-        system(cmd.c_str());
-        return true;
-    }
-
-    if (remove(_localPath.c_str()) != 0)
-        return false;
-    if (_state == FileState::ISYNCED || _state == FileState::IOUTSYNCED)
-    {
-        _state = FileState::ICLOUD;
-    }
-    else
-    {
-        //TODO applies if file is only local
-        //only show if person is inside this folder
-        Message(ICON_INFORMATION, "Warning", "The file will be shown until next folder update.", 1200);
-    }
-    return true;
-        return;
-    }
-    */
-
-
-
 string WebDAV::propfind(const string &pathUrl)
 {
        if (pathUrl.empty() || _username.empty() || _password.empty())
+       {
+           Message(ICON_WARNING, "Warning", "Url, username or password is empty.", 2000);
            return "";
+       }
 
        if (!Util::connectToNetwork())
        {
@@ -331,6 +288,9 @@ bool WebDAV::get(WebDAVItem &item)
         Message(ICON_ERROR, "Error", "Download path is not set, therefore cannot download the file.", 2000);
         return false;
     }
+
+    if (!Util::connectToNetwork())
+        return "";
 
     UpdateProgressbar(("Starting Download of " + item.localPath).c_str(), 0);
     CURLcode res;
