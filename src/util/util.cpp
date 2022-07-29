@@ -43,6 +43,7 @@ bool Util::connectToNetwork()
     int result = NetConnect2(network_name, 1);
     if (result != 0)
     {
+        Message(ICON_WARNING, "Warning", "It was not possible to establish an internet connection.", 2000);
         return false;
     }
 
@@ -50,6 +51,7 @@ bool Util::connectToNetwork()
     if (netinfo->connected)
         return true;
 
+    Message(ICON_WARNING, "Warning", "It was not possible to establish an internet connection.", 2000);
     return false;
 }
 

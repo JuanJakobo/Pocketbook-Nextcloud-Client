@@ -197,10 +197,7 @@ string WebDAV::propfind(const string &pathUrl)
        }
 
        if (!Util::connectToNetwork())
-       {
-           Message(ICON_WARNING, "Warning", "Cannot connect to the internet. ", 2000);
            return "";
-       }
 
        //TODO for upload
         //get etag from current and then send request with FT_ENC_TAG
@@ -257,7 +254,7 @@ string WebDAV::propfind(const string &pathUrl)
             switch (response_code)
             {
                 case 404:
-                    Message(ICON_ERROR, "Error", "The URL seems to be incorrect. You can look up the WebDav URL in the files app under settings. ", 4000);
+                    Message(ICON_ERROR, "Error", "The URL seems to be incorrect. You can look up the WebDav URL in the settings of the files webapp. ", 4000);
                     break;
                 case 401:
                     Message(ICON_ERROR, "Error", "Username/password incorrect.", 4000);

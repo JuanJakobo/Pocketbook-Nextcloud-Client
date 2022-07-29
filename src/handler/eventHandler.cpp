@@ -93,8 +93,6 @@ void EventHandler::mainMenuHandler(const int index)
         //Actualize the current folder
         case 101:
             {
-                //TODO startfolder use same as above
-                //TODO parent path not needed
                 OpenProgressbar(1, "Actualizing current folder", ("Actualizing path" + _currentPath).c_str(), 0, NULL);
                 string childrenPath = _currentPath;
                 childrenPath = childrenPath.substr(NEXTCLOUD_ROOT_PATH.length(), childrenPath.length());
@@ -139,7 +137,7 @@ void EventHandler::mainMenuHandler(const int index)
                 for(auto &item : currentWebDAVItems)
                 {
                     Log::writeInfoLog(item.path);
-                    if(item.state == FileState::IOUTSYNCED || item.state == FileState::ICLOUD)
+                    if(item.type == Itemtype::IFOLDER && item.state == FileState::IOUTSYNCED)
                     {
                         UpdateProgressbar(("Upgrading " + item.path).c_str(), 0);
                         vector<WebDAVItem> tempWebDAVItems = _webDAV.getDataStructure(item.path);
@@ -392,7 +390,7 @@ void EventHandler::openItem()
     _webDAVView->invertCurrentEntryColor();
     if (_webDAVView->getCurrentEntry().state == FileState::ICLOUD)
     {
-        Message(ICON_ERROR, "File not found.", "Could not find file.", 1000);
+        Message(ICON_ERROR, "Error", "Could not find file.", 1000);
     }
     else if(_webDAVView->getCurrentEntry().fileType.find("application/epub+zip") != string::npos ||
                     _webDAVView->getCurrentEntry().fileType.find("application/pdf") != string::npos ||
@@ -409,7 +407,7 @@ void EventHandler::openItem()
     }
     else
     {
-        Message(ICON_INFORMATION, "Warning", "The filetype is currently not supported.", 1200);
+        Message(ICON_INFORMATION, "Info", "The filetype is currently not supported.", 1200);
     }
 }
 
@@ -566,14 +564,13 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
         vector<WebDAVItem> tempItems;
         if(items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
         {
-            Log::writeInfoLog("outsynced");
+            Log::writeInfoLog(path + "outsynced");
             tempItems = _webDAV.getDataStructure(path);
-            //TODO twice?
             updateItems(tempItems);
         }
         else
         {
-            Log::writeInfoLog("synced");
+            Log::writeInfoLog(path + "synced");
             tempItems = _sqllite.getItemsChildren(path);
         }
         //first item of the vector is the root path itself
@@ -583,7 +580,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
             downloadFolder(tempItems, i);
         }
         //TODO remove file parts that are no longer there, check for local path and delete these
-        //TODO else use offline structure to go down
+        //get items from DB, then compare to downloaded, if is in DB but not downloaded, remove
 
     }
     else
@@ -591,7 +588,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
         if(items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
         {
             Log::writeInfoLog("outsynced");
-            //TODO
+            //TODO both direction
             //1. check etag --> if is differnt, cloud has been updated
             //2. check modification date and file size locally --> if is different, local has been updated
             //3. if both --> create conflict
@@ -630,9 +627,9 @@ void EventHandler::startDownload()
         UpdateProgressbar("Download completed", 100);
     }
 
+    //TODO implement
     //Util::updatePBLibrary(15);
     CloseProgressbar();
-    //TODO does not work
     _webDAVView->reDrawCurrentEntry();
 }
 
