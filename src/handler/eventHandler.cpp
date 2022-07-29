@@ -511,23 +511,23 @@ void EventHandler::getLocalFileStructure(vector<WebDAVItem> &items)
     class stat st;
 
     string localPath = items.at(0).localPath + '/';
+    if(localPath.back() != '/')
+        localPath = localPath + '/';
     if (iv_access(localPath.c_str(), W_OK) == 0)
     {
-
         dir = opendir(localPath.c_str());
-        Log::writeInfoLog("localPath = " + localPath);
         while ((ent = readdir(dir)) != NULL)
         {
             const string fileName = ent->d_name;
-            const string fullFileName = localPath + fileName;
 
             if (fileName[0] == '.')
                 continue;
 
+            const string fullFileName = localPath + fileName;
+
             if (stat(fullFileName.c_str(), &st) == -1)
                 continue;
 
-            const bool isDirectory = (st.st_mode & S_IFDIR) != 0;
 
             bool found = false;
             for (unsigned int i = 1; i < items.size(); i++)
@@ -545,7 +545,7 @@ void EventHandler::getLocalFileStructure(vector<WebDAVItem> &items)
                 temp.state = FileState::ILOCAL;
                 temp.title = fullFileName.substr(fullFileName.find_last_of("/") + 1, fullFileName.length());
                 Util::decodeUrl(temp.title);
-                if (isDirectory)
+                if ((st.st_mode & S_IFDIR) != 0)
                 {
                     //create new dir in cloud
                     temp.type = Itemtype::IFOLDER;
