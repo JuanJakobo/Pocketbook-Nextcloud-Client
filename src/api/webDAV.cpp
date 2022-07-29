@@ -26,10 +26,6 @@ using std::vector;
 
 WebDAV::WebDAV()
 {
-
-    //TODO update on first login only start and create update button, update others just if etag changed
-    //save all to sqlite
-
     if (iv_access(NEXTCLOUD_PATH.c_str(), W_OK) != 0)
         iv_mkdir(NEXTCLOUD_PATH.c_str(), 0777);
 
@@ -45,7 +41,6 @@ WebDAV::WebDAV()
 }
 
 
-//TODO pass in vector and change that one?
 std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username, const string &Pass)
 {
     string uuid;
@@ -76,6 +71,7 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
     return tempItems;
 }
 
+//TODO implement logout
 void WebDAV::logout(bool deleteFiles)
 {
     if (deleteFiles)
@@ -91,7 +87,6 @@ void WebDAV::logout(bool deleteFiles)
     //tempItems.clear();
 }
 
-//TODO pas as reversne and no return
 string WebDAV::getLocalPath(string path)
 {
     Util::decodeUrl(path);
@@ -101,8 +96,6 @@ string WebDAV::getLocalPath(string path)
     return NEXTCLOUD_FILE_PATH + "/" + path;
 }
 
-//TODO SQL CHeck before calling this function --> if is needed...
-///TODO rename function
 vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
 {
     string xmlItem = propfind(pathUrl);
@@ -118,7 +111,6 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
         while (begin != std::string::npos)
         {
             end = xmlItem.find(endItem);
-            //TODO use xml lib?
 
             //TODO fav is int?
             //Log::writeInfoLog(Util::getXMLAttribute(xmlItem, "d:favorite"));
@@ -169,7 +161,6 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
                 tempItem.localPath = tempItem.localPath.substr(0, tempItem.localPath.length() - 1);
                 tempItem.type = Itemtype::IFOLDER;
                 tempItem.title = tempItem.title.substr(0, tempItem.path.length() - 1);
-                //TODO set sync status of folders --> use sqlite?
             }
             else
             {
@@ -190,39 +181,25 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
             begin = xmlItem.find(beginItem);
         }
 
-
-        //TODO doppelt
         if (tempItems.empty())
             return {};
-
-        //resize item 1
-        string header = tempItems.at(0).path;
-        header = header.substr(0, header.find_last_of("/"));
-        header = header.substr(0, header.find_last_of("/") + 1);
-        tempItems.at(0).path = header;
-        tempItems.at(0).title += "\nclick to go back";
-        tempItems.at(0).lastEditDate = "";
-        if (tempItems.at(0).path.compare(NEXTCLOUD_ROOT_PATH) == 0)
-            tempItems.erase(tempItems.begin());
 
         string localPath = getLocalPath(pathUrl);
 
         //if the current folder does not exist locally, create it
         if (iv_access(localPath.c_str(), W_OK) != 0)
-            iv_buildpath(localPath.c_str());
+        {
+            Log::writeInfoLog("Local folder does not exists, creating at " + localPath);
+            iv_mkdir(localPath.c_str(), 0777);
+        }
 
         return tempItems;
     }
     return {};
-    //TODO return empty items?
 }
-/*
-void Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
-{
 
-    //TODO etag
-    BanSleep(2000);
-
+//REMOVE FILE implement TODO
+    /*
     if (tempItems.at(itemID).getState() == FileState::ILOCAL)
     {
         UpdateProgressbar(("Removing local item " + tempItems.at(itemID).getLocalPath()).c_str(), 0);
@@ -249,85 +226,38 @@ void Nextcloud::downloadFolder(vector<Item> &tempItems, int itemID)
     return true;
         return;
     }
+    */
 
-    //check files; where modified date --> modified date of structure
-    //first check cloud, then check local
-
-    if (tempItems.at(itemID).getType() == Itemtype::IFOLDER)
-    {
-        //check etag
-
-        //for folders
-        //1. check etag --> if is different, cloud has been updated --> need to dig in deeper here;
-        //2. if is the same, only check local file system and dont show folder anymore
-        string temp = tempItems.at(itemID).getPath();
-        Log::writeInfoLog("Path to look for " + temp);
-        vector<Item> tempItems = getDataStructure(temp);
-
-        //first item of the vector is the root path itself
-        for (size_t i = 1; i < tempItems.size(); i++)
-        {
-            Log::writeInfoLog("Item: " + tempItems.at(i).getPath());
-            downloadFolder(tempItems, i);
-        }
-    }
-    else
-    {
-        //for files
-        //1. check etag --> if is differnt, cloud has been updated
-        //2. check modification date and file size locally --> if is different, local has been updated
-
-        //3. if both --> create conflict
-        //4. if first, renew file --> reset etag
-        //5. if second --> upload the local file; test if it has not been update in the cloud
-        Log::writeInfoLog("started download of " + tempItems.at(itemID).getPath() + " to " + tempItems.at(itemID).getLocalPath());
-        get(tempItems, itemID);
-    }
-
-    return;
-}
-
-void Nextcloud::download(int itemID)
-{
-    if (!Util::connectToNetwork())
-    {
-        Message(ICON_WARNING, "Warning", "Can not connect to the Internet. Switching to offline modus.", 2000);
-        _workOffline = true;
-        return;
-    }
-
-    this->downloadFolder(tempItems, itemID);
-
-    UpdateProgressbar("Download completed", 100);
-}
-*/
 
 
 string WebDAV::propfind(const string &pathUrl)
 {
-       //TODO catch here pathUrl is empty!
-       if (pathUrl.empty())
+       if (pathUrl.empty() || _username.empty() || _password.empty())
            return "";
-
-       //where to test this??
-       //include error messsages
-       if(_username.empty() || _password.empty())
-           return "";
-
-       //string localPath = getLocalPath(pathUrl);
 
        if (!Util::connectToNetwork())
        {
-           Message(ICON_WARNING, "Warning", "Cannot connect to the internet. Switching to offline modus. To work online turn on online modus in the menu.", 2000);
+           Message(ICON_WARNING, "Warning", "Cannot connect to the internet. ", 2000);
            return "";
        }
-       //
+
+       //TODO for upload
         //get etag from current and then send request with FT_ENC_TAG
         //need path url and also the etag
-
         //can handle multiple etags --> * if exists
+        //to use for upload
+        //curl -I  --header 'If-None-Match: "XX"' -u username:password url/test.md
+        //If-Unmodified-Since
+        //to use for download
+        // curl -I  --header 'If-Match: "XX"' -u username:password url/test.md
+        //If-Modified-Since
 
-*/
+        //If-None-Match: "XX"
+        //--header 'If-None-Match: "XX"'
+        //depth more to get here also childs? --> and depth less to see changes
+        //case 412 Precondition failed --> etag matches for file
+        //case 304:
+        //content not modified
 
 
     string readBuffer;
@@ -337,7 +267,6 @@ string WebDAV::propfind(const string &pathUrl)
     if (curl)
     {
         string post = _username + ":" + _password;
-        Log::writeInfoLog(_url + pathUrl);
 
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, "Depth: 1");
@@ -376,8 +305,7 @@ string WebDAV::propfind(const string &pathUrl)
                     return readBuffer;
                     break;
                 default:
-                    Message(ICON_ERROR, "Error", ("An unknown error occured. Switching to offline modus. To work online turn on online modus in the menu. (Curl Response Code " + std::to_string(response_code) + ")").c_str(), 4000);
-                    //TODO change default msg
+                    Message(ICON_ERROR, "Error", ("An unknown error occured. (Curl Response Code " + std::to_string(response_code) + ")").c_str(), 5000);
             }
         }
         else
@@ -390,45 +318,37 @@ string WebDAV::propfind(const string &pathUrl)
     return "";
 }
 
-/*
-void WebDAV::get(vector<Item> &tempItems, int itemID)
+bool WebDAV::get(WebDAVItem &item)
 {
-    //CHECK id
-    if (tempItems.at(itemID).getState() == FileState::ISYNCED)
+    if (item.state == FileState::ISYNCED)
     {
-        UpdateProgressbar(("The newest version of file " + tempItems.at(itemID).getLocalPath() + " is already downloaded.").c_str(), 0);
-        return;
+        UpdateProgressbar(("The newest version of file " + item.path + " is already downloaded.").c_str(), 0);
+        return false;
     }
 
-    if (tempItems.at(itemID).getPath().empty())
+    if (item.path.empty())
     {
         Message(ICON_ERROR, "Error", "Download path is not set, therefore cannot download the file.", 2000);
-        return;
+        return false;
     }
 
-    UpdateProgressbar(("Starting Download of " + tempItems.at(itemID).getLocalPath()).c_str(), 0);
+    UpdateProgressbar(("Starting Download of " + item.localPath).c_str(), 0);
     CURLcode res;
     CURL *curl = curl_easy_init();
 
     if (curl)
     {
-        string post = this->getUsername() + std::string(":") + this->getPassword();
+        string post = _username + std::string(":") + _password;
 
         FILE *fp;
-        fp = iv_fopen(tempItems.at(itemID).getLocalPath().c_str(), "wb");
+        fp = iv_fopen(item.localPath.c_str(), "wb");
 
-        curl_easy_setopt(curl, CURLOPT_URL, (_url + tempItems.at(itemID).getPath()).c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, (_url + item.path).c_str());
         curl_easy_setopt(curl, CURLOPT_USERPWD, post.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeData);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, Util::progress_callback);
-        //in case that cacert is available use it
-        if (iv_access(CACERT_PATH.c_str(), W_OK) == 0)
-            curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH.c_str());
-        else
-            Log::writeErrorLog("could not find cacert");
-        //Follow redirects
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
@@ -442,8 +362,8 @@ void WebDAV::get(vector<Item> &tempItems, int itemID)
             switch (response_code)
             {
             case 200:
-                Log::writeInfoLog("finished download of " + tempItems.at(itemID).getPath() + " to " + tempItems.at(itemID).getLocalPath());
-                tempItems.at(itemID).setState(FileState::ISYNCED);
+                Log::writeInfoLog("finished download of " + item.path + " to " + item.localPath);
+                return true;
                 break;
             case 401:
                 Message(ICON_ERROR, "Error", "Username/password incorrect.", 2000);
@@ -461,5 +381,5 @@ void WebDAV::get(vector<Item> &tempItems, int itemID)
             Message(ICON_ERROR, "Error", response.c_str(), 4000);
         }
     }
+    return false;
 }
-*/

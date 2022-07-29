@@ -50,6 +50,7 @@ private:
 
     WebDAV _webDAV = WebDAV();
     SqliteConnector _sqllite = SqliteConnector(DB_PATH);
+    std::string _currentPath;
 
     /**
         * Function needed to call C function, redirects to real function
@@ -97,12 +98,6 @@ private:
     void updatePBLibrary();
 
     /**
-        * Starts the download of an item
-        *
-        */
-    void startDownload();
-
-    /**
         * Open a folder
         *
         */
@@ -124,6 +119,16 @@ private:
         * @return int returns if the event was handled
         */
     int keyHandler(const int type, const int par1, const int par2);
+
+    void getLocalFileStructure(std::vector<WebDAVItem> &tempItems);
+
+    void downloadFolder(std::vector<WebDAVItem> &items, int itemID);
+
+    void startDownload();
+
+    void updateItems(std::vector<WebDAVItem> &items);
+
+    void drawWebDAVItems(std::vector<WebDAVItem> &items);
 
 };
 #endif

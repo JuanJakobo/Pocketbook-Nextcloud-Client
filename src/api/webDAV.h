@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-//TODO rename
+//TODO write into config
 const std::string NEXTCLOUD_FILE_PATH = "/mnt/ext1/nextcloud";
 const std::string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
 const std::string NEXTCLOUD_START_PATH = "/remote.php/";
@@ -39,7 +39,6 @@ class WebDAV
 
         std::vector<WebDAVItem> getDataStructure(const std::string &pathUrl);
 
-
     /**
         * gets the dataStructure of the given URL and writes its WEBDAV items to the items vector
         *
@@ -49,6 +48,8 @@ class WebDAV
         * @return vector of Items
         */
         std::string propfind(const std::string &pathUrl);
+
+        bool get(WebDAVItem &item);
 
     private:
         std::string _username;
