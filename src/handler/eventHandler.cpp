@@ -15,6 +15,9 @@
 #include "log.h"
 #include "webDAV.h"
 #include "webDAVModel.h"
+#include "fileBrowser.h"
+#include "fileView.h"
+#include "fileModel.h"
 
 #include <string>
 #include <memory>
@@ -168,18 +171,44 @@ void EventHandler::mainMenuHandler(const int index)
                         break;
                 }
                 _webDAVView.release();
-                _loginView = std::make_unique<LoginView>(LoginView(_menu->getContentRect()));
-                FullUpdate();
+                _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
+                break;
+            }
+            //Select folder
+        case 103:
+            {
+
+                if(_currentPath.back() != '/')
+                    _currentPath = _currentPath + "/nextcloud";
+                else
+                    _currentPath = _currentPath + "nextcloud";
+
+                if(iv_mkdir(_currentPath.c_str(), 0777) != 0)
+                    Message(ICON_ERROR, "Error", "The permissions are not sufficient.", 1000);
+                else
+                {
+                    Util::accessConfig(CONFIG_PATH, Action::IWriteString, "storageLocation", _currentPath);
+                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID") + '/');
+                    if(currentWebDAVItems.empty())
+                    {
+                        Message(ICON_ERROR, "Error", "Failed to get items. Please try again.", 1000);
+                    }
+                    else
+                    {
+                        updateItems(currentWebDAVItems);
+                        drawWebDAVItems(currentWebDAVItems);
+                    }
+                }
                 break;
             }
             //Info
-        case 103:
+        case 104:
             {
-                Message(ICON_INFORMATION, "Information", "Version 0.98 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
+                Message(ICON_INFORMATION, "Info", "Version 0.98 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
                 break;
             }
             //Exit
-        case 104:
+        case 105:
             CloseApp();
             break;
         default:
@@ -268,7 +297,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     {
         if (IsInRect(par1, par2, &_menu->getMenuButtonRect()) == 1)
         {
-            return _menu->createMenu((_webDAVView != nullptr), EventHandler::mainMenuHandlerStatic);
+            return _menu->createMenu((_fileView != nullptr), (_webDAVView != nullptr), EventHandler::mainMenuHandlerStatic);
         }
         else if (_webDAVView != nullptr)
         {
@@ -305,18 +334,55 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 std::vector<WebDAVItem> currentWebDAVItems = _webDAV.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword());
                 if(currentWebDAVItems.empty())
                 {
+                    Message(ICON_ERROR, "Error", "Login failed.", 1000);
                     HideHourglass();
-                    Log::writeErrorLog("login failed.");
                 }
                 else
                 {
-                    //TODO storagelocation picker
-                    drawWebDAVItems(currentWebDAVItems);
-                    _loginView.reset();
+                    int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to choose your own storage path or use the default one. \n (/mnt/ext1/nextcloud/)", "Choose my own path", "Choose standard path", NULL);
+                    auto path = "/mnt/ext1";
+                    switch (dialogResult)
+                    {
+                        case 1:
+                            {
+                                FileBrowser fileBrowser = FileBrowser();
+                                vector<FileItem> currentFolder = fileBrowser.getFileStructure(path);
+                                _currentPath = path;
+                                _loginView.reset();
+                                FillAreaRect(&_menu->getContentRect(), WHITE);
+                                _fileView = std::unique_ptr<FileView>(new FileView(_menu->getContentRect(), currentFolder,1));
+                            }
+                            break;
+                        default:
+                            updateItems(currentWebDAVItems);
+                            drawWebDAVItems(currentWebDAVItems);
+                            break;
+                    }
                 }
                 return 0;
             }
         }
+        else if(_fileView != nullptr)
+        {
+            if(_fileView->checkIfEntryClicked(par1, par2))
+            {
+                _fileView->invertCurrentEntryColor();
+
+                if (_fileView->getCurrentEntry().type == Type::FFOLDER)
+                {
+                    FileBrowser fileBrowser = FileBrowser();
+                    _currentPath = _fileView->getCurrentEntry().path;
+                    vector<FileItem> currentFolder = fileBrowser.getFileStructure(_currentPath);
+
+                    //TODO use other method
+                    _fileView.reset();
+                    _fileView = std::unique_ptr<FileView>(new FileView(_menu->getContentRect(), currentFolder,1));
+                }
+            }
+
+            return 0;
+        }
+
     }
     return 1;
 }
@@ -377,31 +443,53 @@ void EventHandler::openFolder()
 
 int EventHandler::keyHandler(const int type, const int par1, const int par2)
 {
-    if (type == EVT_KEYPRESS)
+    if(_webDAVView != nullptr)
     {
-        //menu button
-        if (par1 == 23)
+        if (type == EVT_KEYPRESS)
         {
-            _webDAVView->firstPage();
-        }
-        else if (_webDAVView != nullptr)
-        {
-            //left button
-            if (par1 == 24)
+            switch(par1)
             {
-                _webDAVView->prevPage();
+                //menu button
+                case 23:
+                    _webDAVView->firstPage();
+                    break;
+                    //left button
+                case 24:
+                    _webDAVView->prevPage();
+                    break;
+                    //right button
+                case 25:
+                    _webDAVView->nextPage();
+                    break;
+                default:
+                    return 1;
             }
-            //right button
-            else if (par1 == 25)
-            {
-                _webDAVView->nextPage();
-            }
+            return 0;
         }
-        else
+    }
+    else if(_fileView != nullptr)
+    {
+        if (type == EVT_KEYPRESS)
         {
-            return 1;
+            switch(par1)
+            {
+                //menu button
+                case 23:
+                    _fileView->firstPage();
+                    break;
+                    //left button
+                case 24:
+                    _fileView->prevPage();
+                    break;
+                    //right button
+                case 25:
+                    _fileView->nextPage();
+                    break;
+                default:
+                    return 1;
+            }
+            return 0;
         }
-        return 0;
     }
 
     return 1;

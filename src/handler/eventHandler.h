@@ -14,13 +14,13 @@
 #include "webDAV.h"
 #include "webDAVView.h"
 #include "loginView.h"
+#include "fileView.h"
 #include "sqliteConnector.h"
 
 #include <memory>
 
 const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/nextcloud";
 const std::string CONFIG_PATH = CONFIG_FOLDER + "/nextcloud.cfg";
-//TODO use folder of nextcloud conifg temp
 const std::string DB_PATH = CONFIG_FOLDER + "/data.db";
 
 class EventHandler
@@ -45,6 +45,7 @@ private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<WebDAVView> _webDAVView;
     std::unique_ptr<LoginView> _loginView;
+    std::unique_ptr<FileView> _fileView;
     std::unique_ptr<ContextMenu> _contextMenu;
     std::unique_ptr<MainMenu> _menu;
 

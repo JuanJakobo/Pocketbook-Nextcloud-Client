@@ -31,11 +31,12 @@ public:
     /**
         * Shows the menu on the screen, lets the user choose menu options and then redirects the handler to the caller
         *
+        * @param filePicker true if the filepicker is shown
         * @param loogedIn the status if the user is logged in
         * @param handler handles the clicks on the menu
         * @return int returns if the event was handled
         */
-    int createMenu(bool loggedIn, iv_menuhandler handler);
+    int createMenu(bool filePicker, bool loggedIn, iv_menuhandler handler);
 
 private:
     ifont *_menuFont;
@@ -52,6 +53,7 @@ private:
     char *_menu = strdup("Menu");
     char *_syncFolder = strdup("Actualize folder");
     char *_logout = strdup("Logout");
+    char *_chooseFolder = strdup("Create here");
     char *_info = strdup("Info");
     char *_exit = strdup("Close App");
 

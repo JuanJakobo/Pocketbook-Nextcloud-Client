@@ -29,9 +29,6 @@ WebDAV::WebDAV()
     if (iv_access(NEXTCLOUD_PATH.c_str(), W_OK) != 0)
         iv_mkdir(NEXTCLOUD_PATH.c_str(), 0777);
 
-    if (iv_access(NEXTCLOUD_FILE_PATH.c_str(), W_OK) != 0)
-        iv_mkdir(NEXTCLOUD_FILE_PATH.c_str(), 0777);
-
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         _username = Util::accessConfig(CONFIG_PATH,Action::IReadString,"username");
@@ -59,6 +56,7 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
         uuid = Username;
     }
     auto tempPath = NEXTCLOUD_ROOT_PATH + uuid + "/";
+    Util::accessConfig(CONFIG_PATH, Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
     std::vector<WebDAVItem> tempItems = getDataStructure(tempPath);
     if (!tempItems.empty())
     {
@@ -82,8 +80,8 @@ void WebDAV::logout(bool deleteFiles)
 {
     if (deleteFiles)
     {
-        //string cmd = "rm -rf " + NEXTCLOUD_FILE_PATH + "/" + getUUID() + "/";
-        //system(cmd.c_str());
+        string cmd = "rm -rf " + Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation") + "/" + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID") + '/';
+        system(cmd.c_str());
     }
     remove(CONFIG_PATH.c_str());
     remove((CONFIG_PATH + ".back.").c_str());
@@ -151,7 +149,13 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
                 tempItem.path.erase(0,tempItem.path.find(NEXTCLOUD_START_PATH));
 
             tempItem.title = tempItem.path;
-            tempItem.localPath = getLocalPath(tempItem.path);
+            //TODO make lambda?
+            tempItem.localPath = tempItem.path;
+            Util::decodeUrl(tempItem.localPath);
+            if (tempItem.localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
+                tempItem.localPath = tempItem.localPath.substr(NEXTCLOUD_ROOT_PATH.length());
+            tempItem.localPath = Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation") + "/" + tempItem.localPath;
+
 
             if (tempItem.path.back() == '/')
             {

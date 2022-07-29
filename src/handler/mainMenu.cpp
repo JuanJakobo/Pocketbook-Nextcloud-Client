@@ -43,6 +43,7 @@ MainMenu::~MainMenu()
     free(_logout);
     free(_info);
     free(_exit);
+    free(_chooseFolder);
 }
 
 void MainMenu::panelHandlerStatic()
@@ -51,7 +52,7 @@ void MainMenu::panelHandlerStatic()
     SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
 }
 
-int MainMenu::createMenu(bool loggedIn, iv_menuhandler handler)
+int MainMenu::createMenu(bool filePicker, bool loggedIn, iv_menuhandler handler)
 {
     imenu mainMenu[] =
         {
@@ -59,9 +60,10 @@ int MainMenu::createMenu(bool loggedIn, iv_menuhandler handler)
             //show logged in
             {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _syncFolder, NULL},
             {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _logout, NULL},
+            {filePicker ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _chooseFolder, NULL},
             //show always
-            {ITEM_ACTIVE, 103, _info, NULL},
-            {ITEM_ACTIVE, 104, _exit, NULL},
+            {ITEM_ACTIVE, 104, _info, NULL},
+            {ITEM_ACTIVE, 105, _exit, NULL},
             {0, 0, NULL, NULL}};
 
     OpenMenu(mainMenu, 0, _panelMenuBeginX, _panelMenuBeginY, handler);
