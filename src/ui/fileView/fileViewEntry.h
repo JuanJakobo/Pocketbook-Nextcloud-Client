@@ -22,7 +22,7 @@ public:
         * @param Rect area of the screen the item is positioned
         * @param entry entry that shall be drawn
         */
-    FileViewEntry(int page, const irect &position, const File &entry);
+    FileViewEntry(int page, const irect &position, const FileItem &entry);
 
     /**
         * draws the FileViewEntry to the screen
@@ -33,9 +33,9 @@ public:
         */
     void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) override;
 
-    File &get() { return _entry; };
+    FileItem &get() { return _entry; };
 
 private:
-    File _entry;
+    FileItem _entry;
 };
 #endif

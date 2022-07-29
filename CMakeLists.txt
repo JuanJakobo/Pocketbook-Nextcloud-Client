@@ -57,10 +57,13 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
             ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/webDAVView.cpp
             ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/webDAVViewEntry.cpp
 			${CMAKE_SOURCE_DIR}/src/ui/loginView/loginView.cpp
+            ${CMAKE_SOURCE_DIR}/src/ui/fileView/fileView.cpp
+            ${CMAKE_SOURCE_DIR}/src/ui/fileView/fileViewEntry.cpp
 			${CMAKE_SOURCE_DIR}/src/util/util.cpp
 			${CMAKE_SOURCE_DIR}/src/util/log.cpp
             ${CMAKE_SOURCE_DIR}/src/api/webDAV.cpp
             ${CMAKE_SOURCE_DIR}/src/api/sqliteConnector.cpp
+            ${CMAKE_SOURCE_DIR}/src/api/fileBrowser.cpp
 )
 
 add_executable(Nextcloud.app ${SOURCES})
@@ -74,6 +77,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/ui/
     ${CMAKE_SOURCE_DIR}/src/ui/listView/
     ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/
+    ${CMAKE_SOURCE_DIR}/src/ui/fileView/
     ${CMAKE_SOURCE_DIR}/src/ui/loginView/
     ${CMAKE_SOURCE_DIR}/src/api/
 )

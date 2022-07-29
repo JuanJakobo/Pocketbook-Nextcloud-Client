@@ -9,17 +9,17 @@
 #ifndef FILEMODEL
 #define FILEMODEL
 
-//#include "model.h"
+#include "model.h"
 
 #include <string>
 
 enum Type
 {
-    FOLDER,
-    FIL
+    FFOLDER,
+    FFILE
 };
 
-struct File : Entry{
+struct FileItem : Entry{
 				std::string name;
 				std::string path;
                 Type type;

@@ -11,7 +11,7 @@
 
 #include <string>
 
-FileViewEntry::FileViewEntry(int page, const irect &position, const File &entry) : ListViewEntry(page, position), _entry(entry)
+FileViewEntry::FileViewEntry(int page, const irect &position, const FileItem &entry) : ListViewEntry(page, position), _entry(entry)
 {
 }
 
@@ -26,7 +26,7 @@ void FileViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, int
     //DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, _entry.name.c_str(), ALIGN_LEFT);
     DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, _entry.path.c_str(), ALIGN_LEFT);
     std::string type = "File";
-    if(_entry.type == Type::FOLDER)
+    if(_entry.type == Type::FFOLDER)
         type = "Folder";
     DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, type.c_str(), ALIGN_RIGHT);
 
