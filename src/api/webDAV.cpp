@@ -198,6 +198,7 @@ string WebDAV::propfind(const string &pathUrl)
 
        if (!Util::connectToNetwork())
            return "";
+       ShowHourglassForce();
 
        //TODO for upload
         //get etag from current and then send request with FT_ENC_TAG
@@ -291,9 +292,11 @@ bool WebDAV::get(WebDAVItem &item)
     }
 
     if (!Util::connectToNetwork())
-        return "";
+        return false;
 
-    UpdateProgressbar(("Starting Download of " + item.localPath).c_str(), 0);
+    ShowHourglassForce();
+
+    UpdateProgressbar(("Starting Download of " + item.path).c_str(), 0);
     CURLcode res;
     CURL *curl = curl_easy_init();
 

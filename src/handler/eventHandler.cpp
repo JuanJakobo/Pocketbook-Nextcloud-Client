@@ -38,6 +38,10 @@ EventHandler::EventHandler()
     _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
+        //for backwards compatibilty
+        if (Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation").empty())
+                Util::accessConfig(CONFIG_PATH, Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
+
         if (iv_access(Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation").c_str(), W_OK) != 0)
             iv_mkdir(Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation").c_str(), 0777);
         std::vector<WebDAVItem> currentWebDAVItems;
@@ -246,19 +250,32 @@ void EventHandler::contextMenuHandler(const int index)
     //Sync
     case 102:
     {
-        startDownload();
+        if (_webDAVView->getCurrentEntry().state != FileState::ILOCAL)
+        {
+            startDownload();
+        }
+        else
+        {
+            //TODO upload to cloud
+            Message(ICON_ERROR, "Error", "The File is local and upload to cloud is currently not supported.", 2000);
+            _webDAVView->invertCurrentEntryColor();
+        }
+
         break;
     }
     //remove
     case 103:
     {
-        ShowHourglassForce();
-        if (_webDAVView->getCurrentEntry().state == FileState::ISYNCED || _webDAVView->getCurrentEntry().state == FileState::IOUTSYNCED)
+        if (_webDAVView->getCurrentEntry().state != FileState::ICLOUD)
         {
             if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
             {
-                string cmd = "rm -rf " + _webDAVView->getCurrentEntry().localPath + "/";
-                system(cmd.c_str());
+                Message(ICON_ERROR, "Error", "Currently only files can be deleted.", 2000);
+                //string cmd = "rm -rf " + _webDAVView->getCurrentEntry().localPath + '/';
+                //if (rmdir((_webDAVView->getCurrentEntry().localPath + '/').c_str()) == 0)
+                    //Log::writeInfoLog("okay");
+                //if (system(cmd.c_str()) == 0)
+                    //Log::writeInfoLog("success");
             }
             else
             {
@@ -268,8 +285,11 @@ void EventHandler::contextMenuHandler(const int index)
             updateItems(currentWebDAVItems);
             drawWebDAVItems(currentWebDAVItems);
         }
-
-        HideHourglass();
+        else
+        {
+            Message(ICON_ERROR, "Error", "File is not available.", 1000);
+            _webDAVView->invertCurrentEntryColor();
+        }
         break;
     }
     default:
@@ -403,6 +423,7 @@ void EventHandler::openItem()
                     _webDAVView->getCurrentEntry().fileType.find("text/plain") != string::npos ||
                     _webDAVView->getCurrentEntry().fileType.find("text/html") != string::npos ||
                     _webDAVView->getCurrentEntry().fileType.find("text/rtf") != string::npos ||
+                    _webDAVView->getCurrentEntry().fileType.find("text/markdown") != string::npos ||
                     _webDAVView->getCurrentEntry().fileType.find("application/msword") != string::npos ||
                     _webDAVView->getCurrentEntry().fileType.find("application/x-mobipocket-ebook") != string::npos ||
                     _webDAVView->getCurrentEntry().fileType.find("application/vnd.openxmlformats-officedocument.wordprocessingml.document") != string::npos ||
@@ -570,6 +591,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
         if (items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
         {
             Log::writeInfoLog(path + "outsynced");
+            UpdateProgressbar(("Syncing folder" + path).c_str(), 0);
             tempItems = _webDAV.getDataStructure(path);
             updateItems(tempItems);
         }

@@ -31,7 +31,7 @@ void WebDAVViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, i
 
         if (_entry.state == FileState::ILOCAL)
         {
-            DrawTextRect(_position.x, _position.y + heightOfTitle + 2 * fontHeight, _position.w, fontHeight, "Local", ALIGN_RIGHT);
+            DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "Local", ALIGN_RIGHT);
         }
         else
         {
