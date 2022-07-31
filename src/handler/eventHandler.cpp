@@ -443,25 +443,38 @@ void EventHandler::openFolder()
 
     std::vector<WebDAVItem> currentWebDAVItems;
 
-    if(_webDAVView->getCurrentEntry().state == FileState::IOUTSYNCED || _webDAVView->getCurrentEntry().state == FileState::ICLOUD)
-         currentWebDAVItems = _webDAV.getDataStructure(_webDAVView->getCurrentEntry().path);
-
-    if(currentWebDAVItems.empty())
-        currentWebDAVItems = _sqllite.getItemsChildren(_webDAVView->getCurrentEntry().path);
-    else
-        updateItems(currentWebDAVItems);
-
-
-
-    if(currentWebDAVItems.empty())
+    switch (_sqllite.getState(_webDAVView->getCurrentEntry().path))
     {
-        Message(ICON_ERROR, "Error", "Could not sync the items and there is no offline copy available.", 1200);
-        HideHourglass();
-        _webDAVView->invertCurrentEntryColor();
-    }
-    else
-    {
-        drawWebDAVItems(currentWebDAVItems);
+        case FileState::ILOCAL:
+            {
+                Message(ICON_ERROR, "Error", "Not implemented to look at local folder.", 2000);
+                _webDAVView->invertCurrentEntryColor();
+                //TODO use FileBrowser
+                break; }
+        case FileState::IOUTSYNCED:
+        case FileState::ICLOUD:
+            currentWebDAVItems = _webDAV.getDataStructure(_webDAVView->getCurrentEntry().path);
+        case FileState::ISYNCED:
+            {
+                if (!currentWebDAVItems.empty())
+                    updateItems(currentWebDAVItems);
+                else if (_webDAVView->getCurrentEntry().state != FileState::ICLOUD)
+                    currentWebDAVItems = _sqllite.getItemsChildren(_webDAVView->getCurrentEntry().path);
+
+                if (currentWebDAVItems.empty())
+                {
+                    Message(ICON_ERROR, "Error", "Could not sync the items and there is no offline copy available.", 2000);
+                    HideHourglass();
+                    _webDAVView->invertCurrentEntryColor();
+                }
+                else
+                {
+                    drawWebDAVItems(currentWebDAVItems);
+                }
+                break;
+            }
+        default:
+            break;
     }
 }
 
