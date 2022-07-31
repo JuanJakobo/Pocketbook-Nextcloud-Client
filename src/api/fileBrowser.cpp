@@ -16,11 +16,10 @@ using std::string;
 using std::vector;
 
 
-FileBrowser::FileBrowser()
+FileBrowser::FileBrowser(bool includeFiles) : _includeFiles(includeFiles)
 {
 }
 
-//TODO let the user choose if file or only folders, create API class or do inside here?
 std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path)
 {
     //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
@@ -30,13 +29,13 @@ std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path)
     string localPath = path;
     std::vector<FileItem> items;
 
-    if(localPath.back() != '/')
+    if (localPath.back() != '/')
         localPath = localPath + '/';
 
     FileItem temp;
     temp.path = localPath.substr(0,localPath.find_last_of('/'));
     temp.path = temp.path.substr(0,temp.path.find_last_of('/'));
-    if(temp.path.empty())
+    if (temp.path.empty())
         temp.path = "/";
     temp.name = "..";
     temp.type = Type::FFOLDER;
@@ -58,24 +57,22 @@ std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path)
             if (stat(fullFileName.c_str(), &st) == -1)
                 continue;
 
-            FileItem temp;
             if ((st.st_mode & S_IFDIR) != 0)
             {
-                temp.path = fullFileName;
+                FileItem temp;
+                temp.path = fullFileName + '/';
                 temp.name = fullFileName.substr(fullFileName.find_last_of("/") + 1, fullFileName.length());
                 temp.type = Type::FFOLDER;
-                temp.path += '/';
                 items.push_back(temp);
             }
-            else
+            else if (_includeFiles)
             {
-                /*
+                //TODO test for files
+                FileItem temp;
                 temp.path = fullFileName;
                 temp.name = fullFileName.substr(fullFileName.find_last_of("/") + 1, fullFileName.length());
                 temp.type = Type::FFILE;
-                temp.path += '/';
                 items.push_back(temp);
-                */
             }
         }
         closedir(dir);

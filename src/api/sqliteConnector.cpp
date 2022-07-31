@@ -137,9 +137,9 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
         temp.type =  static_cast<Itemtype>(sqlite3_column_int(stmt,7));
         temp.state =  static_cast<FileState>(sqlite3_column_int(stmt,8));
 
-        if(iv_access(temp.localPath.c_str(), W_OK) != 0)
+        if (iv_access(temp.localPath.c_str(), W_OK) != 0)
         {
-            if(temp.type == Itemtype::IFILE)
+            if (temp.type == Itemtype::IFILE)
                 temp.state = FileState::ICLOUD;
             else
                 iv_mkdir(temp.localPath.c_str(), 0777);

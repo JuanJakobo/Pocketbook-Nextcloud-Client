@@ -22,15 +22,15 @@ class FileBrowser
          * Creates a new FileBrowser object
          *
          */
-        FileBrowser();
-
-        void test();
+        FileBrowser(bool includeFiles);
 
         std::vector<FileItem> getFileStructure(const std::string &path);
 
+        void setIncludeFiles(bool includeFiles) { _includeFiles = includeFiles;};
 
     private:
-        std::string _currentLocation;
+        bool _includeFiles;
+
 
 };
 #endif

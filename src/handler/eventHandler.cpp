@@ -46,12 +46,12 @@ EventHandler::EventHandler()
         currentWebDAVItems = _webDAV.getDataStructure(path);
         _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
 
-        if(currentWebDAVItems.empty())
+        if (currentWebDAVItems.empty())
             currentWebDAVItems = _sqllite.getItemsChildren(path);
         else
             updateItems(currentWebDAVItems);
 
-        if(currentWebDAVItems.empty())
+        if (currentWebDAVItems.empty())
         {
             int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Could not login and there is no DB available to restore information. What would you like to do?", "Logout", "Close App", NULL);
             switch (dialogResult)
@@ -115,7 +115,7 @@ void EventHandler::mainMenuHandler(const int index)
                     childrenPath = childrenPath.substr(found+1,childrenPath.length());
                     auto state = _sqllite.getState(path);
                     Log::writeInfoLog("cur path " + path);
-                    if(i < 1 || state == FileState::IOUTSYNCED || state == FileState::ICLOUD)
+                    if (i < 1 || state == FileState::IOUTSYNCED || state == FileState::ICLOUD)
                     {
                         UpdateProgressbar(("Upgrading " + path).c_str(), 0);
                         currentWebDAVItems = _webDAV.getDataStructure(path);
@@ -126,7 +126,7 @@ void EventHandler::mainMenuHandler(const int index)
                         break;
                     }
 
-                    if(currentWebDAVItems.empty())
+                    if (currentWebDAVItems.empty())
                     {
                         Log::writeErrorLog("Could not sync " + path + " via actualize.");
                         Message(ICON_WARNING, "Warning", "Could not sync the file structure.", 2000);
@@ -146,7 +146,7 @@ void EventHandler::mainMenuHandler(const int index)
                 for(auto &item : currentWebDAVItems)
                 {
                     Log::writeInfoLog(item.path);
-                    if(item.type == Itemtype::IFOLDER && item.state == FileState::IOUTSYNCED)
+                    if (item.type == Itemtype::IFOLDER && item.state == FileState::IOUTSYNCED)
                     {
                         UpdateProgressbar(("Upgrading " + item.path).c_str(), 0);
                         vector<WebDAVItem> tempWebDAVItems = _webDAV.getDataStructure(item.path);
@@ -154,11 +154,10 @@ void EventHandler::mainMenuHandler(const int index)
                     }
 
                 }
-                //TODO twice
                 currentWebDAVItems = _sqllite.getItemsChildren(_currentPath);
 
                 CloseProgressbar();
-                if(!currentWebDAVItems.empty())
+                if (!currentWebDAVItems.empty())
                     drawWebDAVItems(currentWebDAVItems);
                 break;
             }
@@ -185,18 +184,15 @@ void EventHandler::mainMenuHandler(const int index)
         case 103:
             {
 
-                if(_currentPath.back() != '/')
-                    _currentPath = _currentPath + "/nextcloud";
-                else
-                    _currentPath = _currentPath + "nextcloud";
+                _currentPath =+ (_currentPath.back() != '/') ? "/nextcloud" : "nextcloud";
 
-                if(iv_mkdir(_currentPath.c_str(), 0777) != 0)
+                if (iv_mkdir(_currentPath.c_str(), 0777) != 0)
                     Message(ICON_ERROR, "Error", "The permissions are not sufficient.", 1000);
                 else
                 {
                     Util::accessConfig(CONFIG_PATH, Action::IWriteString, "storageLocation", _currentPath);
                     std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID") + '/');
-                    if(currentWebDAVItems.empty())
+                    if (currentWebDAVItems.empty())
                     {
                         Message(ICON_ERROR, "Error", "Failed to get items. Please try again.", 1000);
                     }
@@ -308,7 +304,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         }
         else if (_webDAVView != nullptr)
         {
-            if(_webDAVView->checkIfEntryClicked(par1, par2))
+            if (_webDAVView->checkIfEntryClicked(par1, par2))
             {
                 _webDAVView->invertCurrentEntryColor();
 
@@ -339,7 +335,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 ShowHourglassForce();
 
                 std::vector<WebDAVItem> currentWebDAVItems = _webDAV.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword());
-                if(currentWebDAVItems.empty())
+                if (currentWebDAVItems.empty())
                 {
                     Message(ICON_ERROR, "Error", "Login failed.", 1000);
                     HideHourglass();
@@ -352,7 +348,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     {
                         case 1:
                             {
-                                FileBrowser fileBrowser = FileBrowser();
+                                FileBrowser fileBrowser = FileBrowser(false);
                                 vector<FileItem> currentFolder = fileBrowser.getFileStructure(path);
                                 _currentPath = path;
                                 _loginView.reset();
@@ -369,15 +365,15 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 return 0;
             }
         }
-        else if(_fileView != nullptr)
+        else if (_fileView != nullptr)
         {
-            if(_fileView->checkIfEntryClicked(par1, par2))
+            if (_fileView->checkIfEntryClicked(par1, par2))
             {
                 _fileView->invertCurrentEntryColor();
 
                 if (_fileView->getCurrentEntry().type == Type::FFOLDER)
                 {
-                    FileBrowser fileBrowser = FileBrowser();
+                    FileBrowser fileBrowser = FileBrowser(false);
                     _currentPath = _fileView->getCurrentEntry().path;
                     vector<FileItem> currentFolder = fileBrowser.getFileStructure(_currentPath);
 
@@ -401,7 +397,7 @@ void EventHandler::openItem()
     {
         Message(ICON_ERROR, "Error", "Could not find file.", 1000);
     }
-    else if(_webDAVView->getCurrentEntry().fileType.find("application/epub+zip") != string::npos ||
+    else if (_webDAVView->getCurrentEntry().fileType.find("application/epub+zip") != string::npos ||
                     _webDAVView->getCurrentEntry().fileType.find("application/pdf") != string::npos ||
                     _webDAVView->getCurrentEntry().fileType.find("application/octet-stream") != string::npos ||
                     _webDAVView->getCurrentEntry().fileType.find("text/plain") != string::npos ||
@@ -450,7 +446,7 @@ void EventHandler::openFolder()
 
 int EventHandler::keyHandler(const int type, const int par1, const int par2)
 {
-    if(_webDAVView != nullptr)
+    if (_webDAVView != nullptr)
     {
         if (type == EVT_KEYPRESS)
         {
@@ -474,7 +470,7 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
             return 0;
         }
     }
-    else if(_fileView != nullptr)
+    else if (_fileView != nullptr)
     {
         if (type == EVT_KEYPRESS)
         {
@@ -511,7 +507,7 @@ void EventHandler::getLocalFileStructure(vector<WebDAVItem> &items)
     class stat st;
 
     string localPath = items.at(0).localPath + '/';
-    if(localPath.back() != '/')
+    if (localPath.back() != '/')
         localPath = localPath + '/';
     if (iv_access(localPath.c_str(), W_OK) == 0)
     {
@@ -571,7 +567,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
     if (items.at(itemID).type == Itemtype::IFOLDER)
     {
         vector<WebDAVItem> tempItems;
-        if(items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
+        if (items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
         {
             Log::writeInfoLog(path + "outsynced");
             tempItems = _webDAV.getDataStructure(path);
@@ -594,7 +590,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
     }
     else
     {
-        if(items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
+        if (items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
         {
             Log::writeInfoLog("outsynced");
             //TODO both direction
@@ -604,7 +600,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
             //4. if first, renew file --> reset etag
             //5. if second --> upload the local file; test if it has not been update in the cloud
             Log::writeInfoLog("started download of " + items.at(itemID).path + " to " + items.at(itemID).localPath);
-            if(_webDAV.get(items.at(itemID)))
+            if (_webDAV.get(items.at(itemID)))
             {
                 items.at(itemID).state = FileState::ISYNCED;
                 _sqllite.updateState(items.at(itemID).path,FileState::ISYNCED);
@@ -620,10 +616,10 @@ void EventHandler::startDownload()
 {
     OpenProgressbar(1, "Downloading...", "Starting Download.", 0, NULL);
 
-    if(_webDAVView->getCurrentEntry().type == Itemtype::IFILE)
+    if (_webDAVView->getCurrentEntry().type == Itemtype::IFILE)
     {
         Log::writeInfoLog("Started download of " + _webDAVView->getCurrentEntry().path + " to " + _webDAVView->getCurrentEntry().localPath);
-        if(_webDAV.get(_webDAVView->getCurrentEntry()))
+        if (_webDAV.get(_webDAVView->getCurrentEntry()))
         {
             _webDAVView->getCurrentEntry().state = FileState::ISYNCED;
             _sqllite.updateState(_webDAVView->getCurrentEntry().path,FileState::ISYNCED);
@@ -649,20 +645,17 @@ void EventHandler::updateItems(vector<WebDAVItem> &items)
     {
         item.state = _sqllite.getState(item.path);
 
-        if(iv_access(item.localPath.c_str(), W_OK) != 0)
+        if (iv_access(item.localPath.c_str(), W_OK) != 0)
         {
-            if(item.type == Itemtype::IFILE)
+            if (item.type == Itemtype::IFILE)
                 item.state = FileState::ICLOUD;
             else
                 iv_mkdir(item.localPath.c_str(), 0777);
         }
 
-        if(_sqllite.getEtag(item.path).compare(item.etag) != 0)
+        if (_sqllite.getEtag(item.path).compare(item.etag) != 0)
         {
-                if( item.state == FileState::ISYNCED)
-                    item.state = FileState::IOUTSYNCED;
-                else
-                    item.state = FileState::ICLOUD;
+            item.state = (item.state == FileState::ISYNCED) ? FileState::IOUTSYNCED : FileState::ICLOUD;
         }
     }
     items.at(0).state =FileState::ISYNCED;

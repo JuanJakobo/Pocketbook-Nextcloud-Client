@@ -20,7 +20,7 @@ void WebDAVViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, i
 
     SetFont(entryFontBold, BLACK);
     int heightOfTitle = TextRectHeight(_position.w, _entry.title.c_str(), 0);
-    if(_entry.title.find("click to go back") != std::string::npos)
+    if (_entry.title.find("click to go back") != std::string::npos)
         DrawTextRect(_position.x, _position.y, _position.w, heightOfTitle, _entry.title.c_str(), ALIGN_CENTER);
     else
     {

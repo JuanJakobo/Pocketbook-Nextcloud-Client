@@ -41,10 +41,11 @@ WebDAV::WebDAV()
 std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username, const string &Pass)
 {
     string uuid;
-    std::size_t found = Url.find(NEXTCLOUD_ROOT_PATH);
 
     _password = Pass;
     _username = Username;
+
+    std::size_t found = Url.find(NEXTCLOUD_ROOT_PATH);
     if (found != std::string::npos)
     {
         _url = Url.substr(0, found);
@@ -94,7 +95,7 @@ void WebDAV::logout(bool deleteFiles)
 vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
 {
     string xmlItem = propfind(pathUrl);
-    if(!xmlItem.empty())
+    if (!xmlItem.empty())
     {
         string beginItem = "<d:response>";
         string endItem = "</d:response>";
@@ -145,11 +146,10 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
             }
 
             //replaces everthing in front of /remote.php as this is already part of the url
-            if(tempItem.path.find(NEXTCLOUD_START_PATH) != 0)
+            if (tempItem.path.find(NEXTCLOUD_START_PATH) != 0)
                 tempItem.path.erase(0,tempItem.path.find(NEXTCLOUD_START_PATH));
 
             tempItem.title = tempItem.path;
-            //TODO make lambda?
             tempItem.localPath = tempItem.path;
             Util::decodeUrl(tempItem.localPath);
             if (tempItem.localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
@@ -337,7 +337,7 @@ bool WebDAV::get(WebDAVItem &item)
         else
         {
             string response = std::string("An error occured. (") + curl_easy_strerror(res) + " (Curl Error Code: " + std::to_string(res) + ")). Please try again.";
-            if(res == 60)
+            if (res == 60)
                 response = "Seems as if you are using Let's Encrypt Certs. Please follow the guide on Github (https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client) to use a custom Cert Store on PB.";
             Message(ICON_ERROR, "Error", response.c_str(), 4000);
         }

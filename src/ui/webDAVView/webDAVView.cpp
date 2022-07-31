@@ -37,13 +37,10 @@ WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &items, int 
     {
         auto entrySize = TextRectHeight(contentRect.w, item.title.c_str(), 0);
 
-        if(item.type == IFILE)
+        if (item.type == IFILE)
             entrySize += _entryFontHeight;
 
-        if(item.title.find("click to go back") != std::string::npos)
-            entrySize += 0.5 * _entryFontHeight;
-        else
-            entrySize += 2.5 * _entryFontHeight;
+        entrySize += (item.title.find("click to go back") != std::string::npos) ? 0.5 * _entryFontHeight : 2.5 * _entryFontHeight;
 
 
         if ((pageHeight + entrySize) > contentHeight)
