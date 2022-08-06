@@ -678,20 +678,26 @@ void EventHandler::updateItems(vector<WebDAVItem> &items)
     {
         item.state = _sqllite.getState(item.path);
 
-        if (iv_access(item.localPath.c_str(), W_OK) != 0)
+        if (iv_access(item.localPath.c_str(), W_OK) == 0)
         {
-            if (item.type == Itemtype::IFILE)
-                item.state = FileState::ICLOUD;
-            else
+            item.state = FileState::ISYNCED;
+        }
+        else
+        {
+            if(item.type == Itemtype::IFOLDER)
+            {
                 iv_mkdir(item.localPath.c_str(), 0777);
+            }
+            else
+            {
+                item.state = FileState::ICLOUD;
+            }
         }
 
         if (_sqllite.getEtag(item.path).compare(item.etag) != 0)
-        {
             item.state = (item.state == FileState::ISYNCED) ? FileState::IOUTSYNCED : FileState::ICLOUD;
-        }
     }
-    items.at(0).state =FileState::ISYNCED;
+    items.at(0).state = FileState::ISYNCED;
     _sqllite.saveItemsChildren(items);
 
     //TODO sync delete when not parentPath existend --> "select * from metadata where parentPath NOT IN (Select

@@ -167,11 +167,6 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
             {
                 tempItem.type = Itemtype::IFILE;
                 tempItem.fileType = Util::getXMLAttribute(xmlItem, "d:getcontenttype");
-
-                if (iv_access(tempItem.localPath.c_str(), W_OK) != 0)
-                    tempItem.state = FileState::ICLOUD;
-                else
-                    tempItem.state = FileState::ISYNCED;
             }
 
             tempItem.title = tempItem.title.substr(tempItem.title.find_last_of("/") + 1, tempItem.title.length());
