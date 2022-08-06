@@ -67,7 +67,6 @@ std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path)
             }
             else if (_includeFiles)
             {
-                //TODO test for files
                 FileItem temp;
                 temp.path = fullFileName;
                 temp.name = fullFileName.substr(fullFileName.find_last_of("/") + 1, fullFileName.length());

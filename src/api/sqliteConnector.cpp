@@ -71,8 +71,8 @@ FileState SqliteConnector::getState(const string &path)
 
     int rs;
     sqlite3_stmt *stmt = 0;
-    std::vector<WebDAVItem> items;
     FileState state = FileState::ICLOUD;
+
 
     rs = sqlite3_prepare_v2(_db, "SELECT state FROM 'metadata' WHERE path = ? LIMIT 1;", -1, &stmt, 0);
     rs = sqlite3_bind_text(stmt, 1, path.c_str(), path.length(), NULL);

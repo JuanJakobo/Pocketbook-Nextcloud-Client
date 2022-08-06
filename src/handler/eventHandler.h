@@ -46,9 +46,9 @@ private:
     std::unique_ptr<WebDAVView> _webDAVView;
     std::unique_ptr<LoginView> _loginView;
     std::unique_ptr<FileView> _fileView;
-    std::unique_ptr<ContextMenu> _contextMenu;
     std::unique_ptr<MainMenu> _menu;
 
+    ContextMenu _contextMenu = ContextMenu();
     WebDAV _webDAV = WebDAV();
     SqliteConnector _sqllite = SqliteConnector(DB_PATH);
     std::string _currentPath;

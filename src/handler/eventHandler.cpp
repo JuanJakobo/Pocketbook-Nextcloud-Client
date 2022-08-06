@@ -32,9 +32,6 @@ EventHandler::EventHandler()
     //create an copy of the eventhandler to handle methods that require static functions
     _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
-    _loginView = nullptr;
-    _webDAVView = nullptr;
-
     _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
@@ -180,7 +177,7 @@ void EventHandler::mainMenuHandler(const int index)
                         _webDAV.logout();
                         break;
                 }
-                _webDAVView.release();
+                _webDAVView.reset();
                 _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
                 break;
             }
@@ -202,6 +199,7 @@ void EventHandler::mainMenuHandler(const int index)
                     }
                     else
                     {
+                        _fileView.reset();
                         updateItems(currentWebDAVItems);
                         drawWebDAVItems(currentWebDAVItems);
                     }
@@ -227,7 +225,6 @@ void EventHandler::contextMenuHandlerStatic(const int index)
 {
     _eventHandlerStatic->contextMenuHandler(index);
 }
-std::unique_ptr<ContextMenu> _contextMenu;
 
 void EventHandler::contextMenuHandler(const int index)
 {
@@ -311,8 +308,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             _webDAVView->invertCurrentEntryColor();
             if (_webDAVView->getCurrentEntry().title.compare("...") != 0)
             {
-                _contextMenu = std::unique_ptr<ContextMenu>(new ContextMenu());
-                _contextMenu->createMenu(par2, _webDAVView->getCurrentEntry().state, EventHandler::contextMenuHandlerStatic);
+                _contextMenu.createMenu(par2, _webDAVView->getCurrentEntry().state, EventHandler::contextMenuHandlerStatic);
             }
         }
     }
@@ -397,9 +393,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     _currentPath = _fileView->getCurrentEntry().path;
                     vector<FileItem> currentFolder = fileBrowser.getFileStructure(_currentPath);
 
-                    //TODO use other method
-                    _fileView.reset();
-                    _fileView = std::unique_ptr<FileView>(new FileView(_menu->getContentRect(), currentFolder,1));
+                    _fileView.reset(new FileView(_menu->getContentRect(), currentFolder,1));
                 }
             }
 
@@ -443,14 +437,18 @@ void EventHandler::openFolder()
 
     std::vector<WebDAVItem> currentWebDAVItems;
 
-    switch (_sqllite.getState(_webDAVView->getCurrentEntry().path))
+    switch ((_webDAVView->getCurrentEntry().state == FileState::ILOCAL) ? FileState::ILOCAL : _sqllite.getState(_webDAVView->getCurrentEntry().path))
     {
         case FileState::ILOCAL:
             {
                 Message(ICON_ERROR, "Error", "Not implemented to look at local folder.", 2000);
                 _webDAVView->invertCurrentEntryColor();
                 //TODO use FileBrowser
-                break; }
+                //_webDAVView.reset();
+                //FileBrowser fB = FileBrowser(true);
+                //_fileView.reset(new FileView(_menu->getContentRect(),fB.getFileStructure(_webDAVView->getCurrentEntry().path),1));
+                break;
+            }
         case FileState::IOUTSYNCED:
         case FileState::ICLOUD:
             currentWebDAVItems = _webDAV.getDataStructure(_webDAVView->getCurrentEntry().path);
@@ -704,8 +702,7 @@ void EventHandler::updateItems(vector<WebDAVItem> &items)
 
 void EventHandler::drawWebDAVItems(vector<WebDAVItem> &items)
 {
-    _webDAVView.release();
     _currentPath = items.at(0).path;
     getLocalFileStructure(items);
-    _webDAVView = std::unique_ptr<WebDAVView>(new WebDAVView(_menu->getContentRect(), items,1));
+    _webDAVView.reset(new WebDAVView(_menu->getContentRect(), items,1));
 }
