@@ -14,7 +14,7 @@
 #include <string>
 #include <memory>
 
-enum KeyboardTarget
+enum class KeyboardTarget
 {
     IURL,
     IUSERNAME,

@@ -13,7 +13,7 @@
 
 #include <string>
 
-enum Action
+enum class Action
 {
     IWriteSecret,
     IReadSecret,

@@ -13,7 +13,7 @@
 
 #include <string>
 
-enum Type
+enum class Type
 {
     FFOLDER,
     FFILE

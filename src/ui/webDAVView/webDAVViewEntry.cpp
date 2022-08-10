@@ -35,7 +35,7 @@ void WebDAVViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, i
         }
         else
         {
-            if (_entry.type == IFILE)
+            if (_entry.type == Itemtype::IFILE)
             {
                 DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, _entry.fileType.c_str(), ALIGN_LEFT);
 
