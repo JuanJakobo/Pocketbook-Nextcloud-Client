@@ -678,20 +678,17 @@ void EventHandler::updateItems(vector<WebDAVItem> &items)
     {
         item.state = _sqllite.getState(item.path);
 
-        if (iv_access(item.localPath.c_str(), W_OK) == 0)
+        if (item.type == Itemtype::IFILE)
         {
-            item.state = FileState::ISYNCED;
+            if(iv_access(item.localPath.c_str(), W_OK) != 0)
+                item.state = FileState::ICLOUD;
+            else
+                item.state = FileState::ISYNCED;
         }
         else
         {
-            if(item.type == Itemtype::IFOLDER)
-            {
+            if(iv_access(item.localPath.c_str(), W_OK) != 0)
                 iv_mkdir(item.localPath.c_str(), 0777);
-            }
-            else
-            {
-                item.state = FileState::ICLOUD;
-            }
         }
 
         if (_sqllite.getEtag(item.path).compare(item.etag) != 0)
