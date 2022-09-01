@@ -55,38 +55,6 @@ bool Util::connectToNetwork()
     return false;
 }
 
-string Util::accessConfig(const string &path, const Action &action, const string &name, const string &value)
-{
-    iconfigedit *temp = nullptr;
-    iconfig *config = OpenConfig(path.c_str(), temp);
-    string returnValue;
-
-    switch (action)
-    {
-    case Action::IWriteSecret:
-        if (!value.empty())
-            WriteSecret(config, name.c_str(), value.c_str());
-        returnValue = {};
-        break;
-    case Action::IReadSecret:
-        returnValue = ReadSecret(config, name.c_str(), "");
-        break;
-    case Action::IWriteString:
-        if (!value.empty())
-            WriteString(config, name.c_str(), value.c_str());
-        returnValue = {};
-        break;
-    case Action::IReadString:
-        returnValue = ReadString(config, name.c_str(), "");
-        break;
-    default:
-        break;
-    }
-    CloseConfig(config);
-
-    return returnValue;
-}
-
 int Util::progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
     std::ignore = ultotal;

@@ -20,7 +20,6 @@
 #include <memory>
 
 const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/nextcloud";
-const std::string CONFIG_PATH = CONFIG_FOLDER + "/nextcloud.cfg";
 const std::string DB_PATH = CONFIG_FOLDER + "/data.db";
 
 class EventHandler

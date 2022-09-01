@@ -31,9 +31,9 @@ WebDAV::WebDAV()
 
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
-        _username = Util::accessConfig(CONFIG_PATH,Action::IReadString,"username");
-        _password = Util::accessConfig(CONFIG_PATH,Action::IReadSecret,"password");
-        _url = Util::accessConfig(CONFIG_PATH, Action::IReadString, "url");
+        _username = Util::accessConfig<string>(Action::IReadString,"username",{});
+        _password = Util::accessConfig<string>(Action::IReadSecret,"password",{});
+        _url = Util::accessConfig<string>(Action::IReadString, "url",{});
     }
 }
 
@@ -57,16 +57,16 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
         uuid = Username;
     }
     auto tempPath = NEXTCLOUD_ROOT_PATH + uuid + "/";
-    Util::accessConfig(CONFIG_PATH, Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
+    Util::accessConfig( Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
     std::vector<WebDAVItem> tempItems = getDataStructure(tempPath);
     if (!tempItems.empty())
     {
         if (iv_access(CONFIG_PATH.c_str(), W_OK) != 0)
             iv_buildpath(CONFIG_PATH.c_str());
-        Util::accessConfig(CONFIG_PATH, Action::IWriteString, "url", _url);
-        Util::accessConfig(CONFIG_PATH, Action::IWriteString, "username", _username);
-        Util::accessConfig(CONFIG_PATH, Action::IWriteString, "UUID", uuid);
-        Util::accessConfig(CONFIG_PATH, Action::IWriteSecret, "password", _password);
+        Util::accessConfig( Action::IWriteString, "url", _url);
+        Util::accessConfig( Action::IWriteString, "username", _username);
+        Util::accessConfig( Action::IWriteString, "UUID", uuid);
+        Util::accessConfig( Action::IWriteSecret, "password", _password);
     }
     else
     {
@@ -81,7 +81,8 @@ void WebDAV::logout(bool deleteFiles)
 {
     if (deleteFiles)
     {
-        string cmd = "rm -rf " + Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation") + "/" + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID") + '/';
+        string cmd = "rm -rf " + Util::accessConfig<string>(Action::IReadString, "storageLocation",{}) + "/" +
+        Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/';
         system(cmd.c_str());
     }
     remove(CONFIG_PATH.c_str());
@@ -154,7 +155,7 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
             Util::decodeUrl(tempItem.localPath);
             if (tempItem.localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
                 tempItem.localPath = tempItem.localPath.substr(NEXTCLOUD_ROOT_PATH.length());
-            tempItem.localPath = Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation") + "/" + tempItem.localPath;
+            tempItem.localPath = Util::accessConfig<string>(Action::IReadString, "storageLocation",{}) + "/" + tempItem.localPath;
 
 
             if (tempItem.path.back() == '/')

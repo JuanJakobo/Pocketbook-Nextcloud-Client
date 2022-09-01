@@ -36,13 +36,13 @@ EventHandler::EventHandler()
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         //for backwards compatibilty
-        if (Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation").empty())
-                Util::accessConfig(CONFIG_PATH, Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
+        if (Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).empty())
+                Util::accessConfig(Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
 
-        if (iv_access(Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation").c_str(), W_OK) != 0)
-            iv_mkdir(Util::accessConfig(CONFIG_PATH, Action::IReadString, "storageLocation").c_str(), 0777);
+        if (iv_access(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), W_OK) != 0)
+            iv_mkdir(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), 0777);
         std::vector<WebDAVItem> currentWebDAVItems;
-        string path = NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID") + '/';
+        string path = NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/';
 
         currentWebDAVItems = _webDAV.getDataStructure(path);
         _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
@@ -191,8 +191,8 @@ void EventHandler::mainMenuHandler(const int index)
                     Message(ICON_ERROR, "Error", "The permissions are not sufficient.", 1000);
                 else
                 {
-                    Util::accessConfig(CONFIG_PATH, Action::IWriteString, "storageLocation", _currentPath);
-                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig(CONFIG_PATH, Action::IReadString,"UUID") + '/');
+                    Util::accessConfig(Action::IWriteString, "storageLocation", _currentPath);
+                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
                     if (currentWebDAVItems.empty())
                     {
                         Message(ICON_ERROR, "Error", "Failed to get items. Please try again.", 1000);
