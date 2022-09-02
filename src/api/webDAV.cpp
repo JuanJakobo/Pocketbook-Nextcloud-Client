@@ -231,6 +231,11 @@ string WebDAV::propfind(const string &pathUrl)
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PROPFIND");
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+        if (iv_access(CACERT_PATH.c_str(), R_OK) == 0)
+            curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH.c_str());
+
+        //TODO add sorter here
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "<\?xml version=\"1.0\" encoding=\"UTF-8\"\?> \
                                                     <d:propfind xmlns:d=\"DAV:\"><d:prop xmlns:oc=\"http://owncloud.org/ns\"> \
                                                     <d:getlastmodified/> \
@@ -310,6 +315,8 @@ bool WebDAV::get(WebDAVItem &item)
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, Util::progress_callback);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        if (iv_access(CACERT_PATH.c_str(), R_OK) == 0)
+            curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH.c_str());
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
         iv_fclose(fp);

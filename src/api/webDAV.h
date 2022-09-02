@@ -17,8 +17,8 @@
 
 const std::string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
 const std::string NEXTCLOUD_START_PATH = "/remote.php/";
-const std::string CACERT_PATH = "/mnt/ext1/applications/cacert.pem";
 const std::string NEXTCLOUD_PATH = "/mnt/ext1/system/config/nextcloud";
+const std::string CACERT_PATH = NEXTCLOUD_PATH + "/customCert.pem";
 
 class WebDAV
 {
