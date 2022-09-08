@@ -29,26 +29,25 @@ void WebDAVViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, i
         DrawTextRect(_position.x, _position.y, _position.w, heightOfTitle, _entry.title.c_str(), ALIGN_LEFT);
         SetFont(entryFont, BLACK);
 
-        if (_entry.state == FileState::ILOCAL)
-        {
-            DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "Local", ALIGN_RIGHT);
-        }
-        else
         {
             int height = 0;
             std::string text = {};
             if (_entry.type == Itemtype::IFILE)
             {
                 height = fontHeight;
-                DrawTextRect(_position.x, _position.y + heightOfTitle + height, _position.w, fontHeight, _entry.fileType.c_str(), ALIGN_LEFT);
+                if (_entry.state != FileState::ILOCAL)
+                    DrawTextRect(_position.x, _position.y + heightOfTitle + height, _position.w, fontHeight, _entry.fileType.c_str(), ALIGN_LEFT);
 
                 switch(_entry.state)
                 {
                     case FileState::ISYNCED:
-                        text = "Synced";
+                        text = "Downloaded";
                         break;
                     case FileState::IOUTSYNCED:
                         text = "Out of sync";
+                        break;
+                    case FileState::ILOCAL:
+                        text = "Local";
                         break;
                     default:
                         text = "Click to download";
@@ -65,15 +64,19 @@ void WebDAVViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, i
                     case FileState::IOUTSYNCED:
                         text = "Structure of out sync";
                         break;
+                    case FileState::IDOWNLOADED:
+                        text =  "Downloaded";
+                        break;
                     case FileState::ICLOUD:
                         text = "Cloud";
                         break;
-                    default:
-                        text = {};
+                    case FileState::ILOCAL:
+                        text = "Local";
                 }
             }
             DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight + height, _position.w, fontHeight, text.c_str(), ALIGN_RIGHT);
-            DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight + height, _position.w, fontHeight, _entry.size.c_str(), ALIGN_LEFT);
+            if (_entry.state != FileState::ILOCAL)
+                DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight + height, _position.w, fontHeight, _entry.size.c_str(), ALIGN_LEFT);
 
             time_t now;
             time(&now);

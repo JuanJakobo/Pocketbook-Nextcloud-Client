@@ -24,7 +24,8 @@ enum FileState
     ICLOUD,
     ISYNCED,
     IOUTSYNCED,
-    ILOCAL
+    ILOCAL,
+    IDOWNLOADED
 };
 
 struct WebDAVItem : Entry{
