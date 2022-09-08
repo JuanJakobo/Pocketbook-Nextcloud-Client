@@ -181,8 +181,26 @@ void EventHandler::mainMenuHandler(const int index)
                 _loginView = std::unique_ptr<LoginView>(new LoginView(_menu->getContentRect()));
                 break;
             }
-            //Select folder
+            //Sort by
         case 103:
+            {
+                int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "By what do you want to sort?", "Filename", "Last modified", "Cancel");
+                switch (dialogResult)
+                {
+                    case 1:
+                        Util::accessConfig(Action::IWriteInt, "sortBy", 1);
+                        break;
+                    case 2:
+                        Util::accessConfig(Action::IWriteInt, "sortBy", 2);
+                        break;
+                    default:
+                        return;
+                }
+                Message(ICON_INFORMATION, "Info", "Reload page to see new order method in effect.", 2000);
+                break;
+            }
+            //Select folder
+        case 104:
             {
 
                 _currentPath =+ (_currentPath.back() != '/') ? "/nextcloud" : "nextcloud";
@@ -207,13 +225,13 @@ void EventHandler::mainMenuHandler(const int index)
                 break;
             }
             //Info
-        case 104:
+        case 105:
             {
                 Message(ICON_INFORMATION, "Info", "Version 0.98 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
                 break;
             }
             //Exit
-        case 105:
+        case 106:
             CloseApp();
             break;
         default:

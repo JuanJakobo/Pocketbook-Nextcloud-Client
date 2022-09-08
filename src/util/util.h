@@ -99,7 +99,7 @@ public:
                     returnValue = 0;
                     break;
                 case Action::IReadInt:
-                    returnValue = ReadInt(config, name.c_str(), 0);
+                    returnValue = ReadInt(config, name.c_str(), -1);
                     break;
                 default:
                     break;
@@ -133,6 +133,24 @@ public:
      *
      */
     static void updatePBLibrary(int seconds);
+
+    /**
+     * Convert string to tm
+     *
+     * @param timestring of the string
+     *
+     * @return time in tm format
+     */
+    static tm webDAVStringToTm(const std::string &timestring);
+
+    /**
+     * Convert tm to string
+     *
+     * @param time in tm format
+     *
+     * @return timestring of the string
+     */
+    static std::string webDAVTmToString(const tm &timestring);
 
 private:
     Util() {}

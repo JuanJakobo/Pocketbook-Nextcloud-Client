@@ -41,6 +41,7 @@ MainMenu::~MainMenu()
     free(_syncFolder);
     free(_menu);
     free(_logout);
+    free(_sortBy);
     free(_info);
     free(_exit);
     free(_chooseFolder);
@@ -60,6 +61,8 @@ int MainMenu::createMenu(bool filePicker, bool loggedIn, iv_menuhandler handler)
             //show logged in
             {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _syncFolder, NULL},
             {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _logout, NULL},
+            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _sortBy, NULL},
+            //show if filePicker is shown
             {filePicker ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _chooseFolder, NULL},
             //show always
             {ITEM_ACTIVE, 104, _info, NULL},

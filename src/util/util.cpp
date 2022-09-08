@@ -13,6 +13,8 @@
 #include <math.h>
 #include <curl/curl.h>
 #include <tuple>
+#include <sstream>
+#include <iomanip>
 
 #include <signal.h>
 
@@ -124,4 +126,30 @@ void Util::updatePBLibrary(int seconds)
         execlp(cmd.c_str(), cmd.c_str(), (char *)NULL);
         exit(1);
     }
+}
+
+tm Util::webDAVStringToTm(const std::string &timestring)
+{
+    tm t = {0};
+    std::istringstream ss(timestring);
+    //format depends on nextcloud config?
+    //weekday, day month year Hour Minute Second Timezone
+    ss >> std::get_time(&t, "%a, %d %b %Y %H:%M:%S");
+    if (ss.fail())
+        Log::writeErrorLog("Failed to read in data format.");
+    return t;
+}
+
+string Util::webDAVTmToString(const tm &timestring)
+{
+    std::ostringstream ss;
+    string result = {};
+    //format depends on nextcloud config?
+    //weekday, day month year Hour Minute Second Timezone
+    ss << std::put_time(&timestring, "%a, %d %b %Y %H:%M:%S");
+    if (ss.fail())
+        Log::writeErrorLog("Failed to read out data format.");
+    else
+        result = ss.str();
+    return result;
 }

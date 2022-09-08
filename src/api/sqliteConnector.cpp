@@ -10,6 +10,7 @@
 #include "sqliteConnector.h"
 #include "sqlite3.h"
 #include "log.h"
+#include "util.h"
 
 #include <string>
 #include <vector>
@@ -133,7 +134,7 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
         temp.size = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
         temp.etag = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 4));
         temp.fileType = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 5));
-        temp.lastEditDate = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 6));
+        temp.lastEditDate = Util::webDAVStringToTm(reinterpret_cast<const char *>(sqlite3_column_text(stmt, 6)));
         temp.type =  static_cast<Itemtype>(sqlite3_column_int(stmt,7));
         temp.state =  static_cast<FileState>(sqlite3_column_int(stmt,8));
 
@@ -194,7 +195,8 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
         rs = sqlite3_bind_text(stmt, 5, parent.c_str(), parent.length(), NULL);
         rs = sqlite3_bind_text(stmt, 6, item.etag.c_str(), item.etag.length(), NULL);
         rs = sqlite3_bind_text(stmt, 7, item.fileType.c_str(), item.fileType.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 8, item.lastEditDate.c_str(), item.lastEditDate.length(), NULL);
+        string lastEditDateString = Util::webDAVTmToString(item.lastEditDate);
+        rs = sqlite3_bind_text(stmt, 8, lastEditDateString.c_str(), lastEditDateString.length(), NULL);
         rs = sqlite3_bind_int(stmt, 9, item.type);
         rs = sqlite3_bind_int(stmt, 10, item.state);
 
@@ -207,7 +209,8 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
             rs = sqlite3_prepare_v2(_db, "UPDATE 'metadata' SET state=?, etag=?, lastEditDate=?, size=? WHERE path=?", -1, &stmt, 0);
             rs = sqlite3_bind_int(stmt, 1, item.state);
             rs = sqlite3_bind_text(stmt, 2, item.etag.c_str(), item.etag.length(), NULL);
-            rs = sqlite3_bind_text(stmt, 3, item.lastEditDate.c_str(), item.lastEditDate.length(), NULL);
+            string lastEditDateString = Util::webDAVTmToString(item.lastEditDate);
+            rs = sqlite3_bind_text(stmt, 3, lastEditDateString.c_str(), lastEditDateString.length(), NULL);
             rs = sqlite3_bind_text(stmt, 4, item.size.c_str(), item.size.length(), NULL);
             rs = sqlite3_bind_text(stmt, 5, item.path.c_str(), item.path.length(), NULL);
             rs = sqlite3_step(stmt);

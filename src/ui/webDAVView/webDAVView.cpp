@@ -9,9 +9,11 @@
 #include "webDAVView.h"
 #include "webDAVModel.h"
 #include "webDAV.h"
+#include "util.h"
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 using std::vector;
 
@@ -29,9 +31,40 @@ WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &items, int 
     header = header.substr(0, header.find_last_of("/") + 1);
     items.at(0).path = header;
     items.at(0).title += "\nclick to go back";
-    items.at(0).lastEditDate = "";
+    items.at(0).lastEditDate.tm_year = 2100;
+
+    std::vector<WebDAVItem>::iterator begin;
+
     if (items.at(0).path.compare(NEXTCLOUD_ROOT_PATH) == 0)
+    {
         items.erase(items.begin());
+        begin = items.begin();
+    }
+    else
+    {
+        begin = items.begin()+1;
+    }
+
+    sort(begin, items.end(), []( WebDAVItem &w1, WebDAVItem &w2) -> bool
+    {
+        if(Util::accessConfig(Action::IReadInt, "sortBy", 0) == 2)
+        {
+            //sort by lastmodified
+            time_t t1 = mktime(&w1.lastEditDate);
+            time_t t2 = mktime(&w2.lastEditDate);
+            return difftime(t1,t2) > 0 ? true : false;
+        }
+        else
+        {
+            //folders first then files
+            if(w1.type == Itemtype::IFILE && w2.type == Itemtype::IFOLDER)
+                return false;
+            else if(w1.type == Itemtype::IFOLDER && w2.type == Itemtype::IFILE)
+                return true;
+            else
+                return w1.title < w2.title;
+        }
+    });
 
     for(auto item : items)
     {
@@ -56,4 +89,3 @@ WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &items, int 
     }
     draw();
 }
-

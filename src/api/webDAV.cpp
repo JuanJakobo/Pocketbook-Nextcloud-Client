@@ -114,7 +114,7 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
 
             tempItem.etag = Util::getXMLAttribute(xmlItem, "d:getetag");
             tempItem.path = Util::getXMLAttribute(xmlItem, "d:href");
-            tempItem.lastEditDate = Util::getXMLAttribute(xmlItem, "d:getlastmodified");
+            tempItem.lastEditDate = Util::webDAVStringToTm(Util::getXMLAttribute(xmlItem, "d:getlastmodified"));
 
             double size = atof(Util::getXMLAttribute(xmlItem, "oc:size").c_str());
             if (size < 1024)
@@ -235,7 +235,6 @@ string WebDAV::propfind(const string &pathUrl)
         if (iv_access(CACERT_PATH.c_str(), R_OK) == 0)
             curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH.c_str());
 
-        //TODO add sorter here
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "<\?xml version=\"1.0\" encoding=\"UTF-8\"\?> \
                                                     <d:propfind xmlns:d=\"DAV:\"><d:prop xmlns:oc=\"http://owncloud.org/ns\"> \
                                                     <d:getlastmodified/> \
