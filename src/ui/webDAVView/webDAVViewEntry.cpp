@@ -8,7 +8,9 @@
 
 #include "webDAVViewEntry.h"
 #include "webDAVModel.h"
+#include "util.h"
 
+#include <time.h>
 #include <string>
 
 WebDAVViewEntry::WebDAVViewEntry(int page, const irect &position, const WebDAVItem &entry) : ListViewEntry(page, position), _entry(entry)
@@ -25,9 +27,7 @@ void WebDAVViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, i
     else
     {
         DrawTextRect(_position.x, _position.y, _position.w, heightOfTitle, _entry.title.c_str(), ALIGN_LEFT);
-
         SetFont(entryFont, BLACK);
-
 
         if (_entry.state == FileState::ILOCAL)
         {
@@ -35,45 +35,93 @@ void WebDAVViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, i
         }
         else
         {
+            int height = 0;
+            std::string text = {};
             if (_entry.type == Itemtype::IFILE)
             {
-                DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, _entry.fileType.c_str(), ALIGN_LEFT);
+                height = fontHeight;
+                DrawTextRect(_position.x, _position.y + heightOfTitle + height, _position.w, fontHeight, _entry.fileType.c_str(), ALIGN_LEFT);
 
                 switch(_entry.state)
                 {
                     case FileState::ISYNCED:
-                        DrawTextRect(_position.x, _position.y + heightOfTitle + 2 * fontHeight, _position.w, fontHeight, "Synced", ALIGN_RIGHT);
+                        text = "Synced";
                         break;
                     case FileState::IOUTSYNCED:
-                        DrawTextRect(_position.x, _position.y + heightOfTitle + 2 * fontHeight, _position.w, fontHeight, "Out of sync", ALIGN_RIGHT);
+                        text = "Out of sync";
                         break;
                     default:
-                        DrawTextRect(_position.x, _position.y + heightOfTitle + 2 * fontHeight, _position.w, fontHeight, "Click to Download", ALIGN_RIGHT);
+                        text = "Click to download";
                 }
 
-                DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, _entry.lastEditDate.c_str(), ALIGN_LEFT);
-                DrawTextRect(_position.x, _position.y + heightOfTitle + 2 * fontHeight, _position.w, fontHeight, _entry.size.c_str(), ALIGN_LEFT);
             }
             else
             {
                 switch(_entry.state)
                 {
                     case FileState::ISYNCED:
-                        DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "Structure synced", ALIGN_RIGHT);
+                        text = "Structure synced";
                         break;
                     case FileState::IOUTSYNCED:
-                        DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "Structure out of sync", ALIGN_RIGHT);
+                        text = "Structure of out sync";
                         break;
                     case FileState::ICLOUD:
-                        DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "Cloud", ALIGN_RIGHT);
+                        text = "Cloud";
                         break;
                     default:
-                        break;
+                        text = {};
                 }
-                DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, _entry.lastEditDate.c_str(), ALIGN_LEFT);
-                DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, _entry.size.c_str(), ALIGN_LEFT);
             }
+            DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight + height, _position.w, fontHeight, text.c_str(), ALIGN_RIGHT);
+            DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight + height, _position.w, fontHeight, _entry.size.c_str(), ALIGN_LEFT);
 
+            time_t now;
+            time(&now);
+            auto seconds = difftime(now,mktime(&_entry.lastEditDate) - timezone);
+            int sec;
+
+            std::string time;
+            //minutes
+            if(seconds > 60){
+                seconds = seconds/60;
+                sec = seconds;
+                time = std::to_string(sec) + " minutes ago";
+                //hours
+                if(seconds > 60){
+                    seconds = seconds/60;
+                    sec = seconds;
+                    time = std::to_string(sec) + " hours ago";
+                    //days
+                    if(seconds > 24){
+                        seconds = seconds/24;
+                        sec = seconds;
+                        time = std::to_string(sec) + " days ago";
+                        //month
+                        if(seconds > 30){
+                            seconds = seconds/30;
+                            sec = seconds;
+                            time = std::to_string(sec) + " months ago";
+                            //years
+                            if(seconds > 12){
+                                seconds = seconds/12;
+                                sec = seconds;
+                                time = std::to_string(sec) + " years ago";
+                                if(seconds > 1){
+                                    time = "at " + Util::webDAVTmToString(_entry.lastEditDate);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            //seconds
+            else
+            {
+                sec = seconds;
+                time = std::to_string(sec) + " seconds ago";
+            }
+            time = "Modified " + time;
+            DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, time.c_str(), ALIGN_LEFT);
         }
 
     }
