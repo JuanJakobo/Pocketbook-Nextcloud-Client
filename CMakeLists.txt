@@ -81,7 +81,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/api/
 )
 
-TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype curl sqlite3)
+TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype curl sqlite3 stdc++fs)
 
 INSTALL (TARGETS Nextcloud.app)
 

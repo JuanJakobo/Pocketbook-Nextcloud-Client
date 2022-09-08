@@ -19,6 +19,7 @@
 #include "fileView.h"
 #include "fileModel.h"
 
+#include <experimental/filesystem>
 #include <string>
 #include <memory>
 
@@ -289,16 +290,11 @@ void EventHandler::contextMenuHandler(const int index)
         {
             if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
             {
-                Message(ICON_ERROR, "Error", "Currently only files can be deleted.", 2000);
-                //string cmd = "rm -rf " + _webDAVView->getCurrentEntry().localPath + '/';
-                //if (rmdir((_webDAVView->getCurrentEntry().localPath + '/').c_str()) == 0)
-                    //Log::writeInfoLog("okay");
-                //if (system(cmd.c_str()) == 0)
-                    //Log::writeInfoLog("success");
+                std::experimental::filesystem::remove_all(_webDAVView->getCurrentEntry().localPath);
             }
             else
             {
-                remove(_webDAVView->getCurrentEntry().localPath.c_str());
+                std::experimental::filesystem::remove(_webDAVView->getCurrentEntry().localPath);
             }
             vector<WebDAVItem> currentWebDAVItems = _sqllite.getItemsChildren(_currentPath);
             updateItems(currentWebDAVItems);
@@ -306,7 +302,7 @@ void EventHandler::contextMenuHandler(const int index)
         }
         else
         {
-            Message(ICON_ERROR, "Error", "File is not available.", 1000);
+            Message(ICON_ERROR, "Error", "File is not available locally.", 1000);
             _webDAVView->invertCurrentEntryColor();
         }
         break;

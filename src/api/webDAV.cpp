@@ -13,6 +13,7 @@
 #include "eventHandler.h"
 
 #include <string>
+#include <experimental/filesystem>
 #include <curl/curl.h>
 #include <fstream>
 #include <sstream>
@@ -81,13 +82,11 @@ void WebDAV::logout(bool deleteFiles)
 {
     if (deleteFiles)
     {
-        string cmd = "rm -rf " + Util::accessConfig<string>(Action::IReadString, "storageLocation",{}) + "/" +
-        Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/';
-        system(cmd.c_str());
+        std::experimental::filesystem::remove_all(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}) + "/" + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
     }
-    remove(CONFIG_PATH.c_str());
-    remove((CONFIG_PATH + ".back.").c_str());
-    remove(DB_PATH.c_str());
+    std::experimental::filesystem::remove(CONFIG_PATH.c_str());
+    std::experimental::filesystem::remove((CONFIG_PATH + ".back.").c_str());
+    std::experimental::filesystem::remove(DB_PATH.c_str());
     _url = "";
     _password = "";
     _username = "";

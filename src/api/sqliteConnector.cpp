@@ -156,6 +156,7 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
 
 void SqliteConnector::deleteChildren(const string &parentPath)
 {
+    //TODO missing the onces where parentPath is one folder deeper and also destroyed
     open();
     int rs;
     sqlite3_stmt *stmt = 0;
