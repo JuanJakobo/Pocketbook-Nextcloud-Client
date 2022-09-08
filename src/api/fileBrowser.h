@@ -18,19 +18,10 @@
 class FileBrowser
 {
     public:
-        /**
-         * Creates a new FileBrowser object
-         *
-         */
-        FileBrowser(bool includeFiles);
-
-        std::vector<FileItem> getFileStructure(const std::string &path);
-
-        void setIncludeFiles(bool includeFiles) { _includeFiles = includeFiles;};
+        static std::vector<FileItem> getFileStructure(const std::string &path, const bool includeFiles, const bool includeHeader);
 
     private:
-        bool _includeFiles;
-
+        FileBrowser(){};
 
 };
 #endif

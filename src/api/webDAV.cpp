@@ -24,6 +24,7 @@ using std::ofstream;
 using std::string;
 using std::vector;
 
+namespace fs = std::experimental::filesystem;
 
 WebDAV::WebDAV()
 {
@@ -82,11 +83,11 @@ void WebDAV::logout(bool deleteFiles)
 {
     if (deleteFiles)
     {
-        std::experimental::filesystem::remove_all(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}) + "/" + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
+        fs::remove_all(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}) + "/" + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
     }
-    std::experimental::filesystem::remove(CONFIG_PATH.c_str());
-    std::experimental::filesystem::remove((CONFIG_PATH + ".back.").c_str());
-    std::experimental::filesystem::remove(DB_PATH.c_str());
+    fs::remove(CONFIG_PATH.c_str());
+    fs::remove((CONFIG_PATH + ".back.").c_str());
+    fs::remove(DB_PATH.c_str());
     _url = "";
     _password = "";
     _username = "";

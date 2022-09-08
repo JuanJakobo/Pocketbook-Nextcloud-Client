@@ -1,4 +1,4 @@
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 // eventHandler.cpp
 //
 // Author:           JuanJakobo
@@ -25,6 +25,8 @@
 
 using std::string;
 using std::vector;
+
+namespace fs = std::experimental::filesystem;
 
 std::unique_ptr<EventHandler> EventHandler::_eventHandlerStatic;
 
@@ -122,7 +124,6 @@ void EventHandler::mainMenuHandler(const int index)
                     {
                         UpdateProgressbar(("Upgrading " + path).c_str(), 0);
                         currentWebDAVItems = _webDAV.getDataStructure(path);
-                        Log::writeInfoLog("syncing");
                     }
                     else
                     {
@@ -291,11 +292,11 @@ void EventHandler::contextMenuHandler(const int index)
         {
             if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
             {
-                std::experimental::filesystem::remove_all(_webDAVView->getCurrentEntry().localPath);
+                fs::remove_all(_webDAVView->getCurrentEntry().localPath);
             }
             else
             {
-                std::experimental::filesystem::remove(_webDAVView->getCurrentEntry().localPath);
+                fs::remove(_webDAVView->getCurrentEntry().localPath);
             }
             vector<WebDAVItem> currentWebDAVItems = _sqllite.getItemsChildren(_currentPath);
             updateItems(currentWebDAVItems);
@@ -383,8 +384,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         case 1:
                             {
                                 auto path = "/mnt/ext1";
-                                FileBrowser fileBrowser = FileBrowser(false);
-                                vector<FileItem> currentFolder = fileBrowser.getFileStructure(path);
+                                vector<FileItem> currentFolder = FileBrowser::getFileStructure(path,false,true);
                                 _currentPath = path;
                                 _loginView.reset();
                                 FillAreaRect(&_menu->getContentRect(), WHITE);
@@ -411,10 +411,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 
                 if (_fileView->getCurrentEntry().type == Type::FFOLDER)
                 {
-                    FileBrowser fileBrowser = FileBrowser(false);
                     _currentPath = _fileView->getCurrentEntry().path;
-                    vector<FileItem> currentFolder = fileBrowser.getFileStructure(_currentPath);
-
+                    vector<FileItem> currentFolder = FileBrowser::getFileStructure(_currentPath,false,true);
                     _fileView.reset(new FileView(_menu->getContentRect(), currentFolder,1));
                 }
             }
@@ -552,51 +550,25 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
     return 1;
 }
 
-
-//TODO use Filebrowser
-void EventHandler::getLocalFileStructure(vector<WebDAVItem> &items)
+void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &tempItems)
 {
-    //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
-    DIR *dir;
-    class dirent *ent;
-    class stat st;
-
-    string localPath = items.at(0).localPath + '/';
-    if (localPath.back() != '/')
-        localPath = localPath + '/';
+    string localPath = tempItems.at(0).localPath + '/';
     if (iv_access(localPath.c_str(), W_OK) == 0)
     {
-        dir = opendir(localPath.c_str());
-        while ((ent = readdir(dir)) != NULL)
+        vector<FileItem> currentFolder = FileBrowser::getFileStructure(localPath,true,false);
+
+        for(const FileItem &local : currentFolder)
         {
-            const string fileName = ent->d_name;
-
-            if (fileName[0] == '.')
-                continue;
-
-            const string fullFileName = localPath + fileName;
-
-            if (stat(fullFileName.c_str(), &st) == -1)
-                continue;
-
-
-            bool found = false;
-            for (unsigned int i = 1; i < items.size(); i++)
-            {
-                if (items.at(i).localPath.compare(fullFileName) == 0)
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
+            auto p = find_if(tempItems.begin()+1, tempItems.end(), [&] (const WebDAVItem &item) {return item.localPath.compare(local.path) == 0;});
+            if (p == tempItems.end())
             {
                 WebDAVItem temp;
-                temp.localPath = fullFileName;
+                temp.localPath = local.path;
                 temp.state = FileState::ILOCAL;
-                temp.title = fullFileName.substr(fullFileName.find_last_of("/") + 1, fullFileName.length());
-                Util::decodeUrl(temp.title);
-                if ((st.st_mode & S_IFDIR) != 0)
+                temp.title = temp.localPath.substr(temp.localPath.find_last_of('/') + 1, temp.localPath.length());
+                //Log::writeInfoLog(std::to_string(fs::file_size(entry)));
+                temp.lastEditDate = local.lastEditDate;
+                if(local.type == Type::FFOLDER)
                 {
                     //create new dir in cloud
                     temp.type = Itemtype::IFOLDER;
@@ -604,12 +576,13 @@ void EventHandler::getLocalFileStructure(vector<WebDAVItem> &items)
                 else
                 {
                     //put to cloud
+                    temp.fileType = "File";
                     temp.type = Itemtype::IFILE;
                 }
-                items.push_back(temp);
+                tempItems.push_back(temp);
             }
+
         }
-        closedir(dir);
     }
 }
 

@@ -11,21 +11,15 @@
 #include "inkview.h"
 
 #include <string>
+#include <experimental/filesystem>
 
 using std::string;
 using std::vector;
 
+namespace fs = std::experimental::filesystem;
 
-FileBrowser::FileBrowser(bool includeFiles) : _includeFiles(includeFiles)
+std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path, const bool includeFiles, const bool includeHeader)
 {
-}
-
-std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path)
-{
-    //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
-    DIR *dir;
-    class dirent *ent;
-    class stat st;
     string localPath = path;
     std::vector<FileItem> items;
 
@@ -33,48 +27,41 @@ std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path)
         localPath = localPath + '/';
 
     FileItem temp;
-    temp.path = localPath.substr(0,localPath.find_last_of('/'));
-    temp.path = temp.path.substr(0,temp.path.find_last_of('/'));
-    if (temp.path.empty())
-        temp.path = "/";
-    temp.name = "..";
-    temp.type = Type::FFOLDER;
-    items.push_back(temp);
+    if(includeHeader)
+    {
+        temp.path = localPath.substr(0,localPath.find_last_of('/'));
+        temp.path = temp.path.substr(0,temp.path.find_last_of('/'));
+        if (temp.path.empty())
+            temp.path = "/";
+        temp.name = "..";
+        temp.type = Type::FFOLDER;
+        items.push_back(temp);
+    }
 
     if (iv_access(localPath.c_str(), R_OK) == 0)
     {
-        dir = opendir(localPath.c_str());
-        while ((ent = readdir(dir)) != NULL)
+        for (const auto &entry : fs::directory_iterator(localPath))
         {
-            const string fileName = ent->d_name;
+            //temp.size = fs::file_size(entry);
+            auto time = std::chrono::system_clock::to_time_t(fs::last_write_time(entry));
+            temp.lastEditDate = *gmtime(&time);
 
 
-            if (fileName[0] == '.')
-                continue;
-
-            const string fullFileName = localPath + fileName;
-
-            if (stat(fullFileName.c_str(), &st) == -1)
-                continue;
-
-            if ((st.st_mode & S_IFDIR) != 0)
+            if(is_directory(entry))
             {
-                FileItem temp;
-                temp.path = fullFileName + '/';
-                temp.name = fullFileName.substr(fullFileName.find_last_of("/") + 1, fullFileName.length());
+                temp.path = entry.path();
+                temp.name = temp.path.substr(temp.path.find_last_of('/') + 1, temp.path.length());
                 temp.type = Type::FFOLDER;
                 items.push_back(temp);
             }
-            else if (_includeFiles)
+            else if (includeFiles)
             {
-                FileItem temp;
-                temp.path = fullFileName;
-                temp.name = fullFileName.substr(fullFileName.find_last_of("/") + 1, fullFileName.length());
+                temp.path = entry.path();
+                temp.name = temp.path.substr(temp.path.find_last_of('/') + 1, temp.path.length());
                 temp.type = Type::FFILE;
                 items.push_back(temp);
             }
         }
-        closedir(dir);
     }
     return items;
 }
