@@ -22,6 +22,7 @@
 #include <experimental/filesystem>
 #include <string>
 #include <memory>
+#include <algorithm>
 
 using std::string;
 using std::vector;
@@ -590,50 +591,95 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
 {
     //BanSleep(2000);
     string path = items.at(itemID).path;
-    Log::writeInfoLog("Path to look for " + path);
 
     if (items.at(itemID).type == Itemtype::IFOLDER)
     {
         vector<WebDAVItem> tempItems;
-        if (items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
+        switch(items.at(itemID).state)
         {
-            Log::writeInfoLog(path + "outsynced");
-            UpdateProgressbar(("Syncing folder" + path).c_str(), 0);
-            tempItems = _webDAV.getDataStructure(path);
-            updateItems(tempItems);
-        }
-        else
-        {
-            Log::writeInfoLog(path + "synced");
-            tempItems = _sqllite.getItemsChildren(path);
-        }
-        //first item of the vector is the root path itself
-        for (size_t i = 1; i < tempItems.size(); i++)
-        {
-            Log::writeInfoLog("Item: " + tempItems.at(i).path);
-            downloadFolder(tempItems, i);
-        }
-        //TODO remove file parts that are no longer there, check for local path and delete these
-        //get items from DB, then compare to downloaded, if is in DB but not downloaded, remove
+            case FileState::IOUTSYNCED:
+            case FileState::ICLOUD:
+                {
+                    UpdateProgressbar(("Syncing folder" + path).c_str(), 0);
+                    tempItems = _webDAV.getDataStructure(path);
+                    updateItems(tempItems);
+                    break;
+                }
+            case FileState::ISYNCED:
+                {
+                    tempItems = _sqllite.getItemsChildren(path);
+                    break;
+                }
+            case FileState::ILOCAL:
+                {
+                    if(items.at(itemID).localPath.length() > 3 && items.at(itemID).localPath.substr(items.at(itemID).localPath.length() - 3).compare("sdr") == 0)
+                        Log::writeInfoLog("Ignoring koreader file " + items.at(itemID).localPath);
+                    else
+                    {
+                        CloseProgressbar();
 
+                        int dialogResult = DialogSynchro(ICON_QUESTION, "Action", ("The folder " + items.at(itemID).localPath + " has been removed from the cloud. Do you want to delete it?").c_str(), "Yes", "No", "Cancel");
+                        if(dialogResult == 1)
+                            fs::remove_all(items.at(itemID).localPath);
+                        else
+                            tempItems.push_back(items.at(itemID));
+
+                        OpenProgressbar(1, "Downloading...", "", 0, NULL);
+                    }
+                    break;
+                }
+        }
+
+        if(!tempItems.empty())
+        {
+            getLocalFileStructure(tempItems);
+            //first item of the vector is the root path itself
+            for (size_t i = 1; i < tempItems.size(); i++)
+            {
+                Log::writeInfoLog("Item: " + tempItems.at(i).path);
+                downloadFolder(tempItems, i);
+            }
+        }
+
+        //compare if file is in DB
+        //if file is not in DB, upload
+        //if file is in DB but no longer in Cloud, delete (if file local is newer prompt?)
+        //if file is newer offline, upload
+        //delete in DB if folder is no longer synced
+        //TODO remove file parts that are no longer there, check for local path and delete these
     }
     else
     {
-        if (items.at(itemID).state == FileState::IOUTSYNCED || items.at(itemID).state == FileState::ICLOUD)
+        switch(items.at(itemID).state)
         {
-            Log::writeInfoLog("outsynced");
-            //TODO both direction
-            //1. check etag --> if is differnt, cloud has been updated
-            //2. check modification date and file size locally --> if is different, local has been updated
-            //3. if both --> create conflict
-            //4. if first, renew file --> reset etag
-            //5. if second --> upload the local file; test if it has not been update in the cloud
-            Log::writeInfoLog("started download of " + items.at(itemID).path + " to " + items.at(itemID).localPath);
-            if (_webDAV.get(items.at(itemID)))
-            {
-                items.at(itemID).state = FileState::ISYNCED;
-                _sqllite.updateState(items.at(itemID).path,FileState::ISYNCED);
-            }
+            case FileState::IOUTSYNCED:
+            case FileState::ICLOUD:
+                {
+                    Log::writeInfoLog("outsynced");
+                    //TODO both direction
+                    //1. check etag --> if is differnt, cloud has been updated
+                    //2. check modification date and file size locally --> if is different, local has been updated
+                    //3. if both --> create conflict
+                    //4. if first, renew file --> reset etag
+                    //5. if second --> upload the local file; test if it has not been update in the cloud
+                    Log::writeInfoLog("started download of " + items.at(itemID).path + " to " + items.at(itemID).localPath);
+                    if (_webDAV.get(items.at(itemID))) {
+                        items.at(itemID).state = FileState::ISYNCED;
+                        _sqllite.updateState(items.at(itemID).path,FileState::ISYNCED);
+                    }
+                    break;
+                }
+            case FileState::ILOCAL:
+                {
+                    CloseProgressbar();
+                    int dialogResult = DialogSynchro(ICON_QUESTION, "Action", ("The file " + items.at(itemID).localPath + " has been removed from the cloud. Do you want to delete it?").c_str(), "Yes", "No", "Cancel");
+                    if(dialogResult == 1)
+                        fs::remove(items.at(itemID).localPath);
+                    break;
+                    OpenProgressbar(1, "Downloading...", "", 0, NULL);
+                }
+            default:
+                break;
         }
     }
 
