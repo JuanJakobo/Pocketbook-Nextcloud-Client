@@ -30,6 +30,6 @@ public:
 
     WebDAVItem &getCurrentEntry() { return getEntry(_selectedEntry); };
 
-    WebDAVItem &getEntry(int entryID) { return std::dynamic_pointer_cast<WebDAVViewEntry>(_entries.at(entryID))->get(); };
+    WebDAVItem &getEntry(int entryID) { return std::static_pointer_cast<WebDAVViewEntry>(_entries.at(entryID))->get(); };
 };
 #endif

@@ -61,11 +61,13 @@ int MainMenu::createMenu(bool filePicker, bool loggedIn, iv_menuhandler handler)
             //show logged in
             {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _syncFolder, NULL},
             {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _sortBy, NULL},
-            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _logout, NULL},
             //show if filePicker is shown
             {filePicker ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 104, _chooseFolder, NULL},
             //show always
             {ITEM_ACTIVE, 105, _info, NULL},
+            //show logged in
+            {loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _logout, NULL},
+            //show always
             {ITEM_ACTIVE, 106, _exit, NULL},
             {0, 0, NULL, NULL}};
 

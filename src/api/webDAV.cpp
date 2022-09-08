@@ -295,7 +295,7 @@ bool WebDAV::get(WebDAVItem &item)
 
     ShowHourglassForce();
 
-    UpdateProgressbar(("Starting Download of " + item.path).c_str(), 0);
+    UpdateProgressbar(("Starting Download to " + item.localPath).c_str(), 0);
     CURLcode res;
     CURL *curl = curl_easy_init();
 
@@ -327,7 +327,7 @@ bool WebDAV::get(WebDAVItem &item)
             switch (response_code)
             {
             case 200:
-                Log::writeInfoLog("finished download of " + item.path + " to " + item.localPath);
+                Log::writeInfoLog("finished download of " + item.title + " to " + item.localPath);
                 return true;
                 break;
             case 401:

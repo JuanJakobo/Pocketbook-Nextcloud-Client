@@ -35,6 +35,6 @@ private:
     char *_menu = strdup("Menu");
     char *_open = strdup("Open");
     char *_sync = strdup("Sync");
-    char *_remove = strdup("Remove");
+    char *_remove = strdup("Remove local");
 };
 #endif

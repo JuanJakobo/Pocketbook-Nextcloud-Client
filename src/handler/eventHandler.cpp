@@ -277,6 +277,7 @@ void EventHandler::contextMenuHandler(const int index)
         else
         {
             //TODO upload to cloud
+            //Dialog file is offline, do you want to sync it to the cloud?
             Message(ICON_ERROR, "Error", "The File is local and upload to cloud is currently not supported.", 2000);
             _webDAVView->invertCurrentEntryColor();
         }
