@@ -57,16 +57,16 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
         uuid = Username;
     }
     auto tempPath = NEXTCLOUD_ROOT_PATH + uuid + "/";
-    Util::accessConfig( Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
+    Util::accessConfig<string>( Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
     std::vector<WebDAVItem> tempItems = getDataStructure(tempPath);
     if (!tempItems.empty())
     {
         if (iv_access(CONFIG_PATH.c_str(), W_OK) != 0)
             iv_buildpath(CONFIG_PATH.c_str());
-        Util::accessConfig( Action::IWriteString, "url", _url);
-        Util::accessConfig( Action::IWriteString, "username", _username);
-        Util::accessConfig( Action::IWriteString, "UUID", uuid);
-        Util::accessConfig( Action::IWriteSecret, "password", _password);
+        Util::accessConfig<string>( Action::IWriteString, "url", _url);
+        Util::accessConfig<string>( Action::IWriteString, "username", _username);
+        Util::accessConfig<string>( Action::IWriteString, "UUID", uuid);
+        Util::accessConfig<string>( Action::IWriteSecret, "password", _password);
     }
     else
     {

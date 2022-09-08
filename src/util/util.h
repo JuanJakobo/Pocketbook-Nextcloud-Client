@@ -12,6 +12,7 @@
 #include "inkview.h"
 #include "eventHandler.h"
 
+#include "log.h"
 #include <string>
 
 enum class Action
@@ -65,9 +66,6 @@ public:
         iconfig *config = OpenConfig(CONFIG_PATH.c_str(), temp);
         T returnValue;
 
-        if constexpr(std::is_same<T, Entry>::value)
-        {
-        }
         if constexpr(std::is_same<T, std::string>::value)
         {
             switch (action)
@@ -77,14 +75,14 @@ public:
                     returnValue = {};
                     break;
                 case Action::IReadSecret:
-                    returnValue = ReadSecret(config, name.c_str(), "");
+                    returnValue = ReadSecret(config, name.c_str(), "error");
                     break;
                 case Action::IWriteString:
                     WriteString(config, name.c_str(), value.c_str());
                     returnValue = {};
                     break;
                 case Action::IReadString:
-                    returnValue = ReadString(config, name.c_str(), "");
+                    returnValue = ReadString(config, name.c_str(), "error");
                     break;
                 default:
                     break;

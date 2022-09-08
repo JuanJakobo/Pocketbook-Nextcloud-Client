@@ -36,11 +36,12 @@ EventHandler::EventHandler()
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         //for backwards compatibilty
-        if (Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).empty())
-                Util::accessConfig(Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
+        if (Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).compare("error") == 0)
+                Util::accessConfig<string>(Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
 
         if (iv_access(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), W_OK) != 0)
             iv_mkdir(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), 0777);
+
         std::vector<WebDAVItem> currentWebDAVItems;
         string path = NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/';
 
@@ -188,10 +189,10 @@ void EventHandler::mainMenuHandler(const int index)
                 switch (dialogResult)
                 {
                     case 1:
-                        Util::accessConfig(Action::IWriteInt, "sortBy", 1);
+                        Util::accessConfig<int>(Action::IWriteInt, "sortBy", 1);
                         break;
                     case 2:
-                        Util::accessConfig(Action::IWriteInt, "sortBy", 2);
+                        Util::accessConfig<int>(Action::IWriteInt, "sortBy", 2);
                         break;
                     default:
                         return;
@@ -203,13 +204,16 @@ void EventHandler::mainMenuHandler(const int index)
         case 104:
             {
 
-                _currentPath =+ (_currentPath.back() != '/') ? "/nextcloud" : "nextcloud";
+                _currentPath = _currentPath + ((_currentPath.back() != '/') ? "/nextcloud" : "nextcloud");
 
                 if (iv_mkdir(_currentPath.c_str(), 0777) != 0)
+                {
+                    Log::writeErrorLog("choosen part " + _currentPath + " could not be created as permission are not sufficient.");
                     Message(ICON_ERROR, "Error", "The permissions are not sufficient.", 1000);
+                }
                 else
                 {
-                    Util::accessConfig(Action::IWriteString, "storageLocation", _currentPath);
+                    Util::accessConfig<string>(Action::IWriteString, "storageLocation", _currentPath);
                     std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
                     if (currentWebDAVItems.empty())
                     {
@@ -377,11 +381,11 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 else
                 {
                     int dialogResult = DialogSynchro(ICON_QUESTION, "Action", "Do you want to choose your own storage path or use the default one. \n (/mnt/ext1/nextcloud/)", "Choose my own path", "Choose standard path", NULL);
-                    auto path = "/mnt/ext1";
                     switch (dialogResult)
                     {
                         case 1:
                             {
+                                auto path = "/mnt/ext1";
                                 FileBrowser fileBrowser = FileBrowser(false);
                                 vector<FileItem> currentFolder = fileBrowser.getFileStructure(path);
                                 _currentPath = path;
@@ -390,7 +394,10 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                                 _fileView = std::unique_ptr<FileView>(new FileView(_menu->getContentRect(), currentFolder,1));
                             }
                             break;
+                        case 2:
                         default:
+                            if (iv_access(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), W_OK) != 0)
+                                iv_mkdir(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), 0777);
                             updateItems(currentWebDAVItems);
                             drawWebDAVItems(currentWebDAVItems);
                             break;
@@ -549,6 +556,7 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
 }
 
 
+//TODO use Filebrowser
 void EventHandler::getLocalFileStructure(vector<WebDAVItem> &items)
 {
     //get local files, https://stackoverflow.com/questions/306533/how-do-i-get-a-list-of-files-in-a-directory-in-c
@@ -694,18 +702,19 @@ void EventHandler::updateItems(vector<WebDAVItem> &items)
 {
     for(auto &item : items)
     {
+        //ICloud if is not found
         item.state = _sqllite.getState(item.path);
 
         if (item.type == Itemtype::IFILE)
         {
-            if(iv_access(item.localPath.c_str(), W_OK) != 0)
+            if (iv_access(item.localPath.c_str(), W_OK) != 0)
                 item.state = FileState::ICLOUD;
             else
                 item.state = FileState::ISYNCED;
         }
         else
         {
-            if(iv_access(item.localPath.c_str(), W_OK) != 0)
+            if (iv_access(item.localPath.c_str(), W_OK) != 0)
                 iv_mkdir(item.localPath.c_str(), 0777);
         }
 

@@ -47,7 +47,7 @@ WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &items, int 
 
     sort(begin, items.end(), []( WebDAVItem &w1, WebDAVItem &w2) -> bool
     {
-        if(Util::accessConfig(Action::IReadInt, "sortBy", 0) == 2)
+        if(Util::accessConfig<int>(Action::IReadInt, "sortBy", 0) == 2)
         {
             //sort by lastmodified
             time_t t1 = mktime(&w1.lastEditDate);
