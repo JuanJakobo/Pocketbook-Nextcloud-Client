@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.1)
 
-PROJECT (Pocketbook-Miniflux-Reader VERSION 1.01)
+PROJECT (Pocketbook-Miniflux-Reader VERSION 1.02)
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_SYSTEM_NAME Linux)
