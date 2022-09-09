@@ -47,6 +47,7 @@ public:
     std::string getUsername() { return _username; };
     std::string getPassword() { return _password; };
     std::string getURL() { return _url; };
+    bool getIgnoreCert() { return _ignoreCert; };
 
 private:
     static std::unique_ptr<LoginView> _loginViewStatic;
@@ -57,10 +58,12 @@ private:
     irect _loginButton;
     irect _usernameButton;
     irect _passwordButton;
+    irect _ignoreCertButton;
     KeyboardTarget _target;
     std::string _username;
     std::string _password;
     std::string _url;
+    bool _ignoreCert = false;
     std::string _temp;
 
     /**

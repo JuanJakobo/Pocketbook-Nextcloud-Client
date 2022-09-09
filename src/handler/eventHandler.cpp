@@ -371,7 +371,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             {
                 ShowHourglassForce();
 
-                std::vector<WebDAVItem> currentWebDAVItems = _webDAV.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword());
+                std::vector<WebDAVItem> currentWebDAVItems = _webDAV.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword(), _loginView->getIgnoreCert());;
                 if (currentWebDAVItems.empty())
                 {
                     Message(ICON_ERROR, "Error", "Login failed.", 1000);

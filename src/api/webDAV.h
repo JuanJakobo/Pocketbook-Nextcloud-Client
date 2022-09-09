@@ -18,7 +18,6 @@
 const std::string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
 const std::string NEXTCLOUD_START_PATH = "/remote.php/";
 const std::string NEXTCLOUD_PATH = "/mnt/ext1/system/config/nextcloud";
-const std::string CACERT_PATH = NEXTCLOUD_PATH + "/customCert.pem";
 
 class WebDAV
 {
@@ -29,7 +28,7 @@ class WebDAV
          */
         WebDAV();
 
-        std::vector<WebDAVItem> login(const std::string &Url, const std::string &Username, const std::string &Pass);
+        std::vector<WebDAVItem> login(const std::string &Url, const std::string &Username, const std::string &Pass, bool ignoreCert = false);
 
         void logout(bool deleteFiles = false);
 
@@ -51,6 +50,7 @@ class WebDAV
         std::string _username;
         std::string _password;
         std::string _url;
+        bool _ignoreCert;
 
 };
 #endif

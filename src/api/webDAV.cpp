@@ -36,16 +36,18 @@ WebDAV::WebDAV()
         _username = Util::accessConfig<string>(Action::IReadString,"username",{});
         _password = Util::accessConfig<string>(Action::IReadSecret,"password",{});
         _url = Util::accessConfig<string>(Action::IReadString, "url",{});
+        _ignoreCert = Util::accessConfig<int>(Action::IReadInt, "ignoreCert",{});
     }
 }
 
 
-std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username, const string &Pass)
+std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username, const string &Pass, bool ignoreCert)
 {
     string uuid;
 
     _password = Pass;
     _username = Username;
+    _ignoreCert = ignoreCert;
 
     std::size_t found = Url.find(NEXTCLOUD_ROOT_PATH);
     if (found != std::string::npos)
@@ -69,6 +71,7 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
         Util::accessConfig<string>( Action::IWriteString, "username", _username);
         Util::accessConfig<string>( Action::IWriteString, "UUID", uuid);
         Util::accessConfig<string>( Action::IWriteSecret, "password", _password);
+        Util::accessConfig<int>( Action::IWriteInt, "ignoreCert", _ignoreCert);
     }
     else
     {
@@ -232,8 +235,12 @@ string WebDAV::propfind(const string &pathUrl)
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
-        if (iv_access(CACERT_PATH.c_str(), R_OK) == 0)
-            curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH.c_str());
+        if(_ignoreCert)
+        {
+            Log::writeInfoLog("Cert ignored");
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        }
 
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "<\?xml version=\"1.0\" encoding=\"UTF-8\"\?> \
                                                     <d:propfind xmlns:d=\"DAV:\"><d:prop xmlns:oc=\"http://owncloud.org/ns\"> \
@@ -314,8 +321,12 @@ bool WebDAV::get(WebDAVItem &item)
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, Util::progress_callback);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        if (iv_access(CACERT_PATH.c_str(), R_OK) == 0)
-            curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH.c_str());
+        if(_ignoreCert)
+        {
+            Log::writeInfoLog("Cert ignored");
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        }
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
         iv_fclose(fp);

@@ -22,6 +22,7 @@ LoginView::LoginView(const irect &contentRect) : _contentRect(contentRect)
 
     int contentHeight = contentRect.h / 2;
     int contentWidth = _contentRect.w * 0.9;
+    int checkBoxWidth = _contentRect.w * 0.1;
 
     int beginY = 0.4 * contentHeight;
     int beginX = (_contentRect.w - contentWidth) / 2;
@@ -46,7 +47,11 @@ LoginView::LoginView(const irect &contentRect) : _contentRect(contentRect)
     DrawTextRect(_passwordButton.x, _passwordButton.y - _loginFontHeight - _loginFontHeight/4, _passwordButton.w, _passwordButton.h, "Password:", ALIGN_LEFT);
     DrawRect(_passwordButton.x - 1, _passwordButton.y - 1, _passwordButton.w + 2, _passwordButton.h + 2, BLACK);
 
-    _loginButton = iRect(beginX, beginY + 6 * contents, contentWidth, contents, ALIGN_CENTER);
+    _ignoreCertButton = iRect(_contentRect.w - 2 * checkBoxWidth, beginY + 6 * contents, checkBoxWidth, contents, ALIGN_CENTER);
+    DrawTextRect(beginX, _ignoreCertButton.y, contentWidth, _ignoreCertButton.h, "Ignore Cert (unsecure):", ALIGN_LEFT);
+    DrawRect(_ignoreCertButton.x - 1, _ignoreCertButton.y - 1, _ignoreCertButton.w + 2, _ignoreCertButton.h + 2, BLACK);
+
+    _loginButton = iRect(beginX, beginY + 8 * contents, contentWidth, contents, ALIGN_CENTER);
 
     FillAreaRect(&_loginButton, BLACK);
     SetFont(_loginFont, WHITE);
@@ -87,6 +92,19 @@ int LoginView::logginClicked(int x, int y)
         _target = KeyboardTarget::IPASSWORD;
         _temp.resize(KEYBOARD_STRING_LENGHT);
         OpenKeyboard("Password", &_temp[0], KEYBOARD_STRING_LENGHT, KBD_PASSWORD, &keyboardHandlerStatic);
+
+        return 1;
+    }
+    else if (IsInRect(x, y, &_ignoreCertButton))
+    {
+        _ignoreCert = !_ignoreCert;
+        FillAreaRect(&_ignoreCertButton, WHITE);
+        if(_ignoreCert)
+            FillArea(_ignoreCertButton.x - 1, _ignoreCertButton.y - 1, _ignoreCertButton.w + 2, _ignoreCertButton.h + 2, BLACK);
+        else
+            DrawRect(_ignoreCertButton.x - 1, _ignoreCertButton.y - 1, _ignoreCertButton.w + 2, _ignoreCertButton.h + 2, BLACK);
+
+        PartialUpdate(_ignoreCertButton.x, _ignoreCertButton.y, _ignoreCertButton.w, _ignoreCertButton.h);
 
         return 1;
     }
