@@ -602,6 +602,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
                     UpdateProgressbar(("Syncing folder" + path).c_str(), 0);
                     tempItems = _webDAV.getDataStructure(path);
                     items.at(itemID).state = FileState::IDOWNLOADED;
+                    _sqllite.updateState(items.at(itemID).path,items.at(itemID).state);
                     updateItems(tempItems);
                     break;
                 }
@@ -639,10 +640,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
             getLocalFileStructure(tempItems);
             //first item of the vector is the root path itself
             for (size_t i = 1; i < tempItems.size(); i++)
-            {
-                Log::writeInfoLog("Item: " + tempItems.at(i).path);
                 downloadFolder(tempItems, i);
-            }
         }
 
         //compare if file is in DB
@@ -659,7 +657,6 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
             case FileState::IOUTSYNCED:
             case FileState::ICLOUD:
                 {
-                    Log::writeInfoLog("outsynced");
                     //TODO both direction
                     //1. check etag --> if is differnt, cloud has been updated
                     //2. check modification date and file size locally --> if is different, local has been updated
@@ -719,6 +716,32 @@ void EventHandler::startDownload()
     _webDAVView->reDrawCurrentEntry();
 }
 
+bool EventHandler::checkIfIsDownloaded(vector<WebDAVItem> &items, int itemID)
+{
+    if (iv_access(items.at(itemID).localPath.c_str(), W_OK) != 0)
+    {
+        items.at(itemID).state = FileState::IOUTSYNCED;
+        _sqllite.updateState(items.at(itemID).path,items.at(itemID).state);
+        return false;
+    }
+
+    if (items.at(itemID).type == Itemtype::IFOLDER)
+    {
+        vector<WebDAVItem> tempItems = _sqllite.getItemsChildren(items.at(itemID).path);
+        //first item of the vector is the root path itself
+        for (size_t i = 1; i < tempItems.size(); i++)
+        {
+            if(!checkIfIsDownloaded(tempItems, i))
+            {
+                items.at(itemID).state = FileState::IOUTSYNCED;
+                _sqllite.updateState(items.at(itemID).path,items.at(itemID).state);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void EventHandler::updateItems(vector<WebDAVItem> &items)
 {
     for(auto &item : items)
@@ -735,20 +758,23 @@ void EventHandler::updateItems(vector<WebDAVItem> &items)
         }
         else
         {
-            if (iv_access(item.localPath.c_str(), W_OK) != 0)
+            if(item.state == FileState::IDOWNLOADED)
             {
-                //TODO here if status is downloadad try aginst the DB all kids
-                if(items.at(0).state != FileState::IDOWNLOADED)
-                    items.at(0).state = FileState::IOUTSYNCED;
-                iv_mkdir(item.localPath.c_str(), 0777);
+                vector<WebDAVItem> currentItems = _sqllite.getItemsChildren(item.path);
+                if(!checkIfIsDownloaded(currentItems,0))
+                    item.state = FileState::IOUTSYNCED;
             }
 
+            if (iv_access(item.localPath.c_str(), W_OK) != 0)
+                iv_mkdir(item.localPath.c_str(), 0777);
         }
         if (_sqllite.getEtag(item.path).compare(item.etag) != 0)
             item.state = (item.state == FileState::ISYNCED || item.state == FileState::IDOWNLOADED) ? FileState::IOUTSYNCED : FileState::ICLOUD;
     }
     if(items.at(0).state != FileState::IDOWNLOADED)
+    {
         items.at(0).state = FileState::ISYNCED;
+    }
     _sqllite.saveItemsChildren(items);
 
     //TODO sync delete when not parentPath existend --> "select * from metadata where parentPath NOT IN (Select

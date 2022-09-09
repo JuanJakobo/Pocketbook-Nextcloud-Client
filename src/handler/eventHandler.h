@@ -126,6 +126,8 @@ private:
 
     void startDownload();
 
+    bool checkIfIsDownloaded(std::vector<WebDAVItem> &items, int itemID);
+
     void updateItems(std::vector<WebDAVItem> &items);
 
     void drawWebDAVItems(std::vector<WebDAVItem> &items);
