@@ -24,8 +24,9 @@ Download and unzip the file from releases and place the nextcloud.app into the "
 * PocketBook InkPad 3 Pro (PB740)
 
 ## Usage
-To login type the servername (e.g. https://domainname) or the WebDAV URL (e.g. htts://domainname/remote.php/dav/files/UUID) (You can look up the WebDAV URL in the files app->seetings.), Username and Password. You then will be redirected to the root file folder of your nextcloud instance.
-To download a file, click on it. A synced file can be either opened, synced or removed.
+To login type the servername (e.g. https://domainname) or the WebDAV URL (e.g. htts://domainname/remote.php/dav/files/UUID) (You can look up the WebDAV URL in the files app->seetings.), Username and Password. If you have 2FA enabled, you have to set up an App specific password. (https://docs.nextcloud.com/server/latest/user_manual/en/user_2fa.html#using-client-applications-with-two-factor-authentication)
+
+Next you will be asked where you want to save the nextcloud files. To download a file, click on it. If you want to sync a folder click it until an menu appears. In this menu select "sync". The folder sync will only sync files that are "newer" on the server side. It ignores .sdr files.
 
 ## How to build
 
