@@ -55,6 +55,7 @@ private:
     char *_logout = strdup("Logout");
     char *_chooseFolder = strdup("Create here");
     char *_sortBy = strdup("Order items by");
+    char *_excludeFiles = strdup("Exclude and hide files");
     char *_info = strdup("Info");
     char *_exit = strdup("Close App");
 

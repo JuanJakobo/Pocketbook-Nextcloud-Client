@@ -109,6 +109,35 @@ public:
     }
 
     /**
+     * Reads the value from the config file
+     * T defines the type of the item (e.g. int, string etc.)
+     *
+     * @param name of the requested item
+     * @param defaultValue value to return when no was found
+     *
+     * @return value from config
+     */
+    template <typename T>
+    static T getConfig(string name, T defaultValue)
+    {
+        iconfigedit *temp = nullptr;
+        iconfig *config = OpenConfig(CONFIG_PATH.c_str(), temp);
+        T returnValue;
+
+        if constexpr(std::is_same<T, std::string>::value)
+        {
+            returnValue = ReadString(config, name.c_str(), ((std::string) defaultValue).c_str());
+        }
+        else if constexpr(std::is_same<T, int>::value)
+        {
+            returnValue = ReadInt(config, name.c_str(), defaultValue);
+        }
+        CloseConfig(config);
+
+        return returnValue;
+    }
+
+    /**
     * Returns an integer representing the download progress
     *
     */

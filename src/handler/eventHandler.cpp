@@ -18,6 +18,7 @@
 #include "fileBrowser.h"
 #include "fileView.h"
 #include "fileModel.h"
+#include "fileHandler.h"
 
 #include <experimental/filesystem>
 #include <string>
@@ -36,6 +37,7 @@ EventHandler::EventHandler()
     //create an copy of the eventhandler to handle methods that require static functions
     _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
+    _fileHandler = std::shared_ptr<FileHandler>(new FileHandler());
     _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
@@ -203,8 +205,23 @@ void EventHandler::mainMenuHandler(const int index)
                 Message(ICON_INFORMATION, "Info", "Reload page to see new order method in effect.", 2000);
                 break;
             }
-            //Select folder
+            // Exclude and hide files
         case 104:
+            {
+                if (_fileView != nullptr) {
+                    _currentPath = _fileView->getCurrentEntry().path;
+                    _fileView.reset();
+                } else {
+                    _currentPath = "";
+                }
+
+                _webDAVView.reset();
+                FillAreaRect(&_menu->getContentRect(), WHITE);
+                _excludeFileView = std::unique_ptr<ExcludeFileView>(new ExcludeFileView(_menu->getContentRect()));
+                break;
+            }
+            //Select folder
+        case 105:
             {
 
                 _currentPath = _currentPath + ((_currentPath.back() != '/') ? "/nextcloud" : "nextcloud");
@@ -232,13 +249,13 @@ void EventHandler::mainMenuHandler(const int index)
                 break;
             }
             //Info
-        case 105:
+        case 106:
             {
                 Message(ICON_INFORMATION, "Info", "Version 1.02 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
                 break;
             }
             //Exit
-        case 106:
+        case 107:
             CloseApp();
             break;
         default:
@@ -363,6 +380,42 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             }
 
             return 0;
+        }
+        else if (_excludeFileView != nullptr) {
+            int click = _excludeFileView->excludeClicked(par1, par2);
+            if (click == 3) {
+                Util::accessConfig<string>(Action::IWriteString, "ex_extensionList", _excludeFileView->getExtensionList());
+                Util::accessConfig<string>(Action::IWriteString, "ex_pattern",_excludeFileView->getRegex());
+                Util::accessConfig<string>(Action::IWriteString, "ex_folderPattern",_excludeFileView->getFolderRegex());
+                Util::accessConfig<int>(Action::IWriteInt, "ex_invertMatch", _excludeFileView->getInvertMatch());
+
+                _excludeFileView.reset();
+                ShowHourglassForce();
+
+                FillAreaRect(&_menu->getContentRect(), WHITE);
+                if (_currentPath != ""){
+                    vector<FileItem> currentFolder = FileBrowser::getFileStructure(_currentPath,false,true);
+                    _fileView.reset(new FileView(_menu->getContentRect(), currentFolder,1));
+                } else {
+                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
+                    updateItems(currentWebDAVItems);
+                    drawWebDAVItems(currentWebDAVItems);
+                }
+            }
+            else if (click == -1) {
+                _excludeFileView.reset();
+                ShowHourglassForce();
+
+                FillAreaRect(&_menu->getContentRect(), WHITE);
+                if (_currentPath != ""){
+                    vector<FileItem> currentFolder = FileBrowser::getFileStructure(_currentPath,false,true);
+                    _fileView.reset(new FileView(_menu->getContentRect(), currentFolder,1));
+                } else {
+                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
+                    updateItems(currentWebDAVItems);
+                    drawWebDAVItems(currentWebDAVItems);
+                }
+            }
         }
         //if loginView is shown
         else if (_loginView != nullptr)
@@ -556,6 +609,7 @@ void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &tempItems)
     {
         vector<FileItem> currentFolder = FileBrowser::getFileStructure(localPath,true,false);
 
+        const int storageLocationLength = _fileHandler->getStorageLocation().length();
         for(const FileItem &local : currentFolder)
         {
             auto p = find_if(tempItems.begin()+1, tempItems.end(), [&] (const WebDAVItem &item) {return item.localPath.compare(local.path) == 0;});
@@ -567,16 +621,30 @@ void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &tempItems)
                 temp.title = temp.localPath.substr(temp.localPath.find_last_of('/') + 1, temp.localPath.length());
                 //Log::writeInfoLog(std::to_string(fs::file_size(entry)));
                 temp.lastEditDate = local.lastEditDate;
+
+                string directoryPath = temp.localPath;
+                if (directoryPath.length() > storageLocationLength) {
+                    directoryPath = directoryPath.substr(storageLocationLength + 1);
+                }
                 if(local.type == Type::FFOLDER)
                 {
+                    if (_fileHandler->excludeFolder(directoryPath + "/")) {
+                        continue;
+                    }
                     //create new dir in cloud
                     temp.type = Itemtype::IFOLDER;
                 }
                 else
                 {
                     //put to cloud
-                    temp.fileType = "File";
                     temp.type = Itemtype::IFILE;
+                    if (directoryPath.length() > temp.title.length()) {
+                        directoryPath = directoryPath.substr(0, directoryPath.length() - temp.title.length());
+                    }
+                    if (_fileHandler->excludeFolder(directoryPath) || _fileHandler->excludeFile(temp.title))
+                    {
+                        continue;
+                    }
                 }
                 tempItems.push_back(temp);
             }

@@ -52,6 +52,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/contextMenu.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/eventHandler.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp
+            ${CMAKE_SOURCE_DIR}/src/handler/fileHandler.cpp
             ${CMAKE_SOURCE_DIR}/src/ui/listView.cpp
 			${CMAKE_SOURCE_DIR}/src/ui/listViewEntry.cpp
             ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/webDAVView.cpp
@@ -59,6 +60,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
 			${CMAKE_SOURCE_DIR}/src/ui/loginView/loginView.cpp
             ${CMAKE_SOURCE_DIR}/src/ui/fileView/fileView.cpp
             ${CMAKE_SOURCE_DIR}/src/ui/fileView/fileViewEntry.cpp
+            ${CMAKE_SOURCE_DIR}/src/ui/excludeFileView/excludeFileView.cpp
 			${CMAKE_SOURCE_DIR}/src/util/util.cpp
 			${CMAKE_SOURCE_DIR}/src/util/log.cpp
             ${CMAKE_SOURCE_DIR}/src/api/webDAV.cpp
@@ -78,6 +80,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/ui/webDAVView/
     ${CMAKE_SOURCE_DIR}/src/ui/fileView/
     ${CMAKE_SOURCE_DIR}/src/ui/loginView/
+    ${CMAKE_SOURCE_DIR}/src/ui/excludeFileView/
     ${CMAKE_SOURCE_DIR}/src/api/
 )
 

@@ -9,6 +9,8 @@
 
 #include "fileBrowser.h"
 #include "inkview.h"
+#include "fileHandler.h"
+#include "log.h"
 
 #include <string>
 #include <experimental/filesystem>
@@ -18,6 +20,7 @@ using std::vector;
 
 namespace fs = std::experimental::filesystem;
 
+std::shared_ptr<FileHandler> FileBrowser::_fileHandler = std::shared_ptr<FileHandler>(new FileHandler());
 std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path, const bool includeFiles, const bool includeHeader)
 {
     string localPath = path;
@@ -38,6 +41,7 @@ std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path, con
         items.push_back(temp);
     }
 
+    const int storageLocationLength = _fileHandler->getStorageLocation().length();
     if (iv_access(localPath.c_str(), R_OK) == 0)
     {
         for (const auto &entry : fs::directory_iterator(localPath))
@@ -46,20 +50,27 @@ std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path, con
             auto time = std::chrono::system_clock::to_time_t(fs::last_write_time(entry));
             temp.lastEditDate = *gmtime(&time);
 
-
+            string directoryPath = temp.path;
+            if (directoryPath.length() > storageLocationLength + 1) {
+                directoryPath = directoryPath.substr(storageLocationLength + 1);
+            }
             if(is_directory(entry))
             {
                 temp.path = entry.path();
                 temp.name = temp.path.substr(temp.path.find_last_of('/') + 1, temp.path.length());
                 temp.type = Type::FFOLDER;
-                items.push_back(temp);
+                if (!_fileHandler->excludeFolder(directoryPath + "/")) {
+                    items.push_back(temp);
+                }
             }
             else if (includeFiles)
             {
                 temp.path = entry.path();
                 temp.name = temp.path.substr(temp.path.find_last_of('/') + 1, temp.path.length());
                 temp.type = Type::FFILE;
-                items.push_back(temp);
+                if (!_fileHandler->excludeFolder(directoryPath.substr(0, directoryPath.length())) || !_fileHandler->excludeFile(temp.name)) {
+                    items.push_back(temp);
+                }
             }
         }
     }

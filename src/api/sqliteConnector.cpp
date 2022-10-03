@@ -11,6 +11,8 @@
 #include "sqlite3.h"
 #include "log.h"
 #include "util.h"
+#include "fileHandler.h"
+#include "webDAV.h"
 
 #include <string>
 #include <vector>
@@ -18,11 +20,13 @@ using std::string;
 
 SqliteConnector::SqliteConnector(const string &DBpath) : _dbpath(DBpath)
 {
+     _fileHandler = std::shared_ptr<FileHandler>(new FileHandler());
 }
 
 SqliteConnector::~SqliteConnector()
 {
     sqlite3_close(_db);
+    _fileHandler.reset();
     Log::writeInfoLog("closed DB");
 }
 
@@ -119,11 +123,13 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
     int rs;
     sqlite3_stmt *stmt = 0;
     std::vector<WebDAVItem> items;
+    std::vector<WebDAVItem> itemsToRemove;
 
     rs = sqlite3_prepare_v2(_db, "SELECT title, localPath, path, size, etag, fileType, lastEditDate, type, state FROM 'metadata' WHERE path=? OR parentPath=? ORDER BY parentPath;", -1, &stmt, 0);
     rs = sqlite3_bind_text(stmt, 1, parentPath.c_str(), parentPath.length(), NULL);
     rs = sqlite3_bind_text(stmt, 2, parentPath.c_str(), parentPath.length(), NULL);
 
+    const int storageLocationLength = (NEXTCLOUD_ROOT_PATH + _fileHandler->getStorageUsername() + "/").length();
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
         WebDAVItem temp;
@@ -144,12 +150,53 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
                 temp.state = FileState::ICLOUD;
         }
 
-        items.push_back(temp);
+        string direcotryPath = temp.path;
+        if (direcotryPath.length() >= storageLocationLength) {
+            direcotryPath = direcotryPath.substr(storageLocationLength);
+        }
+        if (temp.type == Itemtype::IFILE && ( _fileHandler->excludeFolder(direcotryPath) || _fileHandler->excludeFile(temp.title))) {
+            //The file was previously cached and should be excluded from now on
+            //TODO Maybe an SQL statement with REGEX match should be executed directly after changing the conifg
+            itemsToRemove.push_back(temp);
+        } else if (temp.type == Itemtype::IFOLDER && _fileHandler->excludeFolder(direcotryPath)) {
+            itemsToRemove.push_back(temp);
+        } 
+        else {
+            items.push_back(temp);
+        }
     }
 
     sqlite3_finalize(stmt);
     sqlite3_close(_db);
+
+    for (WebDAVItem itemD : itemsToRemove) {
+        if (itemD.type == Itemtype::IFOLDER) {
+            deleteChildren(itemD.path);
+        } else {
+            deleteChild(itemD.path, itemD.title);
+        }
+    }
+
     return items;
+}
+
+void SqliteConnector::deleteChild(const string &path, const string &title)
+{
+    open();
+    int rs;
+    sqlite3_stmt *stmt = 0;
+    rs = sqlite3_prepare_v2(_db, "DELETE FROM 'metadata' WHERE path = ? AND title = ?", -1, &stmt, 0);
+    rs = sqlite3_bind_text(stmt, 1, path.c_str(), path.length(), NULL);
+    rs = sqlite3_bind_text(stmt, 1, title.c_str(), title.length(), NULL);
+
+    rs = sqlite3_step(stmt);
+    if (rs != SQLITE_DONE)
+    {
+        Log::writeErrorLog(std::string("An error ocurred trying to delete the item ") + sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+    }
+    rs = sqlite3_clear_bindings(stmt);
+    rs = sqlite3_reset(stmt);
+
 }
 
 void SqliteConnector::deleteChildren(const string &parentPath)

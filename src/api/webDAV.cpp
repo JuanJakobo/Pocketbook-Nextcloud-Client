@@ -11,6 +11,7 @@
 #include "util.h"
 #include "log.h"
 #include "eventHandler.h"
+#include "fileHandler.h"
 
 #include <string>
 #include <experimental/filesystem>
@@ -37,7 +38,13 @@ WebDAV::WebDAV()
         _password = Util::accessConfig<string>(Action::IReadSecret,"password",{});
         _url = Util::accessConfig<string>(Action::IReadString, "url",{});
         _ignoreCert = Util::accessConfig<int>(Action::IReadInt, "ignoreCert",{});
+        _fileHandler = std::shared_ptr<FileHandler>(new FileHandler());
     }
+}
+
+WebDAV::~WebDAV() 
+{
+    _fileHandler.reset();
 }
 
 
@@ -176,7 +183,20 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
             tempItem.title = tempItem.title.substr(tempItem.title.find_last_of("/") + 1, tempItem.title.length());
             Util::decodeUrl(tempItem.title);
 
-            tempItems.push_back(tempItem);
+            string folderPath = tempItem.path;
+            string prefix = NEXTCLOUD_ROOT_PATH + _username + "/";
+            if (tempItem.path.find(prefix) != string::npos) {
+                folderPath = tempItem.path.substr(prefix.length());
+                if (tempItem.type == Itemtype::IFILE && folderPath.length() >= tempItem.title.length()) {
+                    folderPath = folderPath.substr(0, folderPath.length() - tempItem.title.length());
+                }
+            }
+
+            if (tempItem.type == Itemtype::IFILE && ( !_fileHandler->excludeFolder(folderPath) && !_fileHandler->excludeFile(tempItem.title) )) 
+                tempItems.push_back(tempItem);
+            else if (tempItem.type == Itemtype::IFOLDER && !_fileHandler->excludeFolder(folderPath)) 
+                tempItems.push_back(tempItem);
+
             xmlItem = xmlItem.substr(end + endItem.length());
             begin = xmlItem.find(beginItem);
         }
