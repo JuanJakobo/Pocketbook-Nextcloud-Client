@@ -49,7 +49,7 @@ EventHandler::EventHandler()
             iv_mkdir(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), 0777);
 
         std::vector<WebDAVItem> currentWebDAVItems;
-        string path = NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/';
+        string path = WebDAV::getRootPath(true);
 
         currentWebDAVItems = _webDAV.getDataStructure(path);
         _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
@@ -234,7 +234,7 @@ void EventHandler::mainMenuHandler(const int index)
                 else
                 {
                     Util::accessConfig<string>(Action::IWriteString, "storageLocation", _currentPath);
-                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
+                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(WebDAV::getRootPath(true));
                     if (currentWebDAVItems.empty())
                     {
                         Message(ICON_ERROR, "Error", "Failed to get items. Please try again.", 1000);
@@ -388,8 +388,14 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 Util::accessConfig<string>(Action::IWriteString, "ex_extensionList", _excludeFileView->getExtensionList());
                 Util::accessConfig<string>(Action::IWriteString, "ex_pattern",_excludeFileView->getRegex());
                 Util::accessConfig<string>(Action::IWriteString, "ex_folderPattern",_excludeFileView->getFolderRegex());
+                Util::accessConfig<string>(Action::IWriteString, "ex_relativeRootPath", _excludeFileView->getStartFolder());
                 Util::accessConfig<int>(Action::IWriteInt, "ex_invertMatch", _excludeFileView->getInvertMatch());
+                
                 _sqllite.resetHideState();
+                if (_excludeFileView->getStartFolder() != "") 
+                {
+                    _sqllite.deleteItemsNotBeginsWith(WebDAV::getRootPath(true));
+                }
 
                 _excludeFileView.reset();
                 ShowHourglassForce();
@@ -399,7 +405,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     vector<FileItem> currentFolder = FileBrowser::getFileStructure(_currentPath,false,true);
                     _fileView.reset(new FileView(_menu->getContentRect(), currentFolder,1));
                 } else {
-                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
+                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(WebDAV::getRootPath(true));
                     updateItems(currentWebDAVItems);
                     drawWebDAVItems(currentWebDAVItems);
                 }
@@ -413,7 +419,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     vector<FileItem> currentFolder = FileBrowser::getFileStructure(_currentPath,false,true);
                     _fileView.reset(new FileView(_menu->getContentRect(), currentFolder,1));
                 } else {
-                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
+                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(WebDAV::getRootPath(true));
                     updateItems(currentWebDAVItems);
                     drawWebDAVItems(currentWebDAVItems);
                 }
@@ -509,7 +515,6 @@ void EventHandler::openItem()
 
 void EventHandler::openFolder()
 {
-
     std::vector<WebDAVItem> currentWebDAVItems;
 
     switch ((_webDAVView->getCurrentEntry().state == FileState::ILOCAL) ? FileState::ILOCAL : _sqllite.getState(_webDAVView->getCurrentEntry().path))

@@ -38,6 +38,12 @@ class WebDAV
 
         std::vector<WebDAVItem> getDataStructure(const std::string &pathUrl);
 
+        /**
+         * Returns the root path of the nextcloud server 
+         * (e.g. /remote.php/dav/files/userName/startFolder/)
+         */
+        static std::string getRootPath(bool encode = false);
+
     /**
         * gets the dataStructure of the given URL and writes its WEBDAV items to the items vector
         *

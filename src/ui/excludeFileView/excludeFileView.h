@@ -22,7 +22,8 @@ enum class ExcludeFileKeyboardTarget
 {
     IEXTENSIONS,
     IREGEX,
-    IFOLDERREGEX
+    IFOLDERREGEX,
+    ISTARTFOLDER,
 };
 
 const int EXCLUDE_FILE_KEYBOARD_STRING_LENGHT = 90;
@@ -51,6 +52,7 @@ public:
     std::string getExtensionList() { return _extensionList; };
     std::string getRegex() { return _regex; };
     std::string getFolderRegex() { return _folderRegex; };
+    std::string getStartFolder() { return _startFolder; };
     int getInvertMatch() { return _invertMatch; };
 
 private:
@@ -64,10 +66,12 @@ private:
     irect       _regexButton;
     irect       _invertMatchButton;
     irect       _folderRegexButton;
+    irect       _startFolderButton;
     ExcludeFileKeyboardTarget _target;
     std::string _extensionList;
     std::string _regex;
     std::string _folderRegex;
+    std::string _startFolder;
     bool        _invertMatch = false;
     std::string _temp;
 

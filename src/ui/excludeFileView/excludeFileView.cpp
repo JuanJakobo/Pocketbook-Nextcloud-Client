@@ -22,6 +22,7 @@ ExcludeFileView::ExcludeFileView(const irect &contentRect): _contentRect(content
     _extensionList = Util::getConfig<string>("ex_extensionList", "");
     _regex = Util::getConfig<string>("ex_pattern", "");
     _folderRegex = Util::getConfig<string>("ex_folderPattern", "");
+    _startFolder = Util::getConfig<string>("ex_relativeRootPath", "");
     _invertMatch =  Util::getConfig<int>("ex_invertMatch",0);
 
     int contentHeight = contentRect.h / 2;
@@ -54,20 +55,25 @@ ExcludeFileView::ExcludeFileView(const irect &contentRect): _contentRect(content
     DrawString(_folderRegexButton.x, _folderRegexButton.y, _folderRegex.c_str());
     DrawRect(_folderRegexButton.x - 1, _folderRegexButton.y - 1, _folderRegexButton.w + 2, _folderRegexButton.h + 2, BLACK);
 
-    _invertMatchButton = iRect(_contentRect.w - 2 * checkBoxWidth, beginY + 6 * contents, checkBoxWidth, contents, ALIGN_CENTER);
+    _startFolderButton = iRect(beginX, beginY + 6 * contents, contentWidth, contents, ALIGN_CENTER);
+    DrawTextRect(_startFolderButton.x, _startFolderButton.y - _fontHeight - _fontHeight/3, _startFolderButton.w, _startFolderButton.h, "Start folder:", ALIGN_LEFT);
+    DrawString(_startFolderButton.x, _startFolderButton.y, _startFolder.c_str());
+    DrawRect(_startFolderButton.x - 1, _startFolderButton.y - 1, _startFolderButton.w + 2, _startFolderButton.h + 2, BLACK);
+
+    _invertMatchButton = iRect(_contentRect.w - 2 * checkBoxWidth, beginY + 8 * contents, checkBoxWidth, contents, ALIGN_CENTER);
     DrawTextRect(beginX, _invertMatchButton.y, contentWidth, _invertMatchButton.h, "Only include matching:", ALIGN_LEFT);
     DrawRect(_invertMatchButton.x - 1, _invertMatchButton.y - 1, _invertMatchButton.w + 2, _invertMatchButton.h + 2, BLACK);
     if (_invertMatch) {
         FillArea(_invertMatchButton.x - 1, _invertMatchButton.y - 1, _invertMatchButton.w + 2, _invertMatchButton.h + 2, BLACK);
     }
 
-    _saveButton = iRect(beginX, beginY + 8 * contents, contentWidth / 2 - 20, contents, ALIGN_CENTER);
+    _saveButton = iRect(beginX, beginY + 10 * contents, contentWidth / 2 - 20, contents, ALIGN_CENTER);
     FillAreaRect(&_saveButton, BLACK);
     SetFont(_font, WHITE);
     DrawTextRect2(&_saveButton, "Save");
     PartialUpdate(_contentRect.x, _contentRect.y, _contentRect.w, _contentRect.h);
 
-    _cancelButton = iRect(beginX + contentWidth / 2, beginY + 8 * contents, contentWidth / 2 - 20, contents, ALIGN_CENTER);
+    _cancelButton = iRect(beginX + contentWidth / 2, beginY + 10 * contents, contentWidth / 2 - 20, contents, ALIGN_CENTER);
     FillAreaRect(&_cancelButton, BLACK);
     SetFont(_font, WHITE);
     DrawTextRect2(&_cancelButton, "Cancel");
@@ -109,6 +115,15 @@ int ExcludeFileView::excludeClicked(int x, int y)
             _temp = _folderRegex;
         _temp.resize(EXCLUDE_FILE_KEYBOARD_STRING_LENGHT);
         OpenKeyboard("/root/.*/test/", &_temp[0], EXCLUDE_FILE_KEYBOARD_STRING_LENGHT, KBD_NORMAL, &keyboardHandlerStatic);
+        return 1;
+    }
+    else if (IsInRect(x, y, &_startFolderButton))
+    {
+        _target = ExcludeFileKeyboardTarget::ISTARTFOLDER;
+        if (!_startFolder.empty())
+            _temp = _startFolder;
+        _temp.resize(EXCLUDE_FILE_KEYBOARD_STRING_LENGHT);
+        OpenKeyboard("/MyBooks/", &_temp[0], EXCLUDE_FILE_KEYBOARD_STRING_LENGHT, KBD_NORMAL, &keyboardHandlerStatic);
         return 1;
     }
     else if (IsInRect(x, y, &_invertMatchButton))
@@ -197,5 +212,19 @@ void ExcludeFileView::keyboardHandler(char *text)
         _folderRegex = s.c_str();
         FillAreaRect(&_folderRegexButton, WHITE);
         DrawTextRect2(&_folderRegexButton, s.c_str());
+    }
+    else if (_target == ExcludeFileKeyboardTarget::ISTARTFOLDER)
+    {
+        _startFolder = s.c_str();
+        if (_startFolder.length() > 1 && _startFolder != "/") {
+            if (_startFolder.substr(0, 1) != "/") {
+                _startFolder = "/" + _startFolder;
+            }
+            if (_startFolder.substr(_startFolder.length() - 1) != "/") {
+                _startFolder = _startFolder + "/";
+            }
+        }
+        FillAreaRect(&_startFolderButton, WHITE);
+        DrawTextRect2(&_startFolderButton, _startFolder.c_str());
     }
 }

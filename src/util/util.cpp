@@ -100,6 +100,18 @@ void Util::decodeUrl(string &text)
     curl_easy_cleanup(curl);
 }
 
+void Util::encodeUrl(string &text) 
+{
+    char *buffer;
+    CURL *curl = curl_easy_init();
+
+    buffer = curl_easy_escape(curl, text.c_str(), 0);
+    text = buffer;
+
+    curl_free(buffer);
+    curl_easy_cleanup(curl);
+}
+
 void kill_child(int sig)
 {
     //SIGKILL

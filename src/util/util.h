@@ -15,6 +15,8 @@
 #include "log.h"
 #include <string>
 
+using std::string;
+
 enum class Action
 {
     IWriteSecret,
@@ -25,7 +27,7 @@ enum class Action
     IReadInt
 };
 
-const std::string CONFIG_PATH = CONFIG_FOLDER + "/nextcloud.cfg";
+const std::string CONFIG_PATH = "/mnt/ext1/system/config/nextcloud/nextcloud.cfg";
 
 class Util
 {
@@ -154,6 +156,13 @@ public:
      * @param text text that shall be converted
      */
     static void decodeUrl(std::string &text);
+
+    /**
+     * Encodes an URL
+     *
+     * @param text text that shall be converted
+     */
+    static void encodeUrl(std::string &text);
 
     /**
      * Updates the library of the Pocketbook

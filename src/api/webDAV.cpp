@@ -19,6 +19,7 @@
 #include <fstream>
 #include <sstream>
 #include <math.h>
+#include <regex>
 
 using std::ifstream;
 using std::ofstream;
@@ -26,6 +27,20 @@ using std::string;
 using std::vector;
 
 namespace fs = std::experimental::filesystem;
+
+std::string WebDAV::getRootPath(bool encode) {
+    string rootPath = Util::getConfig<std::string>("ex_relativeRootPath", "/");
+    if (rootPath == "")
+        rootPath += "/";
+
+    string rtc =  NEXTCLOUD_ROOT_PATH + Util::getConfig<std::string>("UUID", "") + rootPath;
+    if (encode) {
+        Util::encodeUrl(rtc);
+        rtc = std::regex_replace(rtc, std::regex("%2F"), "/");
+    }
+
+    return rtc;
+}
 
 WebDAV::WebDAV()
 {
@@ -184,7 +199,7 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
             tempItem.title = tempItem.title.substr(tempItem.title.find_last_of("/") + 1, tempItem.title.length());
             Util::decodeUrl(tempItem.title);
 
-            string &pathDecoded = tempItem.path;
+            string pathDecoded = tempItem.path;
             Util::decodeUrl(pathDecoded);
             tempItem.hide = _fileHandler->getHideState(tempItem.type, prefix,(pathDecoded), tempItem.title);
             
@@ -233,6 +248,7 @@ string WebDAV::propfind(const string &pathUrl)
     string readBuffer;
     CURLcode res;
     CURL *curl = curl_easy_init();
+                    Log::writeInfoLog("Path: " + pathUrl);
 
     if (curl)
     {
@@ -274,7 +290,33 @@ string WebDAV::propfind(const string &pathUrl)
             switch (response_code)
             {
                 case 404:
-                    Message(ICON_ERROR, "Error", "The URL seems to be incorrect. You can look up the WebDav URL in the settings of the files webapp. ", 4000);
+                    if (getRootPath().compare( NEXTCLOUD_ROOT_PATH + Util::getConfig<std::string>("uuid", "")) != 0) {
+                        if (propfind(NEXTCLOUD_ROOT_PATH + Util::getConfig<std::string>("UUID", "")) != "") {
+                            // Own root path defined
+                            string output;
+                            int dialogResult = DialogSynchro(
+                                ICON_ERROR, 
+                                "Action", 
+                                output.append("The specified start folder does not seem to exist:\n").append(Util::getConfig<std::string>("ex_relativeRootPath", "/")).append("\n\nWhat would you like to do?").c_str(), 
+                                "Reset start folder", "Close App", NULL
+                            );
+                            switch (dialogResult)
+                            {
+                            case 1:
+                                {
+                                    Util::accessConfig<string>(Action::IWriteString, "ex_relativeRootPath", "");
+                                    return propfind(NEXTCLOUD_ROOT_PATH + Util::getConfig<std::string>("UUID", ""));
+                                }
+                                break;
+                            case 2:
+                            default:
+                                CloseApp();
+                                break;
+                            }
+                        }
+                    } else {
+                        Message(ICON_ERROR, "Error", "The URL seems to be incorrect. You can look up the WebDav URL in the settings of the files webapp. ", 4000);
+                    }
                     break;
                 case 401:
                     Message(ICON_ERROR, "Error", "Username/password incorrect.", 4000);

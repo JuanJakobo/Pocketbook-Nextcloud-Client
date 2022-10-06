@@ -16,6 +16,8 @@
 
 #include <string>
 #include <vector>
+#include <regex>
+
 using std::string;
 
 SqliteConnector::SqliteConnector(const string &DBpath) : _dbpath(DBpath)
@@ -258,6 +260,28 @@ void SqliteConnector::deleteChild(const string &path, const string &title)
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
 
+}
+void SqliteConnector::deleteItemsNotBeginsWith(string beginPath) 
+{
+    open();
+
+    // escape characters
+    beginPath = std::regex_replace(beginPath, std::regex("%"), "#%");
+    beginPath = std::regex_replace(beginPath, std::regex("_"), "#_");
+    beginPath = beginPath + "%";
+
+    int rs;
+    sqlite3_stmt *stmt = 0;
+    rs = sqlite3_prepare_v2(_db, "DELETE FROM 'metadata' WHERE path NOT LIKE ? ESCAPE '#'", -1, &stmt, 0);
+    rs = sqlite3_bind_text(stmt, 1, beginPath.c_str(), beginPath.length(), NULL);
+
+    rs = sqlite3_step(stmt);
+    if (rs != SQLITE_DONE)
+    {
+        Log::writeErrorLog(std::string("An error ocurred trying to delete the items that begins with " + beginPath) + sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+    }
+    rs = sqlite3_clear_bindings(stmt);
+    rs = sqlite3_reset(stmt);
 }
 
 bool SqliteConnector::resetHideState()

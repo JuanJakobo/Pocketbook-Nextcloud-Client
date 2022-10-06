@@ -32,7 +32,7 @@ public:
     bool open();
 
     int getDbVersion();
-    
+
     void runMigration(int currentVersion);
 
     std::string getEtag(const std::string &path);
@@ -46,6 +46,8 @@ public:
     void deleteChildren(const std::string &parentPath);
 
     void deleteChild(const std::string &path, const std::string &title);
+
+    void deleteItemsNotBeginsWith(std::string beginPath);
 
     bool resetHideState();
 

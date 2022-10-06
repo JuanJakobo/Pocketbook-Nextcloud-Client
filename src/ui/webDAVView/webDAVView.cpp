@@ -41,7 +41,9 @@ WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &itemsUnfilt
 
     std::vector<WebDAVItem>::iterator begin;
 
-    if (items.at(0).path.compare(NEXTCLOUD_ROOT_PATH) == 0)
+    string rootPath = WebDAV::getRootPath(false);
+    string parentRootPath =  rootPath.substr(0, rootPath.substr(0, rootPath.length() - 1).find_last_of("/") + 1);
+    if (items.at(0).path.compare(parentRootPath) == 0)
     {
         items.erase(items.begin());
         begin = items.begin();
