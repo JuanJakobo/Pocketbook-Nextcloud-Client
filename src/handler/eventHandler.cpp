@@ -251,7 +251,8 @@ void EventHandler::mainMenuHandler(const int index)
             //Info
         case 106:
             {
-                Message(ICON_INFORMATION, "Info", "Version 1.02 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
+                string message;
+                Message(ICON_INFORMATION, "Info", message.append("Version ").append(PROGRAMVERSION).append("\nFor support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues").c_str(), 1200);
                 break;
             }
             //Exit
@@ -388,6 +389,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 Util::accessConfig<string>(Action::IWriteString, "ex_pattern",_excludeFileView->getRegex());
                 Util::accessConfig<string>(Action::IWriteString, "ex_folderPattern",_excludeFileView->getFolderRegex());
                 Util::accessConfig<int>(Action::IWriteInt, "ex_invertMatch", _excludeFileView->getInvertMatch());
+                _sqllite.resetHideState();
 
                 _excludeFileView.reset();
                 ShowHourglassForce();
@@ -655,6 +657,10 @@ void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &tempItems)
 
 void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
 {
+    //Don't sync hidden files
+    if (items.at(itemID).hide == HideState::IHIDE)
+        return;
+    
     //BanSleep(2000);
     string path = items.at(itemID).path;
 

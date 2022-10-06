@@ -31,6 +31,10 @@ public:
 
     bool open();
 
+    int getDbVersion();
+    
+    void runMigration(int currentVersion);
+
     std::string getEtag(const std::string &path);
 
     FileState getState(const std::string &path);
@@ -42,6 +46,8 @@ public:
     void deleteChildren(const std::string &parentPath);
 
     void deleteChild(const std::string &path, const std::string &title);
+
+    bool resetHideState();
 
     bool saveItemsChildren(const std::vector<WebDAVItem> &children);
 

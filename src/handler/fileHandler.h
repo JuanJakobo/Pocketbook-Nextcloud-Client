@@ -9,6 +9,8 @@
 #ifndef FILEHANDLER
 #define FILEHANDLER
 
+#include "webDAVModel.h"
+
 #include <regex>
 #include <string>
 #include <vector>
@@ -22,6 +24,7 @@ class FileHandler
         ~FileHandler();
         bool excludeFile(std::string filename);
         bool excludeFolder(std::string foldername);
+        HideState getHideState(Itemtype itemType, std::string prefixToStripe, std::string path, std::string title);
 
         std::string getStorageLocation();
         std::string getStorageUsername();

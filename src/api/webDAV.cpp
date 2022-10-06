@@ -115,6 +115,7 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
         size_t begin = xmlItem.find(beginItem);
         size_t end;
 
+        string prefix = NEXTCLOUD_ROOT_PATH + _username + "/";
         while (begin != std::string::npos)
         {
             end = xmlItem.find(endItem);
@@ -183,20 +184,11 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
             tempItem.title = tempItem.title.substr(tempItem.title.find_last_of("/") + 1, tempItem.title.length());
             Util::decodeUrl(tempItem.title);
 
-            string folderPath = tempItem.path;
-            string prefix = NEXTCLOUD_ROOT_PATH + _username + "/";
-            if (tempItem.path.find(prefix) != string::npos) {
-                folderPath = tempItem.path.substr(prefix.length());
-                if (tempItem.type == Itemtype::IFILE && folderPath.length() >= tempItem.title.length()) {
-                    folderPath = folderPath.substr(0, folderPath.length() - tempItem.title.length());
-                }
-            }
-
-            if (tempItem.type == Itemtype::IFILE && ( !_fileHandler->excludeFolder(folderPath) && !_fileHandler->excludeFile(tempItem.title) )) 
-                tempItems.push_back(tempItem);
-            else if (tempItem.type == Itemtype::IFOLDER && !_fileHandler->excludeFolder(folderPath)) 
-                tempItems.push_back(tempItem);
-
+            string &pathDecoded = tempItem.path;
+            Util::decodeUrl(pathDecoded);
+            tempItem.hide = _fileHandler->getHideState(tempItem.type, prefix,(pathDecoded), tempItem.title);
+            
+            tempItems.push_back(tempItem);
             xmlItem = xmlItem.substr(end + endItem.length());
             begin = xmlItem.find(beginItem);
         }

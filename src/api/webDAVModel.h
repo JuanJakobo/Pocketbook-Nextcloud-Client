@@ -28,6 +28,13 @@ enum FileState
     IDOWNLOADED
 };
 
+enum HideState
+{
+    INOTDEFINED,
+    ISHOW,
+    IHIDE
+};
+
 struct WebDAVItem : Entry{
     std::string etag;
     std::string path;
@@ -38,6 +45,7 @@ struct WebDAVItem : Entry{
     tm lastEditDate = { 0 };
     std::string size;
     std::string fileType;
+    HideState hide;
 };
 
 #endif

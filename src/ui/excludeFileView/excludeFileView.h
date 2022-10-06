@@ -54,7 +54,7 @@ public:
     int getInvertMatch() { return _invertMatch; };
 
 private:
-    static std::shared_ptr<ExcludeFileView> _excludeFileViewStatic;
+    static ExcludeFileView *_excludeFileViewStatic;
     int         _fontHeight;
     ifont       *_font;
     const irect _contentRect;

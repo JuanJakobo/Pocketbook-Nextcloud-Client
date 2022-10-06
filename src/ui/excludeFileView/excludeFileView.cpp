@@ -14,10 +14,10 @@
 
 using std::string;
 
-std::shared_ptr<ExcludeFileView> ExcludeFileView::_excludeFileViewStatic;
+ExcludeFileView* ExcludeFileView::_excludeFileViewStatic;
 ExcludeFileView::ExcludeFileView(const irect &contentRect): _contentRect(contentRect)
 {
-    _excludeFileViewStatic.reset(this);
+    _excludeFileViewStatic = this;
 
     _extensionList = Util::getConfig<string>("ex_extensionList", "");
     _regex = Util::getConfig<string>("ex_pattern", "");
@@ -77,6 +77,7 @@ ExcludeFileView::ExcludeFileView(const irect &contentRect): _contentRect(content
 ExcludeFileView::~ExcludeFileView() 
 {
     CloseFont(_font);
+    // Pointer cannot be freeded... It would crash when optining the window >~ 2 times (as well as an shared_ptr)
 }
 
 int ExcludeFileView::excludeClicked(int x, int y)
@@ -176,8 +177,8 @@ void ExcludeFileView::keyboardHandler(char *text)
         return;
 
     string s(text);
-    if (s.empty())
-        return;
+    //if (s.empty())
+    //    return;
 
     if (_target == ExcludeFileKeyboardTarget::IEXTENSIONS)
     {

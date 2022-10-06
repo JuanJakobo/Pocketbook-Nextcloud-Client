@@ -21,6 +21,12 @@ using std::string;
 SqliteConnector::SqliteConnector(const string &DBpath) : _dbpath(DBpath)
 {
      _fileHandler = std::shared_ptr<FileHandler>(new FileHandler());
+
+     // check if migration has to be run
+    int currentVersion = getDbVersion();
+    if (currentVersion != DBVERSION) {
+        runMigration(currentVersion);
+    }
 }
 
 SqliteConnector::~SqliteConnector()
@@ -28,6 +34,74 @@ SqliteConnector::~SqliteConnector()
     sqlite3_close(_db);
     _fileHandler.reset();
     Log::writeInfoLog("closed DB");
+}
+
+void SqliteConnector::runMigration(int currentVersion) 
+{
+    open();
+
+    char* log;
+    sprintf(log, "Running migration from db version %i to %i (Program version %s)", currentVersion, DBVERSION, PROGRAMVERSION);
+    Log::writeInfoLog(log);
+
+    // currently there are no migrations
+
+    // updating to current version
+    int rs;
+    sqlite3_stmt *stmt = 0;
+
+    rs = sqlite3_prepare_v2(_db, "INSERT INTO 'version' (dbversion) VALUES (?)", -1, &stmt, 0);
+    rs = sqlite3_bind_int(stmt, 1, DBVERSION);
+
+    rs = sqlite3_step(stmt);
+    if (rs != SQLITE_DONE) {
+        // this is critical
+        Log::writeErrorLog(std::string("error inserting into version") + sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(_db);
+}
+
+int SqliteConnector::getDbVersion() 
+{
+    open();
+
+    int rs;
+    sqlite3_stmt *stmt = 0;
+    
+    int version;
+    rs = sqlite3_prepare_v2(_db, "SELECT MAX(dbversion) FROM 'version'", -1, &stmt, 0);
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        version = sqlite3_column_int(stmt, 0);
+    }
+
+    if (version != 0)
+    {
+        sqlite3_finalize(stmt);
+        sqlite3_close(_db);
+        return version;
+    } else {
+        // this is probably the first start -> the version is up to date and insert the current version
+        rs = sqlite3_prepare_v2(_db, "INSERT INTO 'version' (dbversion) VALUES (?)", -1, &stmt, 0);
+        rs = sqlite3_bind_int(stmt, 1, DBVERSION);
+
+        rs = sqlite3_step(stmt);
+        if (rs != SQLITE_DONE) {
+            Log::writeErrorLog(std::string("error inserting into version") + sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+        }
+        rs = sqlite3_clear_bindings(stmt);
+        rs = sqlite3_reset(stmt);
+
+        // for compatibility alter the table because at this point db migrations doesn't exist
+        rs = sqlite3_exec(_db, "ALTER TABLE metadata ADD hide INT DEFAULT 0 NOT NULL", NULL, 0, NULL);
+
+        sqlite3_finalize(stmt);
+        sqlite3_close(_db);
+
+        return DBVERSION;
+    }
 }
 
 bool SqliteConnector::open()
@@ -42,7 +116,8 @@ bool SqliteConnector::open()
         return false;
     }
 
-    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS metadata (title VARCHAR, localPath VARCHAR, size VARCHAR, fileType VARCHAR, lasteditDate VARCHAR, type INT, state INT, etag VARCHAR, path VARCHAR PRIMARY KEY, parentPath VARCHAR)", NULL, 0, NULL);
+    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS metadata (title VARCHAR, localPath VARCHAR, size VARCHAR, fileType VARCHAR, lasteditDate VARCHAR, type INT, state INT, etag VARCHAR, path VARCHAR PRIMARY KEY, parentPath VARCHAR, hide INT DEFAULT 0 NOT NULL)", NULL, 0, NULL);
+    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS version (dbversion INT)", NULL, 0, NULL);
 
     return true;
 }
@@ -123,13 +198,16 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
     int rs;
     sqlite3_stmt *stmt = 0;
     std::vector<WebDAVItem> items;
-    std::vector<WebDAVItem> itemsToRemove;
 
-    rs = sqlite3_prepare_v2(_db, "SELECT title, localPath, path, size, etag, fileType, lastEditDate, type, state FROM 'metadata' WHERE path=? OR parentPath=? ORDER BY parentPath;", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(
+        _db, 
+        "SELECT title, localPath, path, size, etag, fileType, lastEditDate, type, state, hide FROM 'metadata' WHERE (path=? OR parentPath=?) AND hide <> 2 ORDER BY parentPath;", 
+        -1, &stmt, 0
+    );
     rs = sqlite3_bind_text(stmt, 1, parentPath.c_str(), parentPath.length(), NULL);
     rs = sqlite3_bind_text(stmt, 2, parentPath.c_str(), parentPath.length(), NULL);
 
-    const int storageLocationLength = (NEXTCLOUD_ROOT_PATH + _fileHandler->getStorageUsername() + "/").length();
+    const string storageLocation = NEXTCLOUD_ROOT_PATH + _fileHandler->getStorageUsername() + "/";
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
         WebDAVItem temp;
@@ -143,6 +221,7 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
         temp.lastEditDate = Util::webDAVStringToTm(reinterpret_cast<const char *>(sqlite3_column_text(stmt, 6)));
         temp.type =  static_cast<Itemtype>(sqlite3_column_int(stmt,7));
         temp.state =  static_cast<FileState>(sqlite3_column_int(stmt,8));
+        temp.hide =  static_cast<HideState>(sqlite3_column_int(stmt,9));
 
         if (iv_access(temp.localPath.c_str(), W_OK) != 0)
         {
@@ -150,32 +229,14 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
                 temp.state = FileState::ICLOUD;
         }
 
-        string direcotryPath = temp.path;
-        if (direcotryPath.length() >= storageLocationLength) {
-            direcotryPath = direcotryPath.substr(storageLocationLength);
+        if (temp.hide == HideState::INOTDEFINED) {
+            temp.hide = _fileHandler->getHideState(temp.type, storageLocation, temp.path, temp.title);
         }
-        if (temp.type == Itemtype::IFILE && ( _fileHandler->excludeFolder(direcotryPath) || _fileHandler->excludeFile(temp.title))) {
-            //The file was previously cached and should be excluded from now on
-            //TODO Maybe an SQL statement with REGEX match should be executed directly after changing the conifg
-            itemsToRemove.push_back(temp);
-        } else if (temp.type == Itemtype::IFOLDER && _fileHandler->excludeFolder(direcotryPath)) {
-            itemsToRemove.push_back(temp);
-        } 
-        else {
-            items.push_back(temp);
-        }
+        items.push_back(temp);
     }
 
     sqlite3_finalize(stmt);
     sqlite3_close(_db);
-
-    for (WebDAVItem itemD : itemsToRemove) {
-        if (itemD.type == Itemtype::IFOLDER) {
-            deleteChildren(itemD.path);
-        } else {
-            deleteChild(itemD.path, itemD.title);
-        }
-    }
 
     return items;
 }
@@ -197,6 +258,28 @@ void SqliteConnector::deleteChild(const string &path, const string &title)
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
 
+}
+
+bool SqliteConnector::resetHideState()
+{
+    open();
+    int rs;
+    sqlite3_stmt *stmt = 0;
+
+    rs = sqlite3_prepare_v2(_db, "UPDATE 'metadata' SET hide=0", -1, &stmt, 0);
+    rs = sqlite3_step(stmt);
+
+    if (rs != SQLITE_DONE)
+    {
+        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+    }
+    rs = sqlite3_clear_bindings(stmt);
+    rs = sqlite3_reset(stmt);
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(_db);
+
+    return true;
 }
 
 void SqliteConnector::deleteChildren(const string &parentPath)
@@ -232,7 +315,7 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
 
     for (auto item : items)
     {
-        rs = sqlite3_prepare_v2(_db, "INSERT INTO 'metadata' (title, localPath, path, size, parentPath, etag, fileType, lastEditDate, type, state) VALUES (?,?,?,?,?,?,?,?,?,?);", -1, &stmt, 0);
+        rs = sqlite3_prepare_v2(_db, "INSERT INTO 'metadata' (title, localPath, path, size, parentPath, etag, fileType, lastEditDate, type, state, hide) VALUES (?,?,?,?,?,?,?,?,?,?,?);", -1, &stmt, 0);
         rs = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
         rs = sqlite3_bind_text(stmt, 1, item.title.c_str(), item.title.length(), NULL);
         rs = sqlite3_bind_text(stmt, 2, item.localPath.c_str(), item.localPath.length(), NULL);
@@ -245,6 +328,7 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
         rs = sqlite3_bind_text(stmt, 8, lastEditDateString.c_str(), lastEditDateString.length(), NULL);
         rs = sqlite3_bind_int(stmt, 9, item.type);
         rs = sqlite3_bind_int(stmt, 10, item.state);
+        rs = sqlite3_bind_int(stmt, 11, item.hide);
 
         rs = sqlite3_step(stmt);
         if (rs == SQLITE_CONSTRAINT)

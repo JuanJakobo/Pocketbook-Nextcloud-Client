@@ -17,8 +17,14 @@
 
 using std::vector;
 
-WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &items, int page) : ListView(contentRect, page)
+WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &itemsUnfiltered, int page) : ListView(contentRect, page)
 {
+    vector<WebDAVItem> items;
+    std::copy_if (itemsUnfiltered.begin(), itemsUnfiltered.end(), std::back_inserter(items), [](WebDAVItem i)
+    {
+        return i.hide != HideState::IHIDE;
+    });
+
     auto pageHeight = 0;
     auto contentHeight = _contentRect.h - _footerHeight;
     auto entrycount = items.size();

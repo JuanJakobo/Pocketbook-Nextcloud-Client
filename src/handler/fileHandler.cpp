@@ -9,6 +9,7 @@
 #include "fileHandler.h"
 #include "log.h"
 #include "util.h"
+#include "webDAVModel.h"
 
 #include <sstream>
 #include <regex>
@@ -123,6 +124,33 @@ bool FileHandler::excludeFolder(std::string folderName) {
 
     return _invertMatch;
 }
+
+HideState FileHandler::getHideState(Itemtype itemType, std::string prefix, std::string path, std::string title = "") {
+
+    string folderPath = path;
+    if (path.find(prefix) != string::npos) {
+         folderPath = path.substr(prefix.length());
+        if (itemType == Itemtype::IFILE && folderPath.length() >= title.length()) {
+            folderPath = folderPath.substr(0, folderPath.length() - title.length());
+        }
+    }
+    folderPath = "/" + folderPath;
+
+    if (itemType == Itemtype::IFILE) {
+        if (!excludeFolder(folderPath) && !excludeFile(title)) {
+            return HideState::ISHOW;
+        } else {
+            return HideState::IHIDE;
+        }
+    } else {
+        if (!excludeFolder(folderPath)) {
+            return HideState::ISHOW;
+        } else {
+            return HideState::IHIDE;
+        }
+    }
+}
+
 
 void FileHandler::update(string regex, string folderRegex, string extensions, int invertMatch) {
     for (FileHandler *handler : _instances) {
