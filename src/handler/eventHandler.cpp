@@ -42,11 +42,11 @@ EventHandler::EventHandler()
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         //for backwards compatibilty
-        if (Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).compare("error") == 0)
-                Util::accessConfig<string>(Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
+        if (Util::getConfig<string>("storageLocation", "error").compare("error") == 0)
+                Util::writeConfig<string>("storageLocation", "/mnt/ext1/nextcloud");
 
-        if (iv_access(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), W_OK) != 0)
-            iv_mkdir(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), 0777);
+        if (iv_access(Util::getConfig<string>("storageLocation").c_str(), W_OK) != 0)
+            iv_mkdir(Util::getConfig<string>("storageLocation").c_str(), 0777);
 
         std::vector<WebDAVItem> currentWebDAVItems;
         string path = WebDAV::getRootPath(true);
@@ -194,10 +194,10 @@ void EventHandler::mainMenuHandler(const int index)
                 switch (dialogResult)
                 {
                     case 1:
-                        Util::accessConfig<int>(Action::IWriteInt, "sortBy", 1);
+                        Util::writeConfig<int>("sortBy", 1);
                         break;
                     case 2:
-                        Util::accessConfig<int>(Action::IWriteInt, "sortBy", 2);
+                        Util::writeConfig<int>("sortBy", 2);
                         break;
                     default:
                         return;
@@ -233,7 +233,7 @@ void EventHandler::mainMenuHandler(const int index)
                 }
                 else
                 {
-                    Util::accessConfig<string>(Action::IWriteString, "storageLocation", _currentPath);
+                    Util::writeConfig<string>("storageLocation", _currentPath);
                     std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(WebDAV::getRootPath(true));
                     if (currentWebDAVItems.empty())
                     {
@@ -385,11 +385,11 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         else if (_excludeFileView != nullptr) {
             int click = _excludeFileView->excludeClicked(par1, par2);
             if (click == 3) {
-                Util::accessConfig<string>(Action::IWriteString, "ex_extensionList", _excludeFileView->getExtensionList());
-                Util::accessConfig<string>(Action::IWriteString, "ex_pattern",_excludeFileView->getRegex());
-                Util::accessConfig<string>(Action::IWriteString, "ex_folderPattern",_excludeFileView->getFolderRegex());
-                Util::accessConfig<string>(Action::IWriteString, "ex_relativeRootPath", _excludeFileView->getStartFolder());
-                Util::accessConfig<int>(Action::IWriteInt, "ex_invertMatch", _excludeFileView->getInvertMatch());
+                Util::writeConfig<string>("ex_extensionList", _excludeFileView->getExtensionList());
+                Util::writeConfig<string>("ex_pattern",_excludeFileView->getRegex());
+                Util::writeConfig<string>("ex_folderPattern",_excludeFileView->getFolderRegex());
+                Util::writeConfig<string>("ex_relativeRootPath", _excludeFileView->getStartFolder());
+                Util::writeConfig<int>("ex_invertMatch", _excludeFileView->getInvertMatch());
                 
                 _sqllite.resetHideState();
                 if (_excludeFileView->getStartFolder() != "") 
@@ -455,8 +455,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                             break;
                         case 2:
                         default:
-                            if (iv_access(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), W_OK) != 0)
-                                iv_mkdir(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), 0777);
+                            if (iv_access(Util::getConfig<string>("storageLocation").c_str(), W_OK) != 0)
+                                iv_mkdir(Util::getConfig<string>("storageLocation").c_str(), 0777);
                             updateItems(currentWebDAVItems);
                             drawWebDAVItems(currentWebDAVItems);
                             break;
