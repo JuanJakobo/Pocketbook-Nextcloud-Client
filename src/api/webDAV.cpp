@@ -33,7 +33,12 @@ std::string WebDAV::getRootPath(bool encode) {
     if (rootPath == "")
         rootPath += "/";
 
-    string rtc =  NEXTCLOUD_ROOT_PATH + Util::getConfig<std::string>("UUID", "") + rootPath;
+    string user = Util::getConfig<std::string>("UUID", "");
+    if (user == "")
+        user = Util::getConfig<std::string>("username", "error");
+
+    string rtc =  NEXTCLOUD_ROOT_PATH + user + rootPath;
+
     if (encode) {
         Util::encodeUrl(rtc);
         rtc = std::regex_replace(rtc, std::regex("%2F"), "/");
@@ -44,6 +49,8 @@ std::string WebDAV::getRootPath(bool encode) {
 
 WebDAV::WebDAV()
 {
+    _fileHandler = std::shared_ptr<FileHandler>(new FileHandler());
+
     if (iv_access(NEXTCLOUD_PATH.c_str(), W_OK) != 0)
         iv_mkdir(NEXTCLOUD_PATH.c_str(), 0777);
 
@@ -53,7 +60,6 @@ WebDAV::WebDAV()
         _password = Util::accessConfig<string>(Action::IReadSecret,"password",{});
         _url = Util::accessConfig<string>(Action::IReadString, "url",{});
         _ignoreCert = Util::accessConfig<int>(Action::IReadInt, "ignoreCert",{});
-        _fileHandler = std::shared_ptr<FileHandler>(new FileHandler());
     }
 }
 
@@ -108,7 +114,9 @@ void WebDAV::logout(bool deleteFiles)
 {
     if (deleteFiles)
     {
-        fs::remove_all(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}) + "/" + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
+        string filesPath = Util::accessConfig<string>(Action::IReadString, "storageLocation",{}) + "/" + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/';
+        if (fs::exists(filesPath)) 
+            fs::remove_all(filesPath);
     }
     fs::remove(CONFIG_PATH.c_str());
     fs::remove((CONFIG_PATH + ".back.").c_str());
@@ -201,8 +209,8 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
 
             string pathDecoded = tempItem.path;
             Util::decodeUrl(pathDecoded);
-            tempItem.hide = _fileHandler->getHideState(tempItem.type, prefix,(pathDecoded), tempItem.title);
-            
+            tempItem.hide = _fileHandler->getHideState(tempItem.type, prefix,pathDecoded, tempItem.title);
+
             tempItems.push_back(tempItem);
             xmlItem = xmlItem.substr(end + endItem.length());
             begin = xmlItem.find(beginItem);
@@ -248,7 +256,6 @@ string WebDAV::propfind(const string &pathUrl)
     string readBuffer;
     CURLcode res;
     CURL *curl = curl_easy_init();
-                    Log::writeInfoLog("Path: " + pathUrl);
 
     if (curl)
     {

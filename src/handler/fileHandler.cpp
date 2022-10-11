@@ -93,7 +93,6 @@ bool FileHandler::excludeFile(std::string filename) {
     if (_useRegex) {
         try {
             bool t = std::regex_match(filename, _regex) != _invertMatch;
-            string ta = t ? "true" : "false";
             return t;
         } catch (std::regex_error err) {
             string errM = err.what();
