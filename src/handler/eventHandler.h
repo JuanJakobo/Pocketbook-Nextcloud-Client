@@ -15,7 +15,10 @@
 #include "webDAVView.h"
 #include "loginView.h"
 #include "fileView.h"
+#include "excludeFileView.h"
 #include "sqliteConnector.h"
+#include "log.h"
+#include "fileHandler.h"
 
 #include <memory>
 
@@ -40,12 +43,16 @@ public:
         */
     int eventDistributor(const int type, const int par1, const int par2);
 
+
 private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<WebDAVView> _webDAVView;
     std::unique_ptr<LoginView> _loginView;
     std::unique_ptr<FileView> _fileView;
+    std::unique_ptr<ExcludeFileView> _excludeFileView;
     std::unique_ptr<MainMenu> _menu;
+
+    std::shared_ptr<FileHandler> _fileHandler;
 
     ContextMenu _contextMenu = ContextMenu();
     WebDAV _webDAV = WebDAV();

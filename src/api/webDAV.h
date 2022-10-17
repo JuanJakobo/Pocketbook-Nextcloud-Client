@@ -11,11 +11,14 @@
 #define WEBDAV
 
 #include "webDAVModel.h"
+#include "fileHandler.h"
 
 #include <string>
 #include <vector>
 
-const std::string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
+#include <memory>
+
+const static std::string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
 const std::string NEXTCLOUD_START_PATH = "/remote.php/";
 const std::string NEXTCLOUD_PATH = "/mnt/ext1/system/config/nextcloud";
 
@@ -27,12 +30,19 @@ class WebDAV
          *
          */
         WebDAV();
+        ~WebDAV();
 
         std::vector<WebDAVItem> login(const std::string &Url, const std::string &Username, const std::string &Pass, bool ignoreCert = false);
 
         void logout(bool deleteFiles = false);
 
         std::vector<WebDAVItem> getDataStructure(const std::string &pathUrl);
+
+        /**
+         * Returns the root path of the nextcloud server 
+         * (e.g. /remote.php/dav/files/userName/startFolder/)
+         */
+        static std::string getRootPath(bool encode = false);
 
     /**
         * gets the dataStructure of the given URL and writes its WEBDAV items to the items vector
@@ -51,6 +61,8 @@ class WebDAV
         std::string _password;
         std::string _url;
         bool _ignoreCert;
+
+        std::shared_ptr<FileHandler> _fileHandler;
 
 };
 #endif

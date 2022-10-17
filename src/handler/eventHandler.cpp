@@ -18,6 +18,7 @@
 #include "fileBrowser.h"
 #include "fileView.h"
 #include "fileModel.h"
+#include "fileHandler.h"
 
 #include <experimental/filesystem>
 #include <string>
@@ -36,18 +37,19 @@ EventHandler::EventHandler()
     //create an copy of the eventhandler to handle methods that require static functions
     _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
+    _fileHandler = std::shared_ptr<FileHandler>(new FileHandler());
     _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         //for backwards compatibilty
-        if (Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).compare("error") == 0)
-                Util::accessConfig<string>(Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
+        if (Util::getConfig<string>("storageLocation", "error").compare("error") == 0)
+                Util::writeConfig<string>("storageLocation", "/mnt/ext1/nextcloud");
 
-        if (iv_access(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), W_OK) != 0)
-            iv_mkdir(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), 0777);
+        if (iv_access(Util::getConfig<string>("storageLocation").c_str(), W_OK) != 0)
+            iv_mkdir(Util::getConfig<string>("storageLocation").c_str(), 0777);
 
         std::vector<WebDAVItem> currentWebDAVItems;
-        string path = NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/';
+        string path = WebDAV::getRootPath(true);
 
         currentWebDAVItems = _webDAV.getDataStructure(path);
         _menu = std::unique_ptr<MainMenu>(new MainMenu("Nextcloud"));
@@ -192,10 +194,10 @@ void EventHandler::mainMenuHandler(const int index)
                 switch (dialogResult)
                 {
                     case 1:
-                        Util::accessConfig<int>(Action::IWriteInt, "sortBy", 1);
+                        Util::writeConfig<int>("sortBy", 1);
                         break;
                     case 2:
-                        Util::accessConfig<int>(Action::IWriteInt, "sortBy", 2);
+                        Util::writeConfig<int>("sortBy", 2);
                         break;
                     default:
                         return;
@@ -203,8 +205,23 @@ void EventHandler::mainMenuHandler(const int index)
                 Message(ICON_INFORMATION, "Info", "Reload page to see new order method in effect.", 2000);
                 break;
             }
-            //Select folder
+            // Exclude and hide files
         case 104:
+            {
+                if (_fileView != nullptr) {
+                    _currentPath = _fileView->getCurrentEntry().path;
+                    _fileView.reset();
+                } else {
+                    _currentPath = "";
+                }
+
+                _webDAVView.reset();
+                FillAreaRect(&_menu->getContentRect(), WHITE);
+                _excludeFileView = std::unique_ptr<ExcludeFileView>(new ExcludeFileView(_menu->getContentRect()));
+                break;
+            }
+            //Select folder
+        case 105:
             {
 
                 _currentPath = _currentPath + ((_currentPath.back() != '/') ? "/nextcloud" : "nextcloud");
@@ -216,8 +233,8 @@ void EventHandler::mainMenuHandler(const int index)
                 }
                 else
                 {
-                    Util::accessConfig<string>(Action::IWriteString, "storageLocation", _currentPath);
-                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(NEXTCLOUD_ROOT_PATH + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
+                    Util::writeConfig<string>("storageLocation", _currentPath);
+                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(WebDAV::getRootPath(true));
                     if (currentWebDAVItems.empty())
                     {
                         Message(ICON_ERROR, "Error", "Failed to get items. Please try again.", 1000);
@@ -232,13 +249,14 @@ void EventHandler::mainMenuHandler(const int index)
                 break;
             }
             //Info
-        case 105:
+        case 106:
             {
-                Message(ICON_INFORMATION, "Info", "Version 1.02 \n For support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues", 1200);
+                string message;
+                Message(ICON_INFORMATION, "Info", message.append("Version ").append(PROGRAMVERSION).append("\nFor support please open a ticket at https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client/issues").c_str(), 1200);
                 break;
             }
             //Exit
-        case 106:
+        case 107:
             CloseApp();
             break;
         default:
@@ -364,6 +382,49 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 
             return 0;
         }
+        else if (_excludeFileView != nullptr) {
+            int click = _excludeFileView->excludeClicked(par1, par2);
+            if (click == 3) {
+                Util::writeConfig<string>("ex_extensionList", _excludeFileView->getExtensionList());
+                Util::writeConfig<string>("ex_pattern",_excludeFileView->getRegex());
+                Util::writeConfig<string>("ex_folderPattern",_excludeFileView->getFolderRegex());
+                Util::writeConfig<string>("ex_relativeRootPath", _excludeFileView->getStartFolder());
+                Util::writeConfig<int>("ex_invertMatch", _excludeFileView->getInvertMatch());
+                
+                _sqllite.resetHideState();
+                if (_excludeFileView->getStartFolder() != "") 
+                {
+                    _sqllite.deleteItemsNotBeginsWith(WebDAV::getRootPath(true));
+                }
+
+                _excludeFileView.reset();
+                ShowHourglassForce();
+
+                FillAreaRect(&_menu->getContentRect(), WHITE);
+                if (_currentPath != ""){
+                    vector<FileItem> currentFolder = FileBrowser::getFileStructure(_currentPath,false,true);
+                    _fileView.reset(new FileView(_menu->getContentRect(), currentFolder,1));
+                } else {
+                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(WebDAV::getRootPath(true));
+                    updateItems(currentWebDAVItems);
+                    drawWebDAVItems(currentWebDAVItems);
+                }
+            }
+            else if (click == -1) {
+                _excludeFileView.reset();
+                ShowHourglassForce();
+
+                FillAreaRect(&_menu->getContentRect(), WHITE);
+                if (_currentPath != ""){
+                    vector<FileItem> currentFolder = FileBrowser::getFileStructure(_currentPath,false,true);
+                    _fileView.reset(new FileView(_menu->getContentRect(), currentFolder,1));
+                } else {
+                    std::vector<WebDAVItem> currentWebDAVItems = _webDAV.getDataStructure(WebDAV::getRootPath(true));
+                    updateItems(currentWebDAVItems);
+                    drawWebDAVItems(currentWebDAVItems);
+                }
+            }
+        }
         //if loginView is shown
         else if (_loginView != nullptr)
         {
@@ -371,7 +432,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             {
                 ShowHourglassForce();
 
-                std::vector<WebDAVItem> currentWebDAVItems = _webDAV.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword(), _loginView->getIgnoreCert());;
+                std::vector<WebDAVItem> currentWebDAVItems = _webDAV.login(_loginView->getURL(), _loginView->getUsername(), _loginView->getPassword(), _loginView->getIgnoreCert());
                 if (currentWebDAVItems.empty())
                 {
                     Message(ICON_ERROR, "Error", "Login failed.", 1000);
@@ -394,8 +455,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                             break;
                         case 2:
                         default:
-                            if (iv_access(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), W_OK) != 0)
-                                iv_mkdir(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}).c_str(), 0777);
+                            if (iv_access(Util::getConfig<string>("storageLocation").c_str(), W_OK) != 0)
+                                iv_mkdir(Util::getConfig<string>("storageLocation").c_str(), 0777);
                             updateItems(currentWebDAVItems);
                             drawWebDAVItems(currentWebDAVItems);
                             break;
@@ -454,7 +515,6 @@ void EventHandler::openItem()
 
 void EventHandler::openFolder()
 {
-
     std::vector<WebDAVItem> currentWebDAVItems;
 
     switch ((_webDAVView->getCurrentEntry().state == FileState::ILOCAL) ? FileState::ILOCAL : _sqllite.getState(_webDAVView->getCurrentEntry().path))
@@ -556,6 +616,7 @@ void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &tempItems)
     {
         vector<FileItem> currentFolder = FileBrowser::getFileStructure(localPath,true,false);
 
+        const int storageLocationLength = _fileHandler->getStorageLocation().length();
         for(const FileItem &local : currentFolder)
         {
             auto p = find_if(tempItems.begin()+1, tempItems.end(), [&] (const WebDAVItem &item) {return item.localPath.compare(local.path) == 0;});
@@ -567,16 +628,30 @@ void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &tempItems)
                 temp.title = temp.localPath.substr(temp.localPath.find_last_of('/') + 1, temp.localPath.length());
                 //Log::writeInfoLog(std::to_string(fs::file_size(entry)));
                 temp.lastEditDate = local.lastEditDate;
+
+                string directoryPath = temp.localPath;
+                if (directoryPath.length() > storageLocationLength) {
+                    directoryPath = directoryPath.substr(storageLocationLength + 1);
+                }
                 if(local.type == Type::FFOLDER)
                 {
+                    if (_fileHandler->excludeFolder(directoryPath + "/")) {
+                        continue;
+                    }
                     //create new dir in cloud
                     temp.type = Itemtype::IFOLDER;
                 }
                 else
                 {
                     //put to cloud
-                    temp.fileType = "File";
                     temp.type = Itemtype::IFILE;
+                    if (directoryPath.length() > temp.title.length()) {
+                        directoryPath = directoryPath.substr(0, directoryPath.length() - temp.title.length());
+                    }
+                    if (_fileHandler->excludeFolder(directoryPath) || _fileHandler->excludeFile(temp.title))
+                    {
+                        continue;
+                    }
                 }
                 tempItems.push_back(temp);
             }
@@ -587,6 +662,10 @@ void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &tempItems)
 
 void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
 {
+    //Don't sync hidden files
+    if (items.at(itemID).hide == HideState::IHIDE)
+        return;
+    
     //BanSleep(2000);
     string path = items.at(itemID).path;
 

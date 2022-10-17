@@ -11,9 +11,11 @@
 #define FILEBROWSER
 
 #include "fileModel.h"
+#include "fileHandler.h"
 
 #include <string>
 #include <vector>
+#include <memory>
 
 class FileBrowser
 {
@@ -22,6 +24,8 @@ class FileBrowser
 
     private:
         FileBrowser(){};
+
+        static std::shared_ptr<FileHandler> _fileHandler;
 
 };
 #endif

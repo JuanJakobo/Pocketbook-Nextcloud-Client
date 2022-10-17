@@ -12,9 +12,12 @@
 
 #include "webDAVModel.h"
 #include "sqlite3.h"
+#include "fileHandler.h"
 
 #include <string>
 #include <vector>
+
+#include <memory>
 
 class SqliteConnector
 {
@@ -28,6 +31,10 @@ public:
 
     bool open();
 
+    int getDbVersion();
+
+    void runMigration(int currentVersion);
+
     std::string getEtag(const std::string &path);
 
     FileState getState(const std::string &path);
@@ -38,11 +45,19 @@ public:
 
     void deleteChildren(const std::string &parentPath);
 
+    void deleteChild(const std::string &path, const std::string &title);
+
+    void deleteItemsNotBeginsWith(std::string beginPath);
+
+    bool resetHideState();
+
     bool saveItemsChildren(const std::vector<WebDAVItem> &children);
 
 private:
     std::string _dbpath;
     sqlite3 *_db;
+
+    std::shared_ptr<FileHandler> _fileHandler;
 };
 
 #endif

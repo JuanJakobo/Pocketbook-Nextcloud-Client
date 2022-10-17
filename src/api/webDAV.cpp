@@ -11,6 +11,7 @@
 #include "util.h"
 #include "log.h"
 #include "eventHandler.h"
+#include "fileHandler.h"
 
 #include <string>
 #include <experimental/filesystem>
@@ -18,6 +19,7 @@
 #include <fstream>
 #include <sstream>
 #include <math.h>
+#include <regex>
 
 using std::ifstream;
 using std::ofstream;
@@ -26,18 +28,44 @@ using std::vector;
 
 namespace fs = std::experimental::filesystem;
 
+std::string WebDAV::getRootPath(bool encode) {
+    string rootPath = Util::getConfig<std::string>("ex_relativeRootPath", "/");
+    if (rootPath == "")
+        rootPath += "/";
+
+    string user = Util::getConfig<std::string>("UUID", "");
+    if (user == "")
+        user = Util::getConfig<std::string>("username", "error");
+
+    string rtc =  NEXTCLOUD_ROOT_PATH + user + rootPath;
+
+    if (encode) {
+        Util::encodeUrl(rtc);
+        rtc = std::regex_replace(rtc, std::regex("%2F"), "/");
+    }
+
+    return rtc;
+}
+
 WebDAV::WebDAV()
 {
+    _fileHandler = std::shared_ptr<FileHandler>(new FileHandler());
+
     if (iv_access(NEXTCLOUD_PATH.c_str(), W_OK) != 0)
         iv_mkdir(NEXTCLOUD_PATH.c_str(), 0777);
 
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
-        _username = Util::accessConfig<string>(Action::IReadString,"username",{});
-        _password = Util::accessConfig<string>(Action::IReadSecret,"password",{});
-        _url = Util::accessConfig<string>(Action::IReadString, "url",{});
-        _ignoreCert = Util::accessConfig<int>(Action::IReadInt, "ignoreCert",{});
+        _username = Util::getConfig<string>("username");
+        _password = Util::getConfig<string>("password", "", true);
+        _url = Util::getConfig<string>("url");
+        _ignoreCert = Util::getConfig<int>("ignoreCert", -1);
     }
+}
+
+WebDAV::~WebDAV() 
+{
+    _fileHandler.reset();
 }
 
 
@@ -61,17 +89,17 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
         uuid = Username;
     }
     auto tempPath = NEXTCLOUD_ROOT_PATH + uuid + "/";
-    Util::accessConfig<string>( Action::IWriteString, "storageLocation", "/mnt/ext1/nextcloud");
+    Util::writeConfig<string>("storageLocation", "/mnt/ext1/nextcloud");
     std::vector<WebDAVItem> tempItems = getDataStructure(tempPath);
     if (!tempItems.empty())
     {
         if (iv_access(CONFIG_PATH.c_str(), W_OK) != 0)
             iv_buildpath(CONFIG_PATH.c_str());
-        Util::accessConfig<string>( Action::IWriteString, "url", _url);
-        Util::accessConfig<string>( Action::IWriteString, "username", _username);
-        Util::accessConfig<string>( Action::IWriteString, "UUID", uuid);
-        Util::accessConfig<string>( Action::IWriteSecret, "password", _password);
-        Util::accessConfig<int>( Action::IWriteInt, "ignoreCert", _ignoreCert);
+        Util::writeConfig<string>("url", _url);
+        Util::writeConfig<string>("username", _username);
+        Util::writeConfig<string>("UUID", uuid);
+        Util::writeConfig<string>("password", _password, true);
+        Util::writeConfig<int>("ignoreCert", _ignoreCert);
     }
     else
     {
@@ -86,7 +114,9 @@ void WebDAV::logout(bool deleteFiles)
 {
     if (deleteFiles)
     {
-        fs::remove_all(Util::accessConfig<string>(Action::IReadString, "storageLocation",{}) + "/" + Util::accessConfig<string>(Action::IReadString,"UUID",{}) + '/');
+        string filesPath = Util::getConfig<string>("storageLocation") + "/" + Util::getConfig<string>("UUID") + '/';
+        if (fs::exists(filesPath)) 
+            fs::remove_all(filesPath);
     }
     fs::remove(CONFIG_PATH.c_str());
     fs::remove((CONFIG_PATH + ".back.").c_str());
@@ -108,6 +138,7 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
         size_t begin = xmlItem.find(beginItem);
         size_t end;
 
+        string prefix = NEXTCLOUD_ROOT_PATH + _username + "/";
         while (begin != std::string::npos)
         {
             end = xmlItem.find(endItem);
@@ -158,7 +189,7 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
             Util::decodeUrl(tempItem.localPath);
             if (tempItem.localPath.find(NEXTCLOUD_ROOT_PATH) != string::npos)
                 tempItem.localPath = tempItem.localPath.substr(NEXTCLOUD_ROOT_PATH.length());
-            tempItem.localPath = Util::accessConfig<string>(Action::IReadString, "storageLocation",{}) + "/" + tempItem.localPath;
+            tempItem.localPath = Util::getConfig<string>("storageLocation") + "/" + tempItem.localPath;
 
 
             if (tempItem.path.back() == '/')
@@ -175,6 +206,10 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)
 
             tempItem.title = tempItem.title.substr(tempItem.title.find_last_of("/") + 1, tempItem.title.length());
             Util::decodeUrl(tempItem.title);
+
+            string pathDecoded = tempItem.path;
+            Util::decodeUrl(pathDecoded);
+            tempItem.hide = _fileHandler->getHideState(tempItem.type, prefix,pathDecoded, tempItem.title);
 
             tempItems.push_back(tempItem);
             xmlItem = xmlItem.substr(end + endItem.length());
@@ -262,7 +297,33 @@ string WebDAV::propfind(const string &pathUrl)
             switch (response_code)
             {
                 case 404:
-                    Message(ICON_ERROR, "Error", "The URL seems to be incorrect. You can look up the WebDav URL in the settings of the files webapp. ", 4000);
+                    if (getRootPath().compare( NEXTCLOUD_ROOT_PATH + Util::getConfig<std::string>("uuid", "")) != 0) {
+                        if (propfind(NEXTCLOUD_ROOT_PATH + Util::getConfig<std::string>("UUID", "")) != "") {
+                            // Own root path defined
+                            string output;
+                            int dialogResult = DialogSynchro(
+                                ICON_ERROR, 
+                                "Action", 
+                                output.append("The specified start folder does not seem to exist:\n").append(Util::getConfig<std::string>("ex_relativeRootPath", "/")).append("\n\nWhat would you like to do?").c_str(), 
+                                "Reset start folder", "Close App", NULL
+                            );
+                            switch (dialogResult)
+                            {
+                            case 1:
+                                {
+                                    Util::writeConfig<string>("ex_relativeRootPath", "");
+                                    return propfind(NEXTCLOUD_ROOT_PATH + Util::getConfig<std::string>("UUID", ""));
+                                }
+                                break;
+                            case 2:
+                            default:
+                                CloseApp();
+                                break;
+                            }
+                        }
+                    } else {
+                        Message(ICON_ERROR, "Error", "The URL seems to be incorrect. You can look up the WebDav URL in the settings of the files webapp. ", 4000);
+                    }
                     break;
                 case 401:
                     Message(ICON_ERROR, "Error", "Username/password incorrect.", 4000);

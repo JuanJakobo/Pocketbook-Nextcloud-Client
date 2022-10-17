@@ -17,8 +17,14 @@
 
 using std::vector;
 
-WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &items, int page) : ListView(contentRect, page)
+WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &itemsUnfiltered, int page) : ListView(contentRect, page)
 {
+    vector<WebDAVItem> items;
+    std::copy_if (itemsUnfiltered.begin(), itemsUnfiltered.end(), std::back_inserter(items), [](WebDAVItem i)
+    {
+        return i.hide != HideState::IHIDE;
+    });
+
     auto pageHeight = 0;
     auto contentHeight = _contentRect.h - _footerHeight;
     auto entrycount = items.size();
@@ -35,7 +41,9 @@ WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &items, int 
 
     std::vector<WebDAVItem>::iterator begin;
 
-    if (items.at(0).path.compare(NEXTCLOUD_ROOT_PATH) == 0)
+    string rootPath = WebDAV::getRootPath(false);
+    string parentRootPath =  rootPath.substr(0, rootPath.substr(0, rootPath.length() - 1).find_last_of("/") + 1);
+    if (items.at(0).path.compare(parentRootPath) == 0)
     {
         items.erase(items.begin());
         begin = items.begin();
@@ -47,7 +55,7 @@ WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &items, int 
 
     sort(begin, items.end(), []( WebDAVItem &w1, WebDAVItem &w2) -> bool
     {
-        if(Util::accessConfig<int>(Action::IReadInt, "sortBy", 0) == 2)
+        if(Util::getConfig<int>("sortBy", -1) == 2)
         {
             //sort by lastmodified
             time_t t1 = mktime(&w1.lastEditDate);
