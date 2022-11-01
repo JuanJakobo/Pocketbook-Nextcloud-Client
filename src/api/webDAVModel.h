@@ -13,39 +13,23 @@
 
 #include <string>
 
-enum Itemtype
-{
-    IFILE,
-    IFOLDER
-};
+enum Itemtype { IFILE, IFOLDER };
 
-enum FileState
-{
-    ICLOUD,
-    ISYNCED,
-    IOUTSYNCED,
-    ILOCAL,
-    IDOWNLOADED
-};
+enum FileState { ICLOUD, ISYNCED, IOUTSYNCED, ILOCAL, IDOWNLOADED };
 
-enum HideState
-{
-    INOTDEFINED,
-    ISHOW,
-    IHIDE
-};
+enum HideState { INOTDEFINED, ISHOW, IHIDE };
 
-struct WebDAVItem : Entry{
-    std::string etag;
-    std::string path;
-    std::string title;
-    std::string localPath;
-    FileState state{FileState::ICLOUD};
-    Itemtype type;
-    tm lastEditDate = { 0 };
-    std::string size;
-    std::string fileType;
-    HideState hide;
+struct WebDAVItem : Entry {
+  std::string etag;
+  std::string path;
+  std::string title;
+  std::string localPath;
+  FileState state{FileState::ICLOUD};
+  Itemtype type;
+  timeval lastEditDate = {0};
+  std::string size;
+  std::string fileType;
+  HideState hide;
 };
 
 #endif

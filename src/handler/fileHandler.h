@@ -17,30 +17,31 @@
 
 #include <memory>
 
-class FileHandler
-{
-    public:
-        FileHandler();
-        ~FileHandler();
-        bool excludeFile(std::string filename);
-        bool excludeFolder(std::string foldername);
-        HideState getHideState(Itemtype itemType, std::string prefixToStripe, std::string path, std::string title);
+class FileHandler {
+public:
+  FileHandler();
+  ~FileHandler();
+  bool excludeFile(std::string filename);
+  bool excludeFolder(std::string foldername);
+  HideState getHideState(Itemtype itemType, std::string prefixToStripe,
+                         std::string path, std::string title);
 
-        std::string getStorageLocation();
-        std::string getStorageUsername();
-        static void update(std::string regex, std::string folderRegex, std::string extensions, int invertMatch);
+  std::string getStorageLocation();
+  std::string getStorageUsername();
+  static void update(std::string regex, std::string folderRegex,
+                     std::string extensions, int invertMatch);
 
-    private:
-        std::regex              _regex;
-        std::regex              _folderRegex;
-        // can't use pointers with regex... Why? -> unable to null check
-        bool                    _useRegex = false;
-        bool                    _useFolderRegex = false;
-        std::vector<std::string> _extensions;
-        bool                     _invertMatch;
+private:
+  std::regex _regex;
+  std::regex _folderRegex;
+  // can't use pointers with regex... Why? -> unable to null check
+  bool _useRegex = false;
+  bool _useFolderRegex = false;
+  std::vector<std::string> _extensions;
+  bool _invertMatch;
 
-        void parseConfig(std::string regex, std::string folderRegex, std::string extensions, int invertMatch);
-        static std::vector<FileHandler *> _instances;
-
+  void parseConfig(std::string regex, std::string folderRegex,
+                   std::string extensions, int invertMatch);
+  static std::vector<FileHandler *> _instances;
 };
 #endif

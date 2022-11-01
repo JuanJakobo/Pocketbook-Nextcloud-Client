@@ -13,18 +13,14 @@
 
 #include <string>
 
-enum class Type
-{
-    FFOLDER,
-    FFILE
-};
+enum class Type { FFOLDER, FFILE };
 
-struct FileItem : Entry{
-    std::string name;
-    std::string path;
-    Type type;
-    //long long int size;
-    tm lastEditDate;
+struct FileItem : Entry {
+  std::string name;
+  std::string path;
+  Type type;
+  // long long int size;
+  tm lastEditDate;
 };
 
 #endif

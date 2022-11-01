@@ -13,55 +13,55 @@
 
 #include <string>
 
-class MainMenu
-{
+class MainMenu {
 public:
-    /**
-        * Defines fonds, sets global Event Handler and starts new content
-        *
-        * @param name name of the application
-        */
-    MainMenu(const std::string &name);
+  /**
+   * Defines fonds, sets global Event Handler and starts new content
+   *
+   * @param name name of the application
+   */
+  MainMenu(const std::string &name);
 
-    ~MainMenu();
+  ~MainMenu();
 
-    irect &getContentRect() { return _contentRect; };
-    irect &getMenuButtonRect() { return _menuButtonRect; };
+  irect &getContentRect() { return _contentRect; };
+  irect &getMenuButtonRect() { return _menuButtonRect; };
 
-    /**
-        * Shows the menu on the screen, lets the user choose menu options and then redirects the handler to the caller
-        *
-        * @param filePicker true if the filepicker is shown
-        * @param loogedIn the status if the user is logged in
-        * @param handler handles the clicks on the menu
-        * @return int returns if the event was handled
-        */
-    int createMenu(bool filePicker, bool loggedIn, iv_menuhandler handler);
+  /**
+   * Shows the menu on the screen, lets the user choose menu options and then
+   * redirects the handler to the caller
+   *
+   * @param filePicker true if the filepicker is shown
+   * @param loogedIn the status if the user is logged in
+   * @param handler handles the clicks on the menu
+   * @return int returns if the event was handled
+   */
+  int createMenu(bool filePicker, bool loggedIn, iv_menuhandler handler);
 
 private:
-    ifont *_menuFont;
+  ifont *_menuFont;
 
-    int _panelMenuBeginX;
-    int _panelMenuBeginY;
-    int _panelMenuHeight;
-    int _mainMenuWidth;
-    irect _menuButtonRect;
+  int _panelMenuBeginX;
+  int _panelMenuBeginY;
+  int _panelMenuHeight;
+  int _mainMenuWidth;
+  irect _menuButtonRect;
 
-    imenu _mainMenu;
-    irect _contentRect;
+  imenu _mainMenu;
+  irect _contentRect;
 
-    char *_menu = strdup("Menu");
-    char *_syncFolder = strdup("Actualize folder");
-    char *_logout = strdup("Logout");
-    char *_chooseFolder = strdup("Create here");
-    char *_sortBy = strdup("Order items by");
-    char *_excludeFiles = strdup("Exclude and hide items");
-    char *_info = strdup("Info");
-    char *_exit = strdup("Close App");
+  char *_menu = strdup("Menu");
+  char *_syncFolder = strdup("Actualize folder");
+  char *_logout = strdup("Logout");
+  char *_chooseFolder = strdup("Create here");
+  char *_sortBy = strdup("Order items by");
+  char *_excludeFiles = strdup("Exclude and hide items");
+  char *_info = strdup("Info");
+  char *_exit = strdup("Close App");
 
-    /**
-        * Functions needed to call C function, handles the panel
-        */
-    static void panelHandlerStatic();
+  /**
+   * Functions needed to call C function, handles the panel
+   */
+  static void panelHandlerStatic();
 };
 #endif

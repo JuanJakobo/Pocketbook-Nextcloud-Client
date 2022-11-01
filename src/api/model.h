@@ -9,7 +9,5 @@
 #ifndef MODEL
 #define MODEL
 
-struct Entry
-{
-};
+struct Entry {};
 #endif
