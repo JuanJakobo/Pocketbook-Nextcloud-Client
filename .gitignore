@@ -17,3 +17,6 @@ build/
 
 # Local History for Visual Studio Code
 .history/
+
+*.plist
+.cache/
