@@ -29,7 +29,12 @@ To login type the servername (e.g. https://domainname) or the WebDAV URL (e.g. h
 Next you will be asked where you want to save the nextcloud files. To download a file, click on it. If you want to sync a folder click it until an menu appears. In this menu select "sync". The folder sync will only sync files that are "newer" on the server side. It ignores .sdr files.
 
 ## How to build
+Currently there are multiple methods to build the application
 
+### Dockerimage
+The easiest way to build applications seems to be as of now to use the Dockerimage. (https://github.com/Skeeve/SDK_6.3.0/tree/docker)
+
+### Setup Toolchain
 First you need to install the basic build tools for linux.
 
 Then you have to download the Pocketbook SDK (https://github.com/pocketbook/SDK_6.3.0/tree/5.19).
