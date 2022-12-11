@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.1)
 
-PROJECT (Pocketbook-Miniflux-Reader VERSION 1.02)
+PROJECT (Pocketbook-Nextcloud VERSION 1.02)
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_SYSTEM_NAME Linux)
@@ -50,7 +50,8 @@ list(APPEND PB_LINK_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnueabi/
 list(APPEND PB_LINK_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnueabi/sysroot/usr/local/lib")
 list(APPEND PB_INCLUDE_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnueabi/sysroot/usr/include")
 
-set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
+set(SOURCES
+            #${CMAKE_SOURCE_DIR}/src/main.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/contextMenu.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/eventHandler.cpp
 			${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp
