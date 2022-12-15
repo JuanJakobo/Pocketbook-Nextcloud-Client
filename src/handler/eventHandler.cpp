@@ -686,7 +686,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID) {
         else
           tempItems.push_back(items.at(itemID));
 
-        OpenProgressbar(1, "Downloading...", "", 0, NULL);
+        //OpenProgressbar(1, "Downloading...", "", 0, NULL);
       }
       break;
     }
@@ -739,7 +739,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID) {
       if (dialogResult == 1)
         fs::remove(items.at(itemID).localPath);
       break;
-      OpenProgressbar(1, "Downloading...", "", 0, NULL);
+      //OpenProgressbar(1, "Downloading...", "", 0, NULL);
     }
     default:
       break;
