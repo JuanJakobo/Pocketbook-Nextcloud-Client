@@ -30,12 +30,16 @@ namespace fs = std::experimental::filesystem;
 
 std::string WebDAV::getRootPath(bool encode) {
   string rootPath = Util::getConfig<std::string>("ex_relativeRootPath", "/");
-  if (rootPath == "")
+  if (rootPath.empty())
+  {
     rootPath += "/";
+  }
 
   string user = Util::getConfig<std::string>("UUID", "");
-  if (user == "")
+  if (user.empty())
+  {
     user = Util::getConfig<std::string>("username", "error");
+  }
 
   string rtc = NEXTCLOUD_ROOT_PATH + user + rootPath;
 
@@ -79,6 +83,7 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
     _url = Url;
     uuid = Username;
   }
+  Util::encodeUrl(uuid);
   auto tempPath = NEXTCLOUD_ROOT_PATH + uuid + "/";
   Util::writeConfig<string>("storageLocation", "/mnt/ext1/nextcloud");
   std::vector<WebDAVItem> tempItems = getDataStructure(tempPath);
