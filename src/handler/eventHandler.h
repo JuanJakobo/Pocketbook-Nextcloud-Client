@@ -6,8 +6,7 @@
 // Description:      Handles all events and directs them
 //-------------------------------------------------------------------
 
-#ifndef EVENT_HANDLER
-#define EVENT_HANDLER
+#pragma once
 
 #include "contextMenu.h"
 #include "excludeFileView.h"
@@ -22,8 +21,37 @@
 
 #include <memory>
 
-const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/nextcloud";
-const std::string DB_PATH = CONFIG_FOLDER + "/data.db";
+using namespace std::string_literals;
+
+constexpr auto APPLICATION_NAME{"Nextcloud Client"};
+
+constexpr auto CONF_STORAGE_LOCATION{"storageLocation"};
+constexpr auto CONF_USERNAME{"username"};
+constexpr auto CONF_UUID{"UUID"};
+constexpr auto CONF_PASSWORD{"password"};
+constexpr auto CONF_URL{"url"};
+constexpr auto CONF_IGNORE_CERT{"ignoreCert"};
+constexpr auto CONF_EXTENSION_LIST{"ex_extensionList"};
+constexpr auto CONF_EXTENSION_PATTERN{"ex_pattern"};
+constexpr auto CONF_EXTENSION_FOLDER_PATTERN{"ex_folderPattern"};
+constexpr auto CONF_EXTENSION_RELATIVE_ROOT_PATH{"ex_relativeRootPath"};
+constexpr auto CONF_EXTENSION_INVERT_MATCH{"ex_invertMatch"};
+
+constexpr auto DEFAULT_STORAGE_LOCATION{"/mnt/ext1/nextcloud"};
+constexpr auto CONFIG_FOLDER_LOCATION{"/mnt/ext1/system/config/nextcloud"};
+const auto CONFIG_FILE_LOCATION{CONFIG_FOLDER_LOCATION +"/nextcloud.cfg"s};
+const auto DB_LOCATION{CONFIG_FOLDER_LOCATION + "/data.db"s};
+
+constexpr auto TEXT_MESSAGE_ERROR{"Error"};
+constexpr auto TEXT_MESSAGE_WARNING{"Warning"};
+constexpr auto TEXT_MESSAGE_INFO{"Info"};
+constexpr auto TEXT_MESSAGE_ACTION{"Action"};
+constexpr auto TIMEOUT_MESSAGE{2000u};
+constexpr auto TEXT_DIALOG_CLOSE_APP{"Close App"};
+constexpr auto TEXT_DIALOG_LOGOUT{"Logout"};
+constexpr auto TEXT_DIALOG_CANCEL{"Cancel"};
+constexpr auto TEXT_DIALOG_NO{"No"};
+constexpr auto TEXT_DIALOG_YES{"Yes"};
 
 class EventHandler {
 public:
@@ -54,7 +82,7 @@ private:
 
   ContextMenu _contextMenu = ContextMenu();
   WebDAV _webDAV = WebDAV();
-  SqliteConnector _sqllite = SqliteConnector(DB_PATH);
+  SqliteConnector _sqllite = SqliteConnector(DB_LOCATION);
   std::string _currentPath;
 
   /**
@@ -62,29 +90,29 @@ private:
    *
    *  @param index int of the menu that is set
    */
-  static void mainMenuHandlerStatic(const int index);
+  static void mainMenuHandlerStatic(int index);
 
   /**
    * Handles menu events and redirects them
    *
-   * @param index int of the menu that is set
+   * @param option MainMenuOption of the menu that is set
    */
-  void mainMenuHandler(const int index);
+  void mainMenuHandler(MainMenuOption p_mainMenuOption);
 
   /**
    * Function needed to call C function, redirects to real function
    *
    *  @param index int of the menu that is set
    */
-  static void contextMenuHandlerStatic(const int index);
+  static void contextMenuHandlerStatic(int p_index);
 
   /**
-   * Handlescontext  menu events and redirects them
+   * Handles context menu events and redirects them
    *
-   * @param index int of the menu that is set
+   * @param option ContextMenuOption of the menu that is set
    */
 
-  void contextMenuHandler(const int index);
+  void contextMenuHandler(ContextMenuOption p_contextMenuOption);
 
   /**
    * Handles pointer Events
@@ -136,4 +164,3 @@ private:
 
   void drawWebDAVItems(std::vector<WebDAVItem> &items);
 };
-#endif
