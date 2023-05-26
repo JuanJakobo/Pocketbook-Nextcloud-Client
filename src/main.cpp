@@ -9,7 +9,12 @@
 #include "eventHandler.h"
 #include "inkview.h"
 
-EventHandler *events = nullptr;
+namespace {
+    constexpr auto MENU_FONT{"LiberationMono"};
+    constexpr auto SCREEN_BEGIN{0};
+}
+
+std::unique_ptr<EventHandler> events;
 /**
  * Handles events and redirects them
  *
@@ -21,13 +26,12 @@ EventHandler *events = nullptr;
 int Inkview_handler(int type, int par1, int par2) {
   switch (type) {
   case EVT_INIT: {
-    events = new EventHandler();
+    events = std::make_unique<EventHandler>();
     return 1;
     break;
   }
   case EVT_EXIT:
   case EVT_HIDE: {
-    delete events;
     return 1;
     break;
   }
@@ -43,11 +47,12 @@ int main() {
   SetOrientation(0);
 
   // draw startscreen
-  auto textHeight = ScreenHeight() / 30;
-  auto startscreenFont = OpenFont("LiberationMono", textHeight, FONT_BOLD);
+  const auto fontSize{ScreenHeight() / 30};
+  const auto startscreenFont{OpenFont(A_MENU_FONT, fontSize, FONT_BOLD)};
   SetFont(startscreenFont, BLACK);
-  DrawTextRect(0, (ScreenHeight() / 3) * 2, ScreenWidth(), textHeight,
-               "Nextcloud Client", ALIGN_CENTER);
+  const auto logoHeight{(ScreenHeight()/3)*2};
+  DrawTextRect(A_SCREEN_BEGIN, logoHeight, ScreenWidth(), fontSize,
+               APPLICATION_NAME, ALIGN_CENTER);
   CloseFont(startscreenFont);
   FullUpdate();
 
