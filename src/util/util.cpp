@@ -18,6 +18,18 @@
 
 #include <signal.h>
 
+namespace{
+    constexpr auto SCANNER_APP_LOCATION{"/ebrmain/bin/scanner.app"};
+
+    constexpr auto TEXT_DOWNLOADING_FILE{"Downloading file"};
+    constexpr auto TEXT_FAILED_TO_READ_IN_DATA{"Failed to read in data format."};
+    constexpr auto TEXT_FAILED_TO_READ_OUT_DATA{"Failed to read out data format."};
+    constexpr auto TEXT_NO_INTERNET_CONNECTION{"It was not possible to establish an internet connection."};
+    constexpr auto TEXT_UPDATING_PB_LIB{"Updating PB library"};
+
+}
+
+//TODO
 pid_t child_pid = -1; // Global
 
 using std::string;
@@ -40,10 +52,10 @@ bool Util::connectToNetwork() {
     return true;
 
   const char *network_name = nullptr;
-  int result = NetConnect2(network_name, 1);
+  int result = NetConnect2(network_name, true);
   if (result) {
-    Message(ICON_WARNING, "Warning",
-            "It was not possible to establish an internet connection.", 2000);
+    Message(ICON_WARNING, TEXT_MESSAGE_WARNING,
+            TEXT_NO_INTERNET_CONNECTION, TIMEOUT_MESSAGE);
     return false;
   }
 
@@ -51,8 +63,8 @@ bool Util::connectToNetwork() {
   if (netinfo->connected)
     return true;
 
-  Message(ICON_WARNING, "Warning",
-          "It was not possible to establish an internet connection.", 2000);
+  Message(ICON_WARNING, TEXT_MESSAGE_WARNING,
+          TEXT_NO_INTERNET_CONNECTION, TIMEOUT_MESSAGE);
   return false;
 }
 
@@ -66,15 +78,16 @@ int Util::progress_callback(void *clientp, double dltotal, double dlnow,
 
   int percentage = round(dlnow / dltotal * 100);
   if (percentage % 10 == 0)
-    UpdateProgressbar("Downloading file", percentage);
+    UpdateProgressbar(TEXT_DOWNLOADING_FILE, percentage);
 
   return 0;
 }
 
+//TODO optional
 string Util::getXMLAttribute(const string &buffer, const string &name) {
-  string returnString = buffer;
-  string searchString = "<" + name + ">";
-  size_t found = buffer.find(searchString);
+    auto returnString{buffer};
+    const auto searchString{"<" + name + ">"};
+    const auto found{buffer.find(searchString)};
 
   if (found != std::string::npos) {
     returnString = returnString.substr(found + searchString.length());
@@ -87,7 +100,7 @@ string Util::getXMLAttribute(const string &buffer, const string &name) {
 
 void Util::decodeUrl(string &text) {
   char *buffer;
-  CURL *curl = curl_easy_init();
+  auto curl{curl_easy_init()};
 
   buffer = curl_easy_unescape(curl, text.c_str(), 0, NULL);
   text = buffer;
@@ -98,7 +111,7 @@ void Util::decodeUrl(string &text) {
 
 void Util::encodeUrl(string &text) {
   char *buffer;
-  CURL *curl = curl_easy_init();
+  auto curl {curl_easy_init()};
 
   buffer = curl_easy_escape(curl, text.c_str(), 0);
   text = buffer;
@@ -113,8 +126,9 @@ void kill_child(int sig) {
 }
 
 void Util::updatePBLibrary(int seconds) {
-  UpdateProgressbar("Updating PB library", 99);
+  UpdateProgressbar(TEXT_UPDATING_PB_LIB, 99);
   // https://stackoverflow.com/questions/6501522/how-to-kill-a-child-process-by-the-parent-process
+  // TODO use from WB!
   signal(SIGALRM, (void (*)(int))kill_child);
   child_pid = fork();
   if (child_pid > 0) {
@@ -123,9 +137,8 @@ void Util::updatePBLibrary(int seconds) {
     wait(NULL);
   } else if (child_pid == 0) {
     // child
-    string cmd = "/ebrmain/bin/scanner.app";
     // TODO parse in response of exec to determine when to kill?
-    execlp(cmd.c_str(), cmd.c_str(), (char *)NULL);
+    execlp(SCANNER_APP_LOCATION, SCANNER_APP_LOCATION, (char *)NULL);
     exit(1);
   }
 }
@@ -137,10 +150,11 @@ tm Util::webDAVStringToTm(const std::string &timestring) {
   // weekday, day month year Hour Minute Second Timezone
   ss >> std::get_time(&t, "%a, %d %b %Y %H:%M:%S");
   if (ss.fail())
-    Log::writeErrorLog("Failed to read in data format.");
+    Log::writeErrorLog(TEXT_FAILED_TO_READ_IN_DATA);
   return t;
 }
 
+//TODO optional?
 string Util::webDAVTmToString(const tm &timestring) {
   std::ostringstream ss;
   string result = {};
@@ -148,7 +162,7 @@ string Util::webDAVTmToString(const tm &timestring) {
   // weekday, day month year Hour Minute Second Timezone
   ss << std::put_time(&timestring, "%a, %d %b %Y %H:%M:%S");
   if (ss.fail())
-    Log::writeErrorLog("Failed to read out data format.");
+    Log::writeErrorLog(TEXT_FAILED_TO_READ_OUT_DATA);
   else
     result = ss.str();
   return result;

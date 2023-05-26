@@ -17,9 +17,6 @@
 
 using std::string;
 
-const std::string CONFIG_PATH =
-    "/mnt/ext1/system/config/nextcloud/nextcloud.cfg";
-
 class Util {
 public:
   /**
@@ -54,7 +51,7 @@ public:
   static void writeConfig(const std::string &name, T value,
                           bool secret = false) {
     iconfigedit *temp = nullptr;
-    iconfig *config = OpenConfig(CONFIG_PATH.c_str(), temp);
+    iconfig *config = OpenConfig(CONFIG_FILE_LOCATION, temp);
 
     if constexpr (std::is_same<T, std::string>::value) {
       if (secret)
@@ -81,7 +78,7 @@ public:
   static T getConfig(string name, T defaultValue = "error",
                      bool secret = false) {
     iconfigedit *temp = nullptr;
-    iconfig *config = OpenConfig(CONFIG_PATH.c_str(), temp);
+    iconfig *config = OpenConfig(CONFIG_FILE_LOCATION, temp);
     T returnValue;
 
     if constexpr (std::is_same<T, std::string>::value) {
