@@ -85,8 +85,7 @@ WebDAVView::WebDAVView(const irect &contentRect,
     irect rect = iRect(_contentRect.x, _contentRect.y + pageHeight,
                        _contentRect.w, entrySize, 0);
 
-    _entries.emplace_back(std::unique_ptr<WebDAVViewEntry>(
-        new WebDAVViewEntry(_page, rect, item)));
+    _entries.emplace_back(std::make_unique<WebDAVViewEntry>(_page, rect, item));
 
     pageHeight = pageHeight + entrySize;
   }

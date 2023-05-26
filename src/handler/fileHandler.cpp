@@ -159,9 +159,9 @@ void FileHandler::update(string regex, string folderRegex, string extensions,
 }
 
 string FileHandler::getStorageLocation() {
-  return Util::getConfig<string>("storageLocation") + getStorageUsername() +
+  return Util::getConfig<string>(CONF_STORAGE_LOCATION) + getStorageUsername() +
          "/";
 }
 string FileHandler::getStorageUsername() {
-  return Util::getConfig<string>("username");
+  return Util::getConfig<string>(CONF_USERNAME);
 }

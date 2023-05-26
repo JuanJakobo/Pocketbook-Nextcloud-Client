@@ -41,7 +41,7 @@ EventHandler::EventHandler()
     _fileHandler = std::make_shared<FileHandler>();
     _menu = std::make_unique<MainMenu>(APPLICATION_NAME);
 
-    if (iv_access(CONFIG_FILE_LOCATION, W_OK) == 0)
+    if (iv_access(CONFIG_FILE_LOCATION.c_str(), W_OK) == 0)
     {
         // for backwards compatibilty
         // all to consts

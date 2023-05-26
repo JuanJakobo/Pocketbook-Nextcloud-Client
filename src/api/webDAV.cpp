@@ -39,7 +39,7 @@ WebDAV::WebDAV() {
   if (iv_access(CONFIG_FOLDER_LOCATION, W_OK) != 0)
     iv_mkdir(CONFIG_FOLDER_LOCATION, 0777);
 
-  if (iv_access(CONFIG_FILE_LOCATION, W_OK) == 0) {
+  if (iv_access(CONFIG_FILE_LOCATION.c_str(), W_OK) == 0) {
     _username = Util::getConfig<string>(CONF_USERNAME);
     _password = Util::getConfig<string>(CONF_PASSWORD, "", true);
     _url = Util::getConfig<string>(CONF_URL);
@@ -68,8 +68,8 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
   Util::writeConfig<string>(CONF_STORAGE_LOCATION, DEFAULT_STORAGE_LOCATION);
   const auto tempItems = getDataStructure(tempPath);
   if (!tempItems.empty()) {
-    if (iv_access(CONFIG_FILE_LOCATION, W_OK) != 0)
-      iv_buildpath(CONFIG_FILE_LOCATION);
+    if (iv_access(CONFIG_FILE_LOCATION.c_str(), W_OK) != 0)
+      iv_buildpath(CONFIG_FILE_LOCATION.c_str());
     Util::writeConfig<string>(CONF_URL, _url);
     Util::writeConfig<string>(CONF_USERNAME, _username);
     Util::writeConfig<string>(CONF_UUID, uuid);
@@ -90,10 +90,14 @@ void WebDAV::logout(bool deleteFiles) {
         if (fs::exists(filesPath))
             fs::remove_all(filesPath);
     }
-    fs::remove(CONF_STORAGE_LOCATION);
-    const auto backupPath{CONFIG_FOLDER_LOCATION + ".back."s};
-    fs::remove(backupPath);
-    fs::remove(DB_LOCATION);
+    try{
+        fs::remove(CONFIG_FILE_LOCATION);
+        fs::remove(CONFIG_FOLDER_LOCATION + ".back"s);
+        fs::remove(DB_LOCATION);
+    }catch(std::exception e)
+    {
+        Log::writeErrorLog("Failed to delete files on logout "s + e.what());
+    }
     _url = {};
     _password = {};
     _username = {};
@@ -213,8 +217,8 @@ std::string WebDAV::getRootPath(bool encode) {
 
 string WebDAV::propfind(const string &pathUrl) {
   if (pathUrl.empty() || _username.empty() || _password.empty()) {
-    Message(ICON_WARNING, "Warning", "Url, username or password is empty.",
-            2000);
+    Message(ICON_WARNING, TEXT_MESSAGE_ERROR, "Url, username or password is empty.",
+            TIMEOUT_MESSAGE);
     return "";
   }
 
