@@ -20,12 +20,11 @@ using std::vector;
 
 namespace fs = std::experimental::filesystem;
 
-std::shared_ptr<FileHandler> FileBrowser::_fileHandler =
-    std::shared_ptr<FileHandler>(new FileHandler());
+std::shared_ptr<FileHandler> FileBrowser::_fileHandler = std::make_shared<FileHandler>();
 std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path,
                                                     const bool includeFiles,
                                                     const bool includeHeader) {
-  string localPath = path;
+  auto localPath{path};
   std::vector<FileItem> items;
 
   if (localPath.back() != '/')
