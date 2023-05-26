@@ -48,10 +48,10 @@ int main() {
 
   // draw startscreen
   const auto fontSize{ScreenHeight() / 30};
-  const auto startscreenFont{OpenFont(A_MENU_FONT, fontSize, FONT_BOLD)};
+  const auto startscreenFont{OpenFont(MENU_FONT, fontSize, FONT_BOLD)};
   SetFont(startscreenFont, BLACK);
   const auto logoHeight{(ScreenHeight()/3)*2};
-  DrawTextRect(A_SCREEN_BEGIN, logoHeight, ScreenWidth(), fontSize,
+  DrawTextRect(SCREEN_BEGIN, logoHeight, ScreenWidth(), fontSize,
                APPLICATION_NAME, ALIGN_CENTER);
   CloseFont(startscreenFont);
   FullUpdate();
