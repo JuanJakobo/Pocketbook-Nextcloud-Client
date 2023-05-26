@@ -23,6 +23,7 @@ Download and unzip the file from releases and place the nextcloud.app into the "
 * PocketBook Touch Lux 5 (PB628)
 * PocketBook Aqua 2 (PB641)
 * PocketBook InkPad 3 Pro (PB740)
+* Pocketbook Era (PB700)
 
 ## Usage
 To login type the servername (e.g. https://domainname) or the WebDAV URL (e.g. htts://domainname/remote.php/dav/files/UUID) (You can look up the WebDAV URL in the files app->seetings.), Username and Password. If you have 2FA enabled, you have to set up an App specific password. (https://docs.nextcloud.com/server/latest/user_manual/en/user_2fa.html#using-client-applications-with-two-factor-authentication)

@@ -5,13 +5,22 @@
 // Date:             14.06.2020
 // Description:      Handles the menubar and the menu
 //-------------------------------------------------------------------
-
-#ifndef MAIN_MENU
-#define MAIN_MENU
+#pragma once
 
 #include "inkview.h"
 
 #include <string>
+
+enum class MainMenuOption{
+    ActualizeCurrentFolder,
+    Logout,
+    SortBy,
+    ExcludeFiles,
+    ChooseFolder,
+    Info,
+    Exit
+};
+
 
 class MainMenu {
 public:
@@ -20,12 +29,12 @@ public:
    *
    * @param name name of the application
    */
-  MainMenu(const std::string &name);
+  MainMenu(const std::string &p_name);
 
-  ~MainMenu();
+  ~MainMenu() = default;
 
-  irect &getContentRect() { return _contentRect; };
-  irect &getMenuButtonRect() { return _menuButtonRect; };
+  const irect &getContentRect() const { return m_contentRect; };
+  const irect &getMenuButtonRect() const { return m_menuButtonRect; };
 
   /**
    * Shows the menu on the screen, lets the user choose menu options and then
@@ -34,34 +43,17 @@ public:
    * @param filePicker true if the filepicker is shown
    * @param loogedIn the status if the user is logged in
    * @param handler handles the clicks on the menu
-   * @return int returns if the event was handled
    */
-  int createMenu(bool filePicker, bool loggedIn, iv_menuhandler handler);
+  void drawMenu(bool p_filePicker, bool p_loggedIn, iv_menuhandler p_menu_handler) const;
 
 private:
-  ifont *_menuFont;
-
-  int _panelMenuBeginX;
-  int _panelMenuBeginY;
-  int _panelMenuHeight;
-  int _mainMenuWidth;
-  irect _menuButtonRect;
-
-  imenu _mainMenu;
-  irect _contentRect;
-
-  char *_menu = strdup("Menu");
-  char *_syncFolder = strdup("Actualize folder");
-  char *_logout = strdup("Logout");
-  char *_chooseFolder = strdup("Create here");
-  char *_sortBy = strdup("Order items by");
-  char *_excludeFiles = strdup("Exclude and hide items");
-  char *_info = strdup("Info");
-  char *_exit = strdup("Close App");
+  uint16_t m_menuPanelBeginX;
+  uint16_t m_menuPanelBeginY;
+  irect m_contentRect;
+  irect m_menuButtonRect;
 
   /**
    * Functions needed to call C function, handles the panel
    */
   static void panelHandlerStatic();
 };
-#endif
