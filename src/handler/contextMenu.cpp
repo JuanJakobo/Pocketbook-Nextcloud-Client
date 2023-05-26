@@ -9,32 +9,28 @@
 #include "contextMenu.h"
 #include "inkview.h"
 
-#include <string>
+namespace{
+    constexpr auto MENU_TITLE{"Menu"};
+    constexpr auto OPEN_TITLE{"Open"};
+    constexpr auto REMOVE_TITLE{"Remove Local"};
+    constexpr auto SYNC_TITLE{"Sync"};
+    constexpr auto HEADER{0};
+}
 
-using std::string;
 
 ContextMenu::ContextMenu() {}
 
-ContextMenu::~ContextMenu() {
-  free(_menu);
-  free(_open);
-  free(_sync);
-  free(_remove);
-}
-
-int ContextMenu::createMenu(int y, FileState itemstate,
-                            iv_menuhandler handler) {
-  imenu contextMenu[] = {{ITEM_HEADER, 0, _menu, NULL},
-                         {(itemstate != FileState::ICLOUD) ? (short)ITEM_ACTIVE
+void ContextMenu::createMenu(int p_yLocation, FileState p_fileState,
+                            iv_menuhandler p_handler) const {
+  imenu contextMenu[] = {{ITEM_HEADER, HEADER, const_cast<char*>(MENU_TITLE), NULL},
+                         {(p_fileState != FileState::ICLOUD) ? (short)ITEM_ACTIVE
                                                            : (short)ITEM_HIDDEN,
-                          101, _open, NULL},
-                         {ITEM_ACTIVE, 102, _sync, NULL},
-                         {(itemstate != FileState::ICLOUD) ? (short)ITEM_ACTIVE
+                          static_cast<short>(ContextMenuOption::Open), const_cast<char*>(OPEN_TITLE), NULL},
+                         {ITEM_ACTIVE, static_cast<short>(ContextMenuOption::Sync), const_cast<char*>(SYNC_TITLE), NULL},
+                         {(p_fileState != FileState::ICLOUD) ? (short)ITEM_ACTIVE
                                                            : (short)ITEM_HIDDEN,
-                          103, _remove, NULL},
+                          static_cast<short>(ContextMenuOption::Remove), const_cast<char*>(REMOVE_TITLE), NULL},
                          {0, 0, NULL, NULL}};
 
-  OpenMenu(contextMenu, 0, ScreenWidth(), y, handler);
-
-  return 1;
+  OpenMenu(contextMenu, 0, ScreenWidth(), p_yLocation, p_handler);
 }
