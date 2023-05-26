@@ -61,7 +61,7 @@ LoginView::LoginView(const irect &contentRect) : _contentRect(contentRect) {
       iRect(_contentRect.w - 2 * checkBoxWidth, beginY + 6 * contents,
             checkBoxWidth, contents, ALIGN_CENTER);
   DrawTextRect(beginX, _ignoreCertButton.y, contentWidth, _ignoreCertButton.h,
-               "Ignore Cert (unsecure):", ALIGN_LEFT);
+               "Ignore Cert (insecure):", ALIGN_LEFT);
   DrawRect(_ignoreCertButton.x - 1, _ignoreCertButton.y - 1,
            _ignoreCertButton.w + 2, _ignoreCertButton.h + 2, BLACK);
 
