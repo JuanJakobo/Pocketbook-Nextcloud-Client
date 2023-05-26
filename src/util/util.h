@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // util.h
 //
@@ -5,10 +6,6 @@
 // Date:             04.08.2020
 // Description:      Various utility methods
 //-------------------------------------------------------------------
-
-#ifndef UTIL
-#define UTIL
-
 #include "eventHandler.h"
 #include "inkview.h"
 
@@ -16,6 +13,10 @@
 #include <string>
 
 using std::string;
+
+struct ConfigDeleter {
+  void operator()(iconfig* config) {CloseConfig(config); }
+};
 
 class Util {
 public:
@@ -51,17 +52,20 @@ public:
   static void writeConfig(const std::string &name, T value,
                           bool secret = false) {
 
-    iconfig *config = OpenConfig(CONFIG_FILE_LOCATION.c_str(), nullptr);
+      auto config = std::unique_ptr<iconfig,ConfigDeleter>(OpenConfig(CONFIG_FILE_LOCATION.c_str(), nullptr));
 
-    if constexpr (std::is_same<T, std::string>::value) {
-      if (secret)
-        WriteSecret(config, name.c_str(), value.c_str());
-      else
-        WriteString(config, name.c_str(), value.c_str());
-    } else if constexpr (std::is_same<T, int>::value) {
-      WriteInt(config, name.c_str(), value);
-    }
-    CloseConfig(config);
+      if constexpr (std::is_same<T, std::string>::value) {
+          if (secret)
+          {
+              WriteSecret(config.get(), name.c_str(), value.c_str());
+          }
+          else
+          {
+              WriteString(config.get(), name.c_str(), value.c_str());
+          }
+      } else if constexpr (std::is_same<T, int>::value) {
+          WriteInt(config.get(), name.c_str(), value);
+      }
   }
 
   /**
@@ -78,19 +82,22 @@ public:
   static T getConfig(string name, T defaultValue = "error",
                      bool secret = false) {
 
-    iconfig *config = OpenConfig(CONFIG_FILE_LOCATION.c_str(), nullptr);
+      auto config = std::unique_ptr<iconfig,ConfigDeleter>(OpenConfig(CONFIG_FILE_LOCATION.c_str(), nullptr));
     T returnValue;
 
     if constexpr (std::is_same<T, std::string>::value) {
       if (secret)
-        returnValue = ReadSecret(config, name.c_str(), defaultValue.c_str());
+      {
+        returnValue = ReadSecret(config.get(), name.c_str(), defaultValue.c_str());
+      }
       else
-        returnValue = ReadString(config, name.c_str(),
+      {
+        returnValue = ReadString(config.get(), name.c_str(),
                                  ((std::string)defaultValue).c_str());
+      }
     } else if constexpr (std::is_same<T, int>::value) {
-      returnValue = ReadInt(config, name.c_str(), defaultValue);
+      returnValue = ReadInt(config.get(), name.c_str(), defaultValue);
     }
-    CloseConfig(config);
 
     return returnValue;
   }
@@ -149,4 +156,3 @@ public:
 private:
   Util() {}
 };
-#endif
