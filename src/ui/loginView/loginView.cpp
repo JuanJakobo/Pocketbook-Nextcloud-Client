@@ -12,6 +12,10 @@
 
 #include <string>
 
+namespace{
+    constexpr auto KEYBOARD_STRING_LENGHT{90};
+}
+
 using std::string;
 
 std::unique_ptr<LoginView> LoginView::_loginViewStatic;
@@ -30,8 +34,8 @@ LoginView::LoginView(const irect &contentRect) : _contentRect(contentRect) {
 
   _loginFontHeight = contents / 2;
 
-  _loginFont = OpenFont("LiberationMono", _loginFontHeight, FONT_STD);
-  SetFont(_loginFont, BLACK);
+  _loginFont = std::unique_ptr<ifont,FontDeleter>(OpenFont("LiberationMono", _loginFontHeight, FONT_STD));
+  SetFont(_loginFont.get(), BLACK);
   FillAreaRect(&_contentRect, WHITE);
 
   _urlButton = iRect(beginX, beginY, contentWidth, contents, ALIGN_CENTER);
@@ -69,12 +73,10 @@ LoginView::LoginView(const irect &contentRect) : _contentRect(contentRect) {
                        ALIGN_CENTER);
 
   FillAreaRect(&_loginButton, BLACK);
-  SetFont(_loginFont, WHITE);
+  SetFont(_loginFont.get(), WHITE);
   DrawTextRect2(&_loginButton, "Login");
   PartialUpdate(_contentRect.x, _contentRect.y, _contentRect.w, _contentRect.h);
 }
-
-LoginView::~LoginView() { CloseFont(_loginFont); }
 
 int LoginView::logginClicked(int x, int y) {
   _temp = "";

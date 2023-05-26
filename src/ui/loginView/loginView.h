@@ -1,14 +1,10 @@
+#pragma once
 //------------------------------------------------------------------
 // loginView.h
-//
 // Author:           JuanJakobo
 // Date:             26.08.2020
 // Description:
 //-------------------------------------------------------------------
-
-#ifndef LOGIN_SCREEN
-#define LOGIN_SCREEN
-
 #include "inkview.h"
 
 #include <memory>
@@ -16,7 +12,9 @@
 
 enum class KeyboardTarget { IURL, IUSERNAME, IPASSWORD };
 
-const int KEYBOARD_STRING_LENGHT = 90;
+struct FontDeleter {
+  void operator()(ifont* b) { CloseFont(b); }
+};
 
 class LoginView {
 public:
@@ -28,7 +26,7 @@ public:
    */
   LoginView(const irect &contentRect);
 
-  ~LoginView();
+  ~LoginView() = default;
 
   /**
    * Checks which part of the loginscreen is shown and reacts accordingly
@@ -40,15 +38,15 @@ public:
    */
   int logginClicked(int x, int y);
 
-  std::string getUsername() { return _username; };
-  std::string getPassword() { return _password; };
-  std::string getURL() { return _url; };
-  bool getIgnoreCert() { return _ignoreCert; };
+  std::string getUsername() const { return _username; };
+  std::string getPassword() const { return _password; };
+  std::string getURL() const { return _url; };
+  bool getIgnoreCert() const { return _ignoreCert; };
 
 private:
   static std::unique_ptr<LoginView> _loginViewStatic;
   int _loginFontHeight;
-  ifont *_loginFont;
+  std::unique_ptr<ifont, FontDeleter> _loginFont;
   const irect _contentRect;
   irect _urlButton;
   irect _loginButton;
@@ -59,7 +57,7 @@ private:
   std::string _username;
   std::string _password;
   std::string _url;
-  bool _ignoreCert = false;
+  bool _ignoreCert{false};
   std::string _temp;
 
   /**
@@ -78,4 +76,3 @@ private:
   void keyboardHandler(char *text);
 };
 
-#endif

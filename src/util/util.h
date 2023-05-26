@@ -50,8 +50,8 @@ public:
   template <typename T>
   static void writeConfig(const std::string &name, T value,
                           bool secret = false) {
-    iconfigedit *temp = nullptr;
-    iconfig *config = OpenConfig(CONFIG_FILE_LOCATION, temp);
+
+    iconfig *config = OpenConfig(CONFIG_FILE_LOCATION.c_str(), nullptr);
 
     if constexpr (std::is_same<T, std::string>::value) {
       if (secret)
@@ -77,8 +77,8 @@ public:
   template <typename T>
   static T getConfig(string name, T defaultValue = "error",
                      bool secret = false) {
-    iconfigedit *temp = nullptr;
-    iconfig *config = OpenConfig(CONFIG_FILE_LOCATION, temp);
+
+    iconfig *config = OpenConfig(CONFIG_FILE_LOCATION.c_str(), nullptr);
     T returnValue;
 
     if constexpr (std::is_same<T, std::string>::value) {
