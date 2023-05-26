@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // webdav.h
 //
@@ -6,10 +7,6 @@
 // Description: Interface to the webdav API
 //
 //-------------------------------------------------------------------
-
-#ifndef WEBDAV
-#define WEBDAV
-
 #include "fileHandler.h"
 #include "webDAVModel.h"
 
@@ -17,10 +14,12 @@
 #include <vector>
 
 #include <memory>
+//TODO use namespaces
 
-const static std::string NEXTCLOUD_ROOT_PATH = "/remote.php/dav/files/";
-const std::string NEXTCLOUD_START_PATH = "/remote.php/";
-const std::string NEXTCLOUD_PATH = "/mnt/ext1/system/config/nextcloud";
+using namespace std::string_literals;
+
+const auto NEXTCLOUD_ROOT_PATH{"/remote.php/dav/files/"s};
+constexpr auto NEXTCLOUD_START_PATH{"/remote.php/"};
 
 class WebDAV {
 public:
@@ -29,7 +28,7 @@ public:
    *
    */
   WebDAV();
-  ~WebDAV();
+  ~WebDAV() = default;
 
   std::vector<WebDAVItem> login(const std::string &Url,
                                 const std::string &Username,
@@ -67,4 +66,3 @@ private:
 
   std::shared_ptr<FileHandler> _fileHandler;
 };
-#endif

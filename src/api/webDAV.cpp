@@ -21,51 +21,31 @@
 #include <sstream>
 #include <string>
 
-using std::ifstream;
-using std::ofstream;
+using namespace std::string_literals;
+
+namespace {
+    constexpr auto BEGIN_XML_ITEM{"<d:response>"};
+    const auto END_XML_ITEM{"</d:response>"s};
+}
+
 using std::string;
 using std::vector;
 
 namespace fs = std::experimental::filesystem;
 
-std::string WebDAV::getRootPath(bool encode) {
-  string rootPath = Util::getConfig<std::string>("ex_relativeRootPath", "/");
-  if (rootPath.empty())
-  {
-    rootPath += "/";
-  }
-
-  string user = Util::getConfig<std::string>("UUID", "");
-  if (user.empty())
-  {
-    user = Util::getConfig<std::string>("username", "error");
-  }
-
-  string rtc = NEXTCLOUD_ROOT_PATH + user + rootPath;
-
-  if (encode) {
-    Util::encodeUrl(rtc);
-    rtc = std::regex_replace(rtc, std::regex("%2F"), "/");
-  }
-
-  return rtc;
-}
-
 WebDAV::WebDAV() {
-  _fileHandler = std::shared_ptr<FileHandler>(new FileHandler());
+  _fileHandler = std::make_shared<FileHandler>();
 
-  if (iv_access(NEXTCLOUD_PATH.c_str(), W_OK) != 0)
-    iv_mkdir(NEXTCLOUD_PATH.c_str(), 0777);
+  if (iv_access(CONFIG_FOLDER_LOCATION, W_OK) != 0)
+    iv_mkdir(CONFIG_FOLDER_LOCATION, 0777);
 
-  if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0) {
-    _username = Util::getConfig<string>("username");
-    _password = Util::getConfig<string>("password", "", true);
-    _url = Util::getConfig<string>("url");
-    _ignoreCert = Util::getConfig<int>("ignoreCert", -1);
+  if (iv_access(CONFIG_FILE_LOCATION, W_OK) == 0) {
+    _username = Util::getConfig<string>(CONF_USERNAME);
+    _password = Util::getConfig<string>(CONF_PASSWORD, "", true);
+    _url = Util::getConfig<string>(CONF_URL);
+    _ignoreCert = Util::getConfig<int>(CONF_IGNORE_CERT, -1);
   }
 }
-
-WebDAV::~WebDAV() { _fileHandler.reset(); }
 
 std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
                                       const string &Pass, bool ignoreCert) {
@@ -75,7 +55,7 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
   _username = Username;
   _ignoreCert = ignoreCert;
 
-  std::size_t found = Url.find(NEXTCLOUD_ROOT_PATH);
+  const auto found{Url.find(NEXTCLOUD_ROOT_PATH)};
   if (found != std::string::npos) {
     _url = Url.substr(0, found);
     uuid = Url.substr(found + NEXTCLOUD_ROOT_PATH.length());
@@ -84,53 +64,52 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
     uuid = Username;
   }
   Util::encodeUrl(uuid);
-  auto tempPath = NEXTCLOUD_ROOT_PATH + uuid + "/";
-  Util::writeConfig<string>("storageLocation", "/mnt/ext1/nextcloud");
-  std::vector<WebDAVItem> tempItems = getDataStructure(tempPath);
+  const auto tempPath{NEXTCLOUD_ROOT_PATH + uuid + "/"};
+  Util::writeConfig<string>(CONF_STORAGE_LOCATION, DEFAULT_STORAGE_LOCATION);
+  const auto tempItems = getDataStructure(tempPath);
   if (!tempItems.empty()) {
-    if (iv_access(CONFIG_PATH.c_str(), W_OK) != 0)
-      iv_buildpath(CONFIG_PATH.c_str());
-    Util::writeConfig<string>("url", _url);
-    Util::writeConfig<string>("username", _username);
-    Util::writeConfig<string>("UUID", uuid);
-    Util::writeConfig<string>("password", _password, true);
-    Util::writeConfig<int>("ignoreCert", _ignoreCert);
+    if (iv_access(CONFIG_FILE_LOCATION, W_OK) != 0)
+      iv_buildpath(CONFIG_FILE_LOCATION);
+    Util::writeConfig<string>(CONF_URL, _url);
+    Util::writeConfig<string>(CONF_USERNAME, _username);
+    Util::writeConfig<string>(CONF_UUID, uuid);
+    Util::writeConfig<string>(CONF_PASSWORD, _password, true);
+    Util::writeConfig<int>(CONF_IGNORE_CERT, _ignoreCert);
   } else {
-    _password = "";
-    _username = "";
-    _url = "";
+    _password = {};
+    _username = {};
+    _url = {};
   }
   return tempItems;
 }
 
 void WebDAV::logout(bool deleteFiles) {
-  if (deleteFiles) {
-    string filesPath = Util::getConfig<string>("storageLocation") + "/" +
-                       Util::getConfig<string>("UUID") + '/';
-    if (fs::exists(filesPath))
-      fs::remove_all(filesPath);
-  }
-  fs::remove(CONFIG_PATH.c_str());
-  fs::remove((CONFIG_PATH + ".back.").c_str());
-  fs::remove(DB_PATH.c_str());
-  _url = "";
-  _password = "";
-  _username = "";
+    if (deleteFiles) {
+        const auto filesPath{Util::getConfig<string>(CONF_STORAGE_LOCATION) + "/" +
+            Util::getConfig<string>(CONF_UUID) + '/'};
+        if (fs::exists(filesPath))
+            fs::remove_all(filesPath);
+    }
+    fs::remove(CONF_STORAGE_LOCATION);
+    const auto backupPath{CONFIG_FOLDER_LOCATION + ".back."s};
+    fs::remove(backupPath);
+    fs::remove(DB_LOCATION);
+    _url = {};
+    _password = {};
+    _username = {};
 }
 
 vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl) {
-  string xmlItem = propfind(pathUrl);
+  auto xmlItem{propfind(pathUrl)};
   if (!xmlItem.empty()) {
-    string beginItem = "<d:response>";
-    string endItem = "</d:response>";
     vector<WebDAVItem> tempItems;
     WebDAVItem tempItem;
-    size_t begin = xmlItem.find(beginItem);
-    size_t end;
+    auto begin_location = xmlItem.find(BEGIN_XML_ITEM);
+    size_t end_location;
 
-    string prefix = NEXTCLOUD_ROOT_PATH + _username + "/";
-    while (begin != std::string::npos) {
-      end = xmlItem.find(endItem);
+    const auto  prefix{NEXTCLOUD_ROOT_PATH + _username + "/"};
+    while (begin_location != std::string::npos) {
+      end_location = xmlItem.find(END_XML_ITEM);
 
       // TODO fav is int?
       // Log::writeInfoLog(Util::getXMLAttribute(xmlItem, "d:favorite"));
@@ -176,7 +155,7 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl) {
         tempItem.localPath =
             tempItem.localPath.substr(NEXTCLOUD_ROOT_PATH.length());
       tempItem.localPath =
-          Util::getConfig<string>("storageLocation") + "/" + tempItem.localPath;
+          Util::getConfig<string>(CONF_STORAGE_LOCATION) + "/" + tempItem.localPath;
 
       if (tempItem.path.back() == '/') {
         tempItem.localPath =
@@ -192,20 +171,44 @@ vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl) {
           tempItem.title.find_last_of("/") + 1, tempItem.title.length());
       Util::decodeUrl(tempItem.title);
 
-      string pathDecoded = tempItem.path;
+      auto pathDecoded{tempItem.path};
       Util::decodeUrl(pathDecoded);
       tempItem.hide = _fileHandler->getHideState(tempItem.type, prefix,
                                                  pathDecoded, tempItem.title);
 
       tempItems.push_back(tempItem);
-      xmlItem = xmlItem.substr(end + endItem.length());
-      begin = xmlItem.find(beginItem);
+      xmlItem = xmlItem.substr(end_location + END_XML_ITEM.length());
+      begin_location = xmlItem.find(BEGIN_XML_ITEM);
     }
 
     if (!tempItems.empty())
       return tempItems;
   }
   return {};
+}
+
+std::string WebDAV::getRootPath(bool encode) {
+  auto rootPath{Util::getConfig<std::string>(CONF_EXTENSION_RELATIVE_ROOT_PATH, "/")};
+  if (rootPath.empty())
+  {
+    rootPath += "/";
+  }
+
+  auto user{Util::getConfig<std::string>(CONF_UUID, "")};
+  if (user.empty())
+  {
+      //TODO change return code stuff, optionals?
+      user = Util::getConfig<std::string>(CONF_USERNAME, "error");
+  }
+
+  string rtc = NEXTCLOUD_ROOT_PATH + user + rootPath;
+
+  if (encode) {
+    Util::encodeUrl(rtc);
+    rtc = std::regex_replace(rtc, std::regex("%2F"), "/");
+  }
+
+  return rtc;
 }
 
 string WebDAV::propfind(const string &pathUrl) {
@@ -279,14 +282,14 @@ string WebDAV::propfind(const string &pathUrl) {
       switch (response_code) {
       case 404:
         if (getRootPath().compare(NEXTCLOUD_ROOT_PATH +
-                                  Util::getConfig<std::string>("uuid", "")) !=
+                                  Util::getConfig<std::string>(CONF_UUID, "")) !=
             0) {
           if (propfind(NEXTCLOUD_ROOT_PATH +
-                       Util::getConfig<std::string>("UUID", "")) != "") {
+                       Util::getConfig<std::string>(CONF_UUID, "")) != "") {
             // Own root path defined
             string output;
             int dialogResult = DialogSynchro(
-                ICON_ERROR, "Action",
+                ICON_ERROR, TEXT_MESSAGE_ERROR,
                 output
                     .append(
                         "The specified start folder does not seem to exist:\n")
@@ -294,12 +297,12 @@ string WebDAV::propfind(const string &pathUrl) {
                                                          "/"))
                     .append("\n\nWhat would you like to do?")
                     .c_str(),
-                "Reset start folder", "Close App", NULL);
+                "Reset start folder", TEXT_DIALOG_CLOSE_APP, NULL);
             switch (dialogResult) {
             case 1: {
-              Util::writeConfig<string>("ex_relativeRootPath", "");
+              Util::writeConfig<string>(CONF_EXTENSION_RELATIVE_ROOT_PATH, "");
               return propfind(NEXTCLOUD_ROOT_PATH +
-                              Util::getConfig<std::string>("UUID", ""));
+                              Util::getConfig<std::string>(CONF_UUID, ""));
             } break;
             case 2:
             default:
@@ -308,34 +311,34 @@ string WebDAV::propfind(const string &pathUrl) {
             }
           }
         } else {
-          Message(ICON_ERROR, "Error",
+          Message(ICON_ERROR, TEXT_MESSAGE_ERROR,
                   "The URL seems to be incorrect. You can look up the WebDav "
-                  "URL in the settings of the files webapp. ",
-                  4000);
+                  "URL in the settings of the files webapp.",
+                  TIMEOUT_MESSAGE);
         }
         break;
       case 401:
-        Message(ICON_ERROR, "Error", "Username/password incorrect.", 4000);
+        Message(ICON_ERROR, TEXT_MESSAGE_ERROR, "Username/password incorrect.", TIMEOUT_MESSAGE);
         break;
       case 207:
         return readBuffer;
         break;
       default:
-        Message(ICON_ERROR, "Error",
+        Message(ICON_ERROR, TEXT_MESSAGE_ERROR,
                 ("An unknown error occured. (Curl Response Code " +
                  std::to_string(response_code) + ")")
                     .c_str(),
-                5000);
+                TIMEOUT_MESSAGE);
       }
     } else {
       string response =
           std::string("An error occured. (") + curl_easy_strerror(res) +
           " (Curl Error Code: " + std::to_string(res) + ")). Please try again.";
       Log::writeErrorLog(response);
-      Message(ICON_ERROR, "Error", response.c_str(), 4000);
+      Message(ICON_ERROR, TEXT_MESSAGE_ERROR, response.c_str(), TIMEOUT_MESSAGE);
     }
   }
-  return "";
+  return {};
 }
 
 bool WebDAV::get(WebDAVItem &item) {
@@ -348,9 +351,9 @@ bool WebDAV::get(WebDAVItem &item) {
   }
 
   if (item.path.empty()) {
-    Message(ICON_ERROR, "Error",
+    Message(ICON_ERROR, TEXT_MESSAGE_ERROR,
             "Download path is not set, therefore cannot download the file.",
-            2000);
+            TIMEOUT_MESSAGE);
     return false;
   }
 
@@ -396,14 +399,14 @@ bool WebDAV::get(WebDAVItem &item) {
         return true;
         break;
       case 401:
-        Message(ICON_ERROR, "Error", "Username/password incorrect.", 2000);
+        Message(ICON_ERROR, TEXT_MESSAGE_ERROR, "Username/password incorrect.", TIMEOUT_MESSAGE);
         break;
       default:
-        Message(ICON_ERROR, "Error",
+        Message(ICON_ERROR, TEXT_MESSAGE_ERROR,
                 ("An unknown error occured. (Curl Response Code " +
                  std::to_string(response_code) + ")")
                     .c_str(),
-                2000);
+                TIMEOUT_MESSAGE);
         break;
       }
     } else {
@@ -416,7 +419,7 @@ bool WebDAV::get(WebDAVItem &item) {
             "guide on Github "
             "(https://github.com/JuanJakobo/Pocketbook-Nextcloud-Client) to "
             "use a custom Cert Store on PB.";
-      Message(ICON_ERROR, "Error", response.c_str(), 4000);
+      Message(ICON_ERROR, TEXT_MESSAGE_ERROR, response.c_str(), TIMEOUT_MESSAGE);
     }
   }
   return false;
