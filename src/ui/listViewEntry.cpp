@@ -7,7 +7,9 @@
 //-------------------------------------------------------------------
 
 #include "listViewEntry.h"
+
 #include "inkview.h"
 
-ListViewEntry::ListViewEntry(int page, const irect &rect)
-    : _page(page), _position(rect) {}
+ListViewEntry::ListViewEntry(int page, const irect &rect) : _page(page), _position(rect)
+{
+}

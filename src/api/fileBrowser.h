@@ -10,22 +10,22 @@
 #ifndef FILEBROWSER
 #define FILEBROWSER
 
-#include "fileHandler.h"
-#include "fileModel.h"
-
 #include <memory>
 #include <string>
 #include <vector>
 
-class FileBrowser {
-public:
-  static std::vector<FileItem> getFileStructure(const std::string &path,
-                                                const bool includeFiles,
-                                                const bool includeHeader);
+#include "fileHandler.h"
+#include "fileModel.h"
 
-private:
-  FileBrowser(){};
+class FileBrowser
+{
+  public:
+    static std::vector<FileItem> getFileStructure(const std::string &path, const bool includeFiles,
+                                                  const bool includeHeader);
 
-  static std::shared_ptr<FileHandler> _fileHandler;
+  private:
+    FileBrowser(){};
+
+    static std::shared_ptr<FileHandler> _fileHandler;
 };
 #endif

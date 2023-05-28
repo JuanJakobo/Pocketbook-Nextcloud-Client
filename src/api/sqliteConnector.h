@@ -10,53 +10,54 @@
 #ifndef SQLITECONNECTOR
 #define SQLITECONNECTOR
 
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "fileHandler.h"
 #include "sqlite3.h"
 #include "webDAVModel.h"
 
-#include <string>
-#include <vector>
+class SqliteConnector
+{
+  public:
+    /**
+     *
+     */
+    SqliteConnector(const std::string &DBpath);
 
-#include <memory>
+    ~SqliteConnector();
+    /* ~SqliteConnector() = default; */
 
-class SqliteConnector {
-public:
-  /**
-   *
-   */
-  SqliteConnector(const std::string &DBpath);
+    bool open();
 
-  ~SqliteConnector();
+    int getDbVersion();
 
-  bool open();
+    void runMigration(int currentVersion);
 
-  int getDbVersion();
+    std::string getEtag(const std::string &path);
 
-  void runMigration(int currentVersion);
+    FileState getState(const std::string &path);
 
-  std::string getEtag(const std::string &path);
+    bool updateState(const std::string &path, FileState state);
 
-  FileState getState(const std::string &path);
+    std::vector<WebDAVItem> getItemsChildren(const std::string &parenthPath);
 
-  bool updateState(const std::string &path, FileState state);
+    void deleteChildren(const std::string &parentPath);
 
-  std::vector<WebDAVItem> getItemsChildren(const std::string &parenthPath);
+    void deleteChild(const std::string &path, const std::string &title);
 
-  void deleteChildren(const std::string &parentPath);
+    void deleteItemsNotBeginsWith(std::string beginPath);
 
-  void deleteChild(const std::string &path, const std::string &title);
+    bool resetHideState();
 
-  void deleteItemsNotBeginsWith(std::string beginPath);
+    bool saveItemsChildren(const std::vector<WebDAVItem> &children);
 
-  bool resetHideState();
+  private:
+    std::string _dbpath;
+    sqlite3 *_db;
 
-  bool saveItemsChildren(const std::vector<WebDAVItem> &children);
-
-private:
-  std::string _dbpath;
-  sqlite3 *_db;
-
-  std::shared_ptr<FileHandler> _fileHandler;
+    std::shared_ptr<FileHandler> _fileHandler;
 };
 
 #endif

@@ -9,18 +9,23 @@
 #ifndef FILEMODEL
 #define FILEMODEL
 
-#include "model.h"
-
 #include <string>
 
-enum class Type { FFOLDER, FFILE };
+#include "model.h"
 
-struct FileItem : Entry {
-  std::string name;
-  std::string path;
-  Type type;
-  // long long int size;
-  tm lastEditDate;
+enum class Type
+{
+    FFOLDER,
+    FFILE
+};
+
+struct FileItem : Entry
+{
+    std::string name;
+    std::string path;
+    Type type;
+    // long long int size;
+    tm lastEditDate;
 };
 
 #endif

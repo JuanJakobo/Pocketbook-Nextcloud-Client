@@ -7,29 +7,36 @@
 //-------------------------------------------------------------------
 
 #include "log.h"
-#include "eventHandler.h"
 
 #include <fstream>
 #include <string>
 
-void Log::writeInfoLog(const std::string &text) { writeLog("Info:" + text); }
+#include "eventHandler.h"
 
-void Log::writeErrorLog(const std::string &text) { writeLog("Error:" + text); }
+void Log::writeInfoLog(const std::string &text)
+{
+    writeLog("Info:" + text);
+}
 
-void Log::writeLog(const std::string &text) {
-  std::ofstream log(CONFIG_FOLDER + std::string("/logfile.txt"),
-                    std::ios_base::app | std::ios_base::out);
+void Log::writeErrorLog(const std::string &text)
+{
+    writeLog("Error:" + text);
+}
 
-  time_t rawtime;
-  struct tm *timeinfo;
-  char buffer[80];
+void Log::writeLog(const std::string &text)
+{
+    std::ofstream log(CONFIG_FOLDER_LOCATION + std::string("/logfile.txt"), std::ios_base::app | std::ios_base::out);
 
-  time(&rawtime);
-  timeinfo = localtime(&rawtime);
+    time_t rawtime;
+    struct tm *timeinfo;
+    char buffer[80];
 
-  strftime(buffer, sizeof(buffer), "%d/%b/%Y:%H:%M:%S %z", timeinfo);
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
 
-  log << buffer << ':' << text << "\n";
+    strftime(buffer, sizeof(buffer), "%d/%b/%Y:%H:%M:%S %z", timeinfo);
 
-  log.close();
+    log << buffer << ':' << text << "\n";
+
+    log.close();
 }
