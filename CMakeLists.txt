@@ -88,7 +88,7 @@ include_directories(
 )
 
 TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype curl sqlite3 stdc++fs)
-target_compile_definitions(Nextcloud.app PRIVATE DBVERSION=2 PROGRAMVERSION="1.02")
+target_compile_definitions(Nextcloud.app PRIVATE DBVERSION=2 PROGRAMVERSION="1.05")
 
 INSTALL (TARGETS Nextcloud.app)
 
