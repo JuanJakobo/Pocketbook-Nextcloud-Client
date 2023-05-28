@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // fileBrowser.h
 //
@@ -6,10 +7,6 @@
 // Description: Interface to the filesystem fo the PB
 //
 //-------------------------------------------------------------------
-
-#ifndef FILEBROWSER
-#define FILEBROWSER
-
 #include <memory>
 #include <string>
 #include <vector>
@@ -28,4 +25,3 @@ class FileBrowser
 
     static std::shared_ptr<FileHandler> _fileHandler;
 };
-#endif

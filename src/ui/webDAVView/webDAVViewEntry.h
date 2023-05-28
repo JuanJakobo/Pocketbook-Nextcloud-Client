@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // webDAVViewEntry.h
 //
@@ -5,10 +6,6 @@
 // Date:             08.09.2021
 // Description:
 //-------------------------------------------------------------------
-
-#ifndef WEBDAVVIEWENTRY
-#define WEBDAVVIEWENTRY
-
 #include "listViewEntry.h"
 #include "webDAVModel.h"
 
@@ -41,4 +38,3 @@ class WebDAVViewEntry : public ListViewEntry
   private:
     WebDAVItem _entry;
 };
-#endif

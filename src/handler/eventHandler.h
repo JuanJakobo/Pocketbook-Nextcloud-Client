@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // eventHandler.h
 //
@@ -5,9 +6,6 @@
 // Date:             04.08.2020
 // Description:      Handles all events and directs them
 //-------------------------------------------------------------------
-
-#pragma once
-
 #include <memory>
 
 #include "contextMenu.h"

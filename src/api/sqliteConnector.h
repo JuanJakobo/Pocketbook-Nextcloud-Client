@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // sqliteconnector.h
 //
@@ -6,10 +7,6 @@
 // Description:
 //
 //-------------------------------------------------------------------
-
-#ifndef SQLITECONNECTOR
-#define SQLITECONNECTOR
-
 #include <memory>
 #include <string>
 #include <vector>
@@ -59,5 +56,3 @@ class SqliteConnector
 
     std::shared_ptr<FileHandler> _fileHandler;
 };
-
-#endif

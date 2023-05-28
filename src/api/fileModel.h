@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // fileModel.h
 //
@@ -5,10 +6,6 @@
 // Date:             23.04.2021
 // Description:
 //-------------------------------------------------------------------
-
-#ifndef FILEMODEL
-#define FILEMODEL
-
 #include <string>
 
 #include "model.h"
@@ -27,5 +24,3 @@ struct FileItem : Entry
     // long long int size;
     tm lastEditDate;
 };
-
-#endif

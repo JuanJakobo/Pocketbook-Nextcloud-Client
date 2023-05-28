@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // excludeFileView.h
 //
@@ -5,13 +6,7 @@
 // Date:             03.10.2022
 //
 //-------------------------------------------------------------------
-
 #include <string>
-
-#ifndef EXCLUDEFILEVIEW
-#define EXCLUDEFILEVIEW
-
-using std::string;
 
 #include "inkview.h"
 
@@ -107,4 +102,3 @@ class ExcludeFileView
      */
     void keyboardHandler(char *text);
 };
-#endif

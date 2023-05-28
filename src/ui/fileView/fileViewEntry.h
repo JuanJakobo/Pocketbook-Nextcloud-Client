@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // fileViewEntry.h
 //
@@ -5,10 +6,6 @@
 // Date:             08.09.2021
 // Description:
 //-------------------------------------------------------------------
-
-#ifndef FILEVIEWENTRY
-#define FILEVIEWENTRY
-
 #include "fileModel.h"
 #include "listViewEntry.h"
 
@@ -41,4 +38,3 @@ class FileViewEntry : public ListViewEntry
   private:
     FileItem _entry;
 };
-#endif

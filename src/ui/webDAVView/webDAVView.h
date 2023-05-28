@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // webDAVView.h
 //
@@ -5,10 +6,6 @@
 // Date:             08.09.2021
 // Description:      An UI class to display items in a listview
 //-------------------------------------------------------------------
-
-#ifndef WEBDAVVIEW
-#define WEBDAVVIEW
-
 #include <memory>
 #include <vector>
 
@@ -38,4 +35,3 @@ class WebDAVView final : public ListView
         return std::static_pointer_cast<WebDAVViewEntry>(_entries.at(entryID))->get();
     };
 };
-#endif

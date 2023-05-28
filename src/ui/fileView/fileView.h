@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // fileView.h
 //
@@ -5,10 +6,6 @@
 // Date:             08.09.2021
 // Description:      An UI class to display items in a listview
 //-------------------------------------------------------------------
-
-#ifndef FILEVIEW
-#define FILEVIEW
-
 #include <memory>
 #include <vector>
 
@@ -38,4 +35,3 @@ class FileView final : public ListView
         return std::dynamic_pointer_cast<FileViewEntry>(_entries.at(entryID))->get();
     };
 };
-#endif

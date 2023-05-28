@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // listView.h
 //
@@ -5,10 +6,6 @@
 // Date:             04.08.2020
 // Description:      An UI class to display items in a listview
 //-------------------------------------------------------------------
-
-#ifndef LISTVIEW
-#define LISTVIEW
-
 #include <memory>
 #include <vector>
 
@@ -133,4 +130,3 @@ class ListView
      */
     void actualizePage(int pageToShow);
 };
-#endif

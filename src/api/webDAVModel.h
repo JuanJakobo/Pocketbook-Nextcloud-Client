@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // webDAVItem.h
 //
@@ -5,10 +6,6 @@
 // Date:             07.07.2022
 // Description:
 //-------------------------------------------------------------------
-
-#ifndef WEBDAVITEM
-#define WEBDAVITEM
-
 #include <string>
 
 #include "model.h"
@@ -48,5 +45,3 @@ struct WebDAVItem : Entry
     std::string fileType;
     HideState hide;
 };
-
-#endif

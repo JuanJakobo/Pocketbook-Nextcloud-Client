@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // mainMenu.h
 //
@@ -5,8 +6,6 @@
 // Date:             14.06.2020
 // Description:      Handles the menubar and the menu
 //-------------------------------------------------------------------
-#pragma once
-
 #include <string>
 
 #include "inkview.h"
