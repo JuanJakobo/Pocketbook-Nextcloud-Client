@@ -452,7 +452,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     case 1: {
                         const auto currentFolder{FileBrowser::getFileStructure(FLASHDIR, false, true)};
                         _currentPath = FLASHDIR;
-                        _loginView.reset(nullptr);
                         FillAreaRect(&_menu->getContentRect(), WHITE);
                         _fileView = std::make_unique<FileView>(_menu->getContentRect(), currentFolder, 1);
                     }
@@ -465,6 +464,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         drawWebDAVItems(currentWebDAVItems);
                         break;
                     }
+                    _loginView.reset(nullptr);
                 }
                 return 0;
             }

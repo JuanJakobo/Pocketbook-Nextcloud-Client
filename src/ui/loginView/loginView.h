@@ -17,12 +17,11 @@ enum class KeyboardTarget
     IPASSWORD
 };
 
-// TODO Test this
 struct FontDeleter
 {
-    void operator()(ifont *b)
+    void operator()(ifont *font)
     {
-        CloseFont(b);
+        CloseFont(font);
     }
 };
 
