@@ -67,29 +67,30 @@ class EventHandler
      * @param par2 second argument of the event
      * @return int returns if the event was handled
      */
-    int eventDistributor(const int type, const int par1, const int par2);
+    int eventDistributor(int p_type, const int p_par1, const int p_par2);
 
   private:
-    static std::unique_ptr<EventHandler> _eventHandlerStatic;
-    std::unique_ptr<WebDAVView> _webDAVView;
-    std::unique_ptr<LoginView> _loginView;
-    std::unique_ptr<FileView> _fileView;
-    std::unique_ptr<ExcludeFileView> _excludeFileView;
-    std::unique_ptr<MainMenu> _menu;
+    static std::unique_ptr<EventHandler> m_eventHandlerStatic;
 
-    std::shared_ptr<FileHandler> _fileHandler;
+    std::unique_ptr<MainMenu> m_menu;
+    std::unique_ptr<WebDAVView> m_webDAVView;
+    std::unique_ptr<LoginView> m_loginView;
+    std::unique_ptr<FileView> m_fileView;
+    std::unique_ptr<ExcludeFileView> m_excludeFileView;
 
-    ContextMenu _contextMenu = ContextMenu();
-    WebDAV _webDAV = WebDAV();
-    SqliteConnector _sqllite = SqliteConnector(DB_LOCATION);
-    std::string _currentPath;
+    std::shared_ptr<FileHandler> m_fileHandler;
+
+    ContextMenu m_contextMenu = ContextMenu();
+    WebDAV m_webDAV = WebDAV();
+    SqliteConnector m_sqllite = SqliteConnector(DB_LOCATION);
+    std::string m_currentPath;
 
     /**
      * Function needed to call C function, redirects to real function
      *
      *  @param index int of the menu that is set
      */
-    static void mainMenuHandlerStatic(int index);
+    static void mainMenuHandlerStatic(int p_index);
 
     /**
      * Handles menu events and redirects them
@@ -121,7 +122,7 @@ class EventHandler
      * @param par2 second argument of the event
      * @return int returns if the event was handled
      */
-    int pointerHandler(const int type, const int par1, const int par2);
+    int pointerHandler(int p_type, int p_point_x, int p_point_y);
 
     /**
      * Updates PB Library
@@ -149,17 +150,19 @@ class EventHandler
      * @param par2 second argument of the event
      * @return int returns if the event was handled
      */
-    int keyHandler(const int type, const int par1, const int par2);
+    int keyHandler(int p_type, int p_clicked_button, int p_par2);
 
-    void getLocalFileStructure(std::vector<WebDAVItem> &tempItems);
+    void getLocalFileStructure(std::vector<WebDAVItem> &p_tempItems);
 
-    void downloadFolder(std::vector<WebDAVItem> &items, int itemID);
+    void downloadFolder(std::vector<WebDAVItem> &p_items, int p_itemID);
 
     void startDownload();
 
-    bool checkIfIsDownloaded(std::vector<WebDAVItem> &items, int itemID);
+    bool checkIfIsDownloaded(std::vector<WebDAVItem> &p_items, int p_itemID);
 
-    void updateItems(std::vector<WebDAVItem> &items);
+    void updateItems(std::vector<WebDAVItem> &p_items);
 
-    void drawWebDAVItems(std::vector<WebDAVItem> &items);
+    void drawWebDAVItems(std::vector<WebDAVItem> &p_items);
+
+    void redrawItems();
 };

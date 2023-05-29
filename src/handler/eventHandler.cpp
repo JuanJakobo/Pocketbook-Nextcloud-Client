@@ -26,21 +26,28 @@
 #include "webDAVModel.h"
 #include "webDAVView.h"
 
-using std::string;
-using std::vector;
+namespace
+{
+enum class PocketbookButtons
+{
+    Back,
+    Forward,
+    Menu
+};
+} // namespace
 
 namespace fs = std::experimental::filesystem;
 
-std::unique_ptr<EventHandler> EventHandler::_eventHandlerStatic;
+std::unique_ptr<EventHandler> EventHandler::m_eventHandlerStatic;
 
 EventHandler::EventHandler()
 {
     // create an copy of the eventhandler to handle methods that require static
     // functions
-    _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
+    m_eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
-    _fileHandler = std::make_shared<FileHandler>();
-    _menu = std::make_unique<MainMenu>(APPLICATION_NAME);
+    m_fileHandler = std::make_shared<FileHandler>();
+    m_menu = std::make_unique<MainMenu>(APPLICATION_NAME);
 
     if (iv_access(CONFIG_FILE_LOCATION.c_str(), W_OK) == 0)
     {
@@ -57,11 +64,11 @@ EventHandler::EventHandler()
         }
 
         auto path{WebDAV::getRootPath(true)};
-        auto currentWebDAVItems{_webDAV.getDataStructure(path)};
+        auto currentWebDAVItems{m_webDAV.getDataStructure(path)};
 
         if (currentWebDAVItems.empty())
         {
-            currentWebDAVItems = _sqllite.getItemsChildren(path);
+            currentWebDAVItems = m_sqllite.getItemsChildren(path);
         }
         else
         {
@@ -77,8 +84,8 @@ EventHandler::EventHandler()
             switch (dialogResult)
             {
             case 1:
-                _webDAV.logout(true);
-                _loginView = std::make_unique<LoginView>(_menu->getContentRect());
+                m_webDAV.logout(true);
+                m_loginView = std::make_unique<LoginView>(m_menu->getContentRect());
                 break;
             case 2:
             default:
@@ -93,25 +100,28 @@ EventHandler::EventHandler()
     }
     else
     {
-        _loginView = std::make_unique<LoginView>(_menu->getContentRect());
+        m_loginView = std::make_unique<LoginView>(m_menu->getContentRect());
     }
-    _menu->draw();
+    m_menu->draw();
 }
 
-int EventHandler::eventDistributor(int type, int par1, int par2)
+int EventHandler::eventDistributor(int p_type, int p_par1, int p_par2)
 {
-    if (ISPOINTEREVENT(type))
-        return EventHandler::pointerHandler(type, par1, par2);
-    else if (ISKEYEVENT(type))
-        return EventHandler::keyHandler(type, par1, par2);
-
+    if (ISPOINTEREVENT(p_type))
+    {
+        return EventHandler::pointerHandler(p_type, p_par1, p_par2);
+    }
+    else if (ISKEYEVENT(p_type))
+    {
+        return EventHandler::keyHandler(p_type, p_par1, p_par2);
+    }
     return 1;
 }
 
 void EventHandler::mainMenuHandlerStatic(int p_index)
 {
     auto mainMenuOption{static_cast<MainMenuOption>(p_index)};
-    _eventHandlerStatic->mainMenuHandler(mainMenuOption);
+    m_eventHandlerStatic->mainMenuHandler(mainMenuOption);
 }
 
 void EventHandler::mainMenuHandler(MainMenuOption p_mainMenuOption)
@@ -119,23 +129,23 @@ void EventHandler::mainMenuHandler(MainMenuOption p_mainMenuOption)
     switch (p_mainMenuOption)
     {
     case MainMenuOption::ActualizeCurrentFolder: {
-        OpenProgressbar(1, "Actualizing current folder", ("Actualizing path" + _currentPath).c_str(), 0, NULL);
-        auto childrenPath{_currentPath};
+        OpenProgressbar(1, "Actualizing current folder", ("Actualizing path" + m_currentPath).c_str(), 0, NULL);
+        auto childrenPath{m_currentPath};
         childrenPath = childrenPath.substr(NEXTCLOUD_ROOT_PATH.length(), childrenPath.length());
         std::string path{NEXTCLOUD_ROOT_PATH};
         std::vector<WebDAVItem> currentWebDAVItems;
-        size_t found = 0;
-        auto i{0};
+        size_t found{0};
+        auto counter{0};
         while ((found = childrenPath.find("/"), found) != std::string::npos)
         {
             path += childrenPath.substr(0, found + 1);
             childrenPath = childrenPath.substr(found + 1, childrenPath.length());
-            auto state{_sqllite.getState(path)};
+            auto state{m_sqllite.getState(path)};
             Log::writeInfoLog("current path " + path);
-            if (i < 1 || state == FileState::IOUTSYNCED || state == FileState::ICLOUD)
+            if (counter < 1 || state == FileState::IOUTSYNCED || state == FileState::ICLOUD)
             {
                 UpdateProgressbar(("Upgrading " + path).c_str(), 0);
-                currentWebDAVItems = _webDAV.getDataStructure(path);
+                currentWebDAVItems = m_webDAV.getDataStructure(path);
             }
             else
             {
@@ -153,51 +163,50 @@ void EventHandler::mainMenuHandler(MainMenuOption p_mainMenuOption)
             {
                 updateItems(currentWebDAVItems);
             }
-            i++;
+            counter++;
         }
 
         Log::writeInfoLog("stopped at " + path);
-        currentWebDAVItems = _sqllite.getItemsChildren(_currentPath);
+        currentWebDAVItems = m_sqllite.getItemsChildren(m_currentPath);
 
-        for (auto &item : currentWebDAVItems)
+        for (const auto &item : currentWebDAVItems)
         {
             Log::writeInfoLog(item.path);
             if (item.type == Itemtype::IFOLDER && item.state == FileState::IOUTSYNCED)
             {
                 UpdateProgressbar(("Upgrading " + item.path).c_str(), 0);
-                vector<WebDAVItem> tempWebDAVItems = _webDAV.getDataStructure(item.path);
+                auto tempWebDAVItems{m_webDAV.getDataStructure(item.path)};
                 updateItems(tempWebDAVItems);
             }
         }
-        currentWebDAVItems = _sqllite.getItemsChildren(_currentPath);
+        currentWebDAVItems = m_sqllite.getItemsChildren(m_currentPath);
 
         CloseProgressbar();
-        if (!currentWebDAVItems.empty())
-            drawWebDAVItems(currentWebDAVItems);
+        drawWebDAVItems(currentWebDAVItems);
         break;
     }
     case MainMenuOption::Logout: {
-        auto dialogResult{DialogSynchro(ICON_QUESTION, TEXT_MESSAGE_ACTION, "Do you want to delete local files?",
-                                        TEXT_DIALOG_YES, TEXT_DIALOG_NO, TEXT_DIALOG_CANCEL)};
+        const auto dialogResult{DialogSynchro(ICON_QUESTION, TEXT_MESSAGE_ACTION, "Do you want to delete local files?",
+                                              TEXT_DIALOG_YES, TEXT_DIALOG_NO, TEXT_DIALOG_CANCEL)};
         switch (dialogResult)
         {
         case 1:
-            _webDAV.logout(true);
+            m_webDAV.logout(true);
             break;
         case 2:
-            _webDAV.logout();
+            m_webDAV.logout();
             break;
         case 3:
         default:
             return;
         }
-        _webDAVView.reset(nullptr);
-        _loginView = std::make_unique<LoginView>(_menu->getContentRect());
+        m_webDAVView.reset(nullptr);
+        m_loginView = std::make_unique<LoginView>(m_menu->getContentRect());
         break;
     }
     case MainMenuOption::SortBy: {
-        auto dialogResult{DialogSynchro(ICON_QUESTION, TEXT_MESSAGE_ACTION, "By what do you want to sort?", "Filename",
-                                        "Last modified", TEXT_DIALOG_CANCEL)};
+        const auto dialogResult{DialogSynchro(ICON_QUESTION, TEXT_MESSAGE_ACTION, "By what do you want to sort?",
+                                              "Filename", "Last modified", TEXT_DIALOG_CANCEL)};
         switch (dialogResult)
         {
         case 1:
@@ -213,40 +222,40 @@ void EventHandler::mainMenuHandler(MainMenuOption p_mainMenuOption)
         break;
     }
     case MainMenuOption::ExcludeFiles: {
-        if (_fileView != nullptr)
+        if (m_fileView != nullptr)
         {
-            _currentPath = _fileView->getCurrentEntry().path;
-            _fileView.reset();
+            m_currentPath = m_fileView->getCurrentEntry().path;
+            m_fileView.reset();
         }
         else
         {
-            _currentPath = "";
+            m_currentPath = {};
         }
-        _webDAVView.reset(nullptr);
-        FillAreaRect(&_menu->getContentRect(), WHITE);
-        _excludeFileView = std::make_unique<ExcludeFileView>(_menu->getContentRect());
+        m_webDAVView.reset(nullptr);
+        FillAreaRect(&m_menu->getContentRect(), WHITE);
+        m_excludeFileView = std::make_unique<ExcludeFileView>(m_menu->getContentRect());
         break;
     }
     case MainMenuOption::ChooseFolder: {
-        _currentPath = _currentPath + ((_currentPath.back() != '/') ? "/nextcloud" : "nextcloud");
+        m_currentPath = m_currentPath + ((m_currentPath.back() != '/') ? "/nextcloud" : "nextcloud");
 
-        if (iv_mkdir(_currentPath.c_str(), 0777) != 0)
+        if (iv_mkdir(m_currentPath.c_str(), 0777) != 0)
         {
-            Log::writeErrorLog("choosen part " + _currentPath +
+            Log::writeErrorLog("choosen part " + m_currentPath +
                                " could not be created as permission are not sufficient.");
             Message(ICON_ERROR, TEXT_MESSAGE_ERROR, "The permissions are not sufficient.", TIMEOUT_MESSAGE);
         }
         else
         {
-            Util::writeConfig<string>(CONF_STORAGE_LOCATION, _currentPath);
-            auto currentWebDAVItems{_webDAV.getDataStructure(WebDAV::getRootPath(true))};
+            Util::writeConfig<string>(CONF_STORAGE_LOCATION, m_currentPath);
+            auto currentWebDAVItems{m_webDAV.getDataStructure(WebDAV::getRootPath(true))};
             if (currentWebDAVItems.empty())
             {
                 Message(ICON_ERROR, TEXT_MESSAGE_ERROR, "Failed to get items. Please try again.", TIMEOUT_MESSAGE);
             }
             else
             {
-                _fileView.reset();
+                m_fileView.reset(nullptr);
                 updateItems(currentWebDAVItems);
                 drawWebDAVItems(currentWebDAVItems);
             }
@@ -276,7 +285,7 @@ void EventHandler::mainMenuHandler(MainMenuOption p_mainMenuOption)
 void EventHandler::contextMenuHandlerStatic(int p_index)
 {
     auto contextMenuOption{static_cast<ContextMenuOption>(p_index)};
-    _eventHandlerStatic->contextMenuHandler(contextMenuOption);
+    m_eventHandlerStatic->contextMenuHandler(contextMenuOption);
 }
 
 void EventHandler::contextMenuHandler(ContextMenuOption p_contextMenuOption)
@@ -284,7 +293,7 @@ void EventHandler::contextMenuHandler(ContextMenuOption p_contextMenuOption)
     switch (p_contextMenuOption)
     {
     case ContextMenuOption::Open:
-        if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
+        if (m_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
         {
             openFolder();
         }
@@ -294,7 +303,7 @@ void EventHandler::contextMenuHandler(ContextMenuOption p_contextMenuOption)
         }
         break;
     case ContextMenuOption::Sync:
-        if (_webDAVView->getCurrentEntry().state != FileState::ILOCAL)
+        if (m_webDAVView->getCurrentEntry().state != FileState::ILOCAL)
         {
             startDownload();
         }
@@ -304,66 +313,67 @@ void EventHandler::contextMenuHandler(ContextMenuOption p_contextMenuOption)
             // Dialog file is offline, do you want to sync it to the cloud?
             Message(ICON_ERROR, TEXT_MESSAGE_ERROR, "The File is local and upload to cloud is currently not supported.",
                     TIMEOUT_MESSAGE);
-            _webDAVView->invertCurrentEntryColor();
+            m_webDAVView->invertCurrentEntryColor();
         }
         break;
     case ContextMenuOption::Remove:
-        if (_webDAVView->getCurrentEntry().state != FileState::ICLOUD)
+        if (m_webDAVView->getCurrentEntry().state != FileState::ICLOUD)
         {
-            if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
+            if (m_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
             {
-                fs::remove_all(_webDAVView->getCurrentEntry().localPath);
+                fs::remove_all(m_webDAVView->getCurrentEntry().localPath);
             }
             else
             {
-                fs::remove(_webDAVView->getCurrentEntry().localPath);
+                fs::remove(m_webDAVView->getCurrentEntry().localPath);
             }
-            auto currentWebDAVItems{_sqllite.getItemsChildren(_currentPath)};
+            auto currentWebDAVItems{m_sqllite.getItemsChildren(m_currentPath)};
             updateItems(currentWebDAVItems);
             drawWebDAVItems(currentWebDAVItems);
         }
         else
         {
             Message(ICON_ERROR, TEXT_MESSAGE_ERROR, "File is not available locally.", TIMEOUT_MESSAGE);
-            _webDAVView->invertCurrentEntryColor();
+            m_webDAVView->invertCurrentEntryColor();
         }
         break;
     default:
-        _webDAVView->invertCurrentEntryColor();
+        m_webDAVView->invertCurrentEntryColor();
         break;
     }
 }
 
-int EventHandler::pointerHandler(const int type, const int par1, const int par2)
+int EventHandler::pointerHandler(int p_type, int p_point_x, int p_point_y)
 {
     // long press to open up context menu
-    if (type == EVT_POINTERLONG && _webDAVView)
+    if (p_type == EVT_POINTERLONG && m_webDAVView != nullptr)
     {
-        _webDAVView->checkIfEntryClicked(par1, par2);
-        _webDAVView->invertCurrentEntryColor();
-        if (_webDAVView->getCurrentEntry().title.compare("...") != 0)
+        m_webDAVView->checkIfEntryClicked(p_point_x, p_point_y);
+        m_webDAVView->invertCurrentEntryColor();
+        if (m_webDAVView->getCurrentEntry().title.compare("...") != 0)
         {
-            _contextMenu.createMenu(par2, _webDAVView->getCurrentEntry().state, EventHandler::contextMenuHandlerStatic);
+            m_contextMenu.createMenu(p_point_y, m_webDAVView->getCurrentEntry().state,
+                                     EventHandler::contextMenuHandlerStatic);
         }
     }
-    else if (type == EVT_POINTERUP)
+    else if (p_type == EVT_POINTERUP)
     {
-        if (IsInRect(par1, par2, &_menu->getMenuButtonRect()) == 1)
+        if (IsInRect(p_point_x, p_point_y, &m_menu->getMenuButtonRect()) == 1)
         {
-            _menu->open((_fileView != nullptr), (_webDAVView != nullptr), EventHandler::mainMenuHandlerStatic);
+            m_menu->open((m_fileView != nullptr), (m_webDAVView != nullptr), EventHandler::mainMenuHandlerStatic);
         }
-        else if (_webDAVView != nullptr)
+        else if (m_webDAVView != nullptr)
         {
-            if (_webDAVView->checkIfEntryClicked(par1, par2))
+            if (m_webDAVView->checkIfEntryClicked(p_point_x, p_point_y))
             {
-                _webDAVView->invertCurrentEntryColor();
-                if (_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
+                m_webDAVView->invertCurrentEntryColor();
+                if (m_webDAVView->getCurrentEntry().type == Itemtype::IFOLDER)
                 {
                     openFolder();
                 }
                 else
                 {
-                    if (_webDAVView->getCurrentEntry().state != FileState::ICLOUD)
+                    if (m_webDAVView->getCurrentEntry().state != FileState::ICLOUD)
                     {
                         openItem();
                     }
@@ -375,67 +385,38 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             }
             return 0;
         }
-        else if (_excludeFileView != nullptr)
+        else if (m_excludeFileView != nullptr)
         {
-            auto const click{_excludeFileView->excludeClicked(par1, par2)};
+            auto const click{m_excludeFileView->excludeClicked(p_point_x, p_point_y)};
             if (click == 3)
             {
-                Util::writeConfig<string>(CONF_EXTENSION_LIST, _excludeFileView->getExtensionList());
-                Util::writeConfig<string>(CONF_EXTENSION_PATTERN, _excludeFileView->getRegex());
-                Util::writeConfig<string>(CONF_EXTENSION_FOLDER_PATTERN, _excludeFileView->getFolderRegex());
-                Util::writeConfig<string>(CONF_EXTENSION_RELATIVE_ROOT_PATH, _excludeFileView->getStartFolder());
-                Util::writeConfig<int>(CONF_EXTENSION_INVERT_MATCH, _excludeFileView->getInvertMatch());
+                Util::writeConfig<string>(CONF_EXTENSION_LIST, m_excludeFileView->getExtensionList());
+                Util::writeConfig<string>(CONF_EXTENSION_PATTERN, m_excludeFileView->getRegex());
+                Util::writeConfig<string>(CONF_EXTENSION_FOLDER_PATTERN, m_excludeFileView->getFolderRegex());
+                Util::writeConfig<string>(CONF_EXTENSION_RELATIVE_ROOT_PATH, m_excludeFileView->getStartFolder());
+                Util::writeConfig<int>(CONF_EXTENSION_INVERT_MATCH, m_excludeFileView->getInvertMatch());
 
-                _sqllite.resetHideState();
-                if (_excludeFileView->getStartFolder() != "")
+                m_sqllite.resetHideState();
+                if (m_excludeFileView->getStartFolder() != "")
                 {
-                    _sqllite.deleteItemsNotBeginsWith(WebDAV::getRootPath(true));
+                    m_sqllite.deleteItemsNotBeginsWith(WebDAV::getRootPath(true));
                 }
-
-                _excludeFileView.reset();
-                ShowHourglassForce();
-
-                FillAreaRect(&_menu->getContentRect(), WHITE);
-                if (_currentPath != "")
-                {
-                    const auto currentFolder{FileBrowser::getFileStructure(_currentPath, false, true)};
-                    _fileView.reset(new FileView(_menu->getContentRect(), currentFolder, 1));
-                }
-                else
-                {
-                    auto currentWebDAVItems = _webDAV.getDataStructure(WebDAV::getRootPath(true));
-                    updateItems(currentWebDAVItems);
-                    drawWebDAVItems(currentWebDAVItems);
-                }
+                redrawItems();
             }
             else if (click == -1)
             {
-                _excludeFileView.reset();
-                ShowHourglassForce();
-
-                FillAreaRect(&_menu->getContentRect(), WHITE);
-                if (_currentPath != "")
-                {
-                    const auto currentFolder = FileBrowser::getFileStructure(_currentPath, false, true);
-                    _fileView.reset(new FileView(_menu->getContentRect(), currentFolder, 1));
-                }
-                else
-                {
-                    auto currentWebDAVItems{_webDAV.getDataStructure(WebDAV::getRootPath(true))};
-                    updateItems(currentWebDAVItems);
-                    drawWebDAVItems(currentWebDAVItems);
-                }
+                redrawItems();
             }
         }
         // if loginView is shown
-        else if (_loginView != nullptr)
+        else if (m_loginView != nullptr)
         {
-            if (_loginView->logginClicked(par1, par2) == 2)
+            if (m_loginView->logginClicked(p_point_x, p_point_y) == 2)
             {
                 ShowHourglassForce();
 
-                auto currentWebDAVItems{_webDAV.login(_loginView->getURL(), _loginView->getUsername(),
-                                                      _loginView->getPassword(), _loginView->getIgnoreCert())};
+                auto currentWebDAVItems{m_webDAV.login(m_loginView->getURL(), m_loginView->getUsername(),
+                                                       m_loginView->getPassword(), m_loginView->getIgnoreCert())};
                 if (currentWebDAVItems.empty())
                 {
                     Message(ICON_ERROR, TEXT_MESSAGE_ERROR, "Login failed.", TIMEOUT_MESSAGE);
@@ -451,9 +432,9 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     {
                     case 1: {
                         const auto currentFolder{FileBrowser::getFileStructure(FLASHDIR, false, true)};
-                        _currentPath = FLASHDIR;
-                        FillAreaRect(&_menu->getContentRect(), WHITE);
-                        _fileView = std::make_unique<FileView>(_menu->getContentRect(), currentFolder, 1);
+                        m_currentPath = FLASHDIR;
+                        FillAreaRect(&m_menu->getContentRect(), WHITE);
+                        m_fileView = std::make_unique<FileView>(m_menu->getContentRect(), currentFolder, 1);
                     }
                     break;
                     case 2:
@@ -464,22 +445,22 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         drawWebDAVItems(currentWebDAVItems);
                         break;
                     }
-                    _loginView.reset(nullptr);
+                    m_loginView.reset(nullptr);
                 }
                 return 0;
             }
         }
-        else if (_fileView != nullptr)
+        else if (m_fileView != nullptr)
         {
-            if (_fileView->checkIfEntryClicked(par1, par2))
+            if (m_fileView->checkIfEntryClicked(p_point_x, p_point_y))
             {
-                _fileView->invertCurrentEntryColor();
+                m_fileView->invertCurrentEntryColor();
 
-                if (_fileView->getCurrentEntry().type == Type::FFOLDER)
+                if (m_fileView->getCurrentEntry().type == Type::FFOLDER)
                 {
-                    _currentPath = _fileView->getCurrentEntry().path;
-                    const auto currentFolder{FileBrowser::getFileStructure(_currentPath, false, true)};
-                    _fileView.reset(new FileView(_menu->getContentRect(), currentFolder, 1));
+                    m_currentPath = m_fileView->getCurrentEntry().path;
+                    const auto currentFolder{FileBrowser::getFileStructure(m_currentPath, false, true)};
+                    m_fileView.reset(new FileView(m_menu->getContentRect(), currentFolder, 1));
                 }
             }
 
@@ -491,26 +472,26 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 
 void EventHandler::openItem()
 {
-    _webDAVView->invertCurrentEntryColor();
-    if (_webDAVView->getCurrentEntry().state == FileState::ICLOUD)
+    m_webDAVView->invertCurrentEntryColor();
+    if (m_webDAVView->getCurrentEntry().state == FileState::ICLOUD)
     {
         Message(ICON_ERROR, TEXT_MESSAGE_ERROR, "Could not find file.", TIMEOUT_MESSAGE);
     }
-    else if (_webDAVView->getCurrentEntry().fileType.find("application/epub+zip") != string::npos ||
-             _webDAVView->getCurrentEntry().fileType.find("application/pdf") != string::npos ||
-             _webDAVView->getCurrentEntry().fileType.find("application/octet-stream") != string::npos ||
-             _webDAVView->getCurrentEntry().fileType.find("text/plain") != string::npos ||
-             _webDAVView->getCurrentEntry().fileType.find("text/html") != string::npos ||
-             _webDAVView->getCurrentEntry().fileType.find("text/rtf") != string::npos ||
-             _webDAVView->getCurrentEntry().fileType.find("text/markdown") != string::npos ||
-             _webDAVView->getCurrentEntry().fileType.find("application/msword") != string::npos ||
-             _webDAVView->getCurrentEntry().fileType.find("application/x-mobipocket-ebook") != string::npos ||
-             _webDAVView->getCurrentEntry().fileType.find("application/"
-                                                          "vnd.openxmlformats-officedocument.wordprocessingml."
-                                                          "document") != string::npos ||
-             _webDAVView->getCurrentEntry().fileType.find("application/x-fictionbook+xml") != string::npos)
+    else if (m_webDAVView->getCurrentEntry().fileType.find("application/epub+zip") != string::npos ||
+             m_webDAVView->getCurrentEntry().fileType.find("application/pdf") != string::npos ||
+             m_webDAVView->getCurrentEntry().fileType.find("application/octet-stream") != string::npos ||
+             m_webDAVView->getCurrentEntry().fileType.find("text/plain") != string::npos ||
+             m_webDAVView->getCurrentEntry().fileType.find("text/html") != string::npos ||
+             m_webDAVView->getCurrentEntry().fileType.find("text/rtf") != string::npos ||
+             m_webDAVView->getCurrentEntry().fileType.find("text/markdown") != string::npos ||
+             m_webDAVView->getCurrentEntry().fileType.find("application/msword") != string::npos ||
+             m_webDAVView->getCurrentEntry().fileType.find("application/x-mobipocket-ebook") != string::npos ||
+             m_webDAVView->getCurrentEntry().fileType.find("application/"
+                                                           "vnd.openxmlformats-officedocument.wordprocessingml."
+                                                           "document") != string::npos ||
+             m_webDAVView->getCurrentEntry().fileType.find("application/x-fictionbook+xml") != string::npos)
     {
-        OpenBook(_webDAVView->getCurrentEntry().localPath.c_str(), "", 0);
+        OpenBook(m_webDAVView->getCurrentEntry().localPath.c_str(), "", 0);
     }
     else
     {
@@ -522,13 +503,14 @@ void EventHandler::openFolder()
 {
     std::vector<WebDAVItem> currentWebDAVItems;
 
-    switch ((_webDAVView->getCurrentEntry().state == FileState::ILOCAL)
-                ? FileState::ILOCAL
-                : _sqllite.getState(_webDAVView->getCurrentEntry().path))
+    const auto current_state{(m_webDAVView->getCurrentEntry().state == FileState::ILOCAL)
+                                 ? FileState::ILOCAL
+                                 : m_sqllite.getState(m_webDAVView->getCurrentEntry().path)};
+    switch(current_state)
     {
     case FileState::ILOCAL: {
         Message(ICON_ERROR, TEXT_MESSAGE_ERROR, "Not implemented to look at local folder.", TIMEOUT_MESSAGE);
-        _webDAVView->invertCurrentEntryColor();
+        m_webDAVView->invertCurrentEntryColor();
         // TODO use FileBrowser
         //_webDAVView.reset();
         // FileBrowser fB = FileBrowser(true);
@@ -539,11 +521,11 @@ void EventHandler::openFolder()
     case FileState::IOUTSYNCED:
     case FileState::ICLOUD:
         ShowHourglassForce();
-        currentWebDAVItems = _webDAV.getDataStructure(_webDAVView->getCurrentEntry().path);
+        currentWebDAVItems = m_webDAV.getDataStructure(m_webDAVView->getCurrentEntry().path);
     case FileState::ISYNCED:
     case FileState::IDOWNLOADED: {
-        if (currentWebDAVItems.empty() && _webDAVView->getCurrentEntry().state != FileState::ICLOUD)
-            currentWebDAVItems = _sqllite.getItemsChildren(_webDAVView->getCurrentEntry().path);
+        if (currentWebDAVItems.empty() && m_webDAVView->getCurrentEntry().state != FileState::ICLOUD)
+            currentWebDAVItems = m_sqllite.getItemsChildren(m_webDAVView->getCurrentEntry().path);
         updateItems(currentWebDAVItems);
 
         if (currentWebDAVItems.empty())
@@ -551,7 +533,7 @@ void EventHandler::openFolder()
             Message(ICON_ERROR, TEXT_MESSAGE_ERROR, "Could not sync the items and there is no offline copy available.",
                     TIMEOUT_MESSAGE);
             HideHourglass();
-            _webDAVView->invertCurrentEntryColor();
+            m_webDAVView->invertCurrentEntryColor();
         }
         else
         {
@@ -562,25 +544,23 @@ void EventHandler::openFolder()
     }
 }
 
-int EventHandler::keyHandler(const int type, const int par1, const int par2)
+int EventHandler::keyHandler(int p_type, int p_clicked_button, int par2)
 {
-    if (_webDAVView != nullptr)
+    auto const clicked_button{static_cast<PocketbookButtons>(p_clicked_button)};
+    if (m_webDAVView != nullptr)
     {
-        if (type == EVT_KEYPRESS)
+        if (p_type == EVT_KEYPRESS)
         {
-            switch (par1)
+            switch (clicked_button)
             {
-            // menu button
-            case 23:
-                _webDAVView->firstPage();
+            case PocketbookButtons::Menu:
+                m_webDAVView->firstPage();
                 break;
-                // left button
-            case 24:
-                _webDAVView->prevPage();
+            case PocketbookButtons::Back:
+                m_webDAVView->prevPage();
                 break;
-                // right button
-            case 25:
-                _webDAVView->nextPage();
+            case PocketbookButtons::Forward:
+                m_webDAVView->nextPage();
                 break;
             default:
                 return 1;
@@ -588,23 +568,20 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
             return 0;
         }
     }
-    else if (_fileView != nullptr)
+    else if (m_fileView != nullptr)
     {
-        if (type == EVT_KEYPRESS)
+        if (p_type == EVT_KEYPRESS)
         {
-            switch (par1)
+            switch (clicked_button)
             {
-            // menu button
-            case 23:
-                _fileView->firstPage();
+            case PocketbookButtons::Menu:
+                m_fileView->firstPage();
                 break;
-                // left button
-            case 24:
-                _fileView->prevPage();
+            case PocketbookButtons::Back:
+                m_fileView->prevPage();
                 break;
-                // right button
-            case 25:
-                _fileView->nextPage();
+            case PocketbookButtons::Forward:
+                m_fileView->nextPage();
                 break;
             default:
                 return 1;
@@ -616,18 +593,18 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
     return 1;
 }
 
-void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &tempItems)
+void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &p_tempItems)
 {
-    string localPath = tempItems.at(0).localPath + '/';
+    std::string const localPath{p_tempItems.at(0).localPath + '/'};
     if (iv_access(localPath.c_str(), W_OK) == 0)
     {
         const auto currentFolder{FileBrowser::getFileStructure(localPath, true, false)};
-        const auto storageLocationLength{_fileHandler->getStorageLocation().length()};
+        const auto storageLocationLength{m_fileHandler->getStorageLocation().length()};
         for (const FileItem &local : currentFolder)
         {
-            auto p = find_if(tempItems.begin() + 1, tempItems.end(),
+            auto p = find_if(p_tempItems.begin() + 1, p_tempItems.end(),
                              [&](const WebDAVItem &item) { return item.localPath.compare(local.path) == 0; });
-            if (p == tempItems.end())
+            if (p == p_tempItems.end())
             {
                 WebDAVItem temp;
                 temp.localPath = local.path;
@@ -636,14 +613,14 @@ void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &tempItems)
                 // Log::writeInfoLog(std::to_string(fs::file_size(entry)));
                 temp.lastEditDate = local.lastEditDate;
 
-                string directoryPath = temp.localPath;
+                std::string directoryPath = temp.localPath;
                 if (directoryPath.length() > storageLocationLength)
                 {
                     directoryPath = directoryPath.substr(storageLocationLength + 1);
                 }
                 if (local.type == Type::FFOLDER)
                 {
-                    if (_fileHandler->excludeFolder(directoryPath + "/"))
+                    if (m_fileHandler->excludeFolder(directoryPath + "/"))
                     {
                         continue;
                     }
@@ -658,68 +635,75 @@ void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &tempItems)
                     {
                         directoryPath = directoryPath.substr(0, directoryPath.length() - temp.title.length());
                     }
-                    if (_fileHandler->excludeFolder(directoryPath) || _fileHandler->excludeFile(temp.title))
+                    if (m_fileHandler->excludeFolder(directoryPath) || m_fileHandler->excludeFile(temp.title))
                     {
                         continue;
                     }
                 }
-                tempItems.push_back(temp);
+                p_tempItems.push_back(temp);
             }
         }
     }
 }
 
-void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
+void EventHandler::downloadFolder(std::vector<WebDAVItem> &p_items, int p_itemID)
 {
+    auto &currentItem{p_items.at(p_itemID)};
     // Don't sync hidden files
-    if (items.at(itemID).hide == HideState::IHIDE)
+    if (currentItem.hide == HideState::IHIDE)
+    {
         return;
+    }
 
     // BanSleep(2000);
-    string path = items.at(itemID).path;
+    std::string path{currentItem.path};
 
-    if (items.at(itemID).type == Itemtype::IFOLDER)
+    if (currentItem.type == Itemtype::IFOLDER)
     {
-        vector<WebDAVItem> tempItems;
-        switch (items.at(itemID).state)
+        std::vector<WebDAVItem> tempItems;
+        switch (currentItem.state)
         {
         case FileState::IOUTSYNCED:
         case FileState::ICLOUD: {
             UpdateProgressbar(("Syncing folder" + path).c_str(), 0);
-            iv_mkdir(items.at(itemID).localPath.c_str(), 0777);
-            tempItems = _webDAV.getDataStructure(path);
-            items.at(itemID).state = FileState::IDOWNLOADED;
-            _sqllite.updateState(items.at(itemID).path, items.at(itemID).state);
+            iv_mkdir(currentItem.localPath.c_str(), 0777);
+            tempItems = m_webDAV.getDataStructure(path);
+            currentItem.state = FileState::IDOWNLOADED;
+            m_sqllite.updateState(currentItem.path, currentItem.state);
             updateItems(tempItems);
             break;
         }
         case FileState::ISYNCED: {
-            tempItems = _sqllite.getItemsChildren(path);
-            iv_mkdir(items.at(itemID).localPath.c_str(), 0777);
-            items.at(itemID).state = FileState::IDOWNLOADED;
-            _sqllite.updateState(items.at(itemID).path, items.at(itemID).state);
+            tempItems = m_sqllite.getItemsChildren(path);
+            iv_mkdir(currentItem.localPath.c_str(), 0777);
+            currentItem.state = FileState::IDOWNLOADED;
+            m_sqllite.updateState(currentItem.path, currentItem.state);
             break;
         }
         case FileState::ILOCAL: {
-            if (items.at(itemID).localPath.length() > 3 &&
-                items.at(itemID).localPath.substr(items.at(itemID).localPath.length() - 3).compare("sdr") == 0)
-                Log::writeInfoLog("Ignoring koreader file " + items.at(itemID).localPath);
+            if (currentItem.localPath.length() > 3 &&
+                currentItem.localPath.substr(currentItem.localPath.length() - 3).compare("sdr") == 0)
+                Log::writeInfoLog("Ignoring koreader file " + currentItem.localPath);
             else
             {
                 CloseProgressbar();
 
-                int dialogResult = DialogSynchro(ICON_QUESTION, TEXT_MESSAGE_ACTION,
-                                                 ("The folder " + items.at(itemID).localPath +
-                                                  " has been removed from the cloud. Do you want to delete it?")
-                                                     .c_str(),
-                                                 TEXT_DIALOG_YES, TEXT_DIALOG_NO, TEXT_DIALOG_CANCEL);
+                auto const dialogResult{DialogSynchro(ICON_QUESTION, TEXT_MESSAGE_ACTION,
+                                                      ("The folder " + currentItem.localPath +
+                                                       " has been removed from the cloud. Do you want to delete it?")
+                                                          .c_str(),
+                                                      TEXT_DIALOG_YES, TEXT_DIALOG_NO, TEXT_DIALOG_CANCEL)};
                 if (dialogResult == 1)
-                    fs::remove_all(items.at(itemID).localPath);
+                {
+                    fs::remove_all(currentItem.localPath);
+                }
                 else
-                    tempItems.push_back(items.at(itemID));
+                {
+                    tempItems.push_back(currentItem);
+                }
 
                 // OpenProgressbar(1, "Downloading...", "", 0, NULL);
-            }
+                }
             break;
         }
         default:
@@ -731,7 +715,9 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
             getLocalFileStructure(tempItems);
             // first item of the vector is the root path itself
             for (size_t i = 1; i < tempItems.size(); i++)
+            {
                 downloadFolder(tempItems, i);
+            }
         }
 
         // compare if file is in DB
@@ -744,7 +730,7 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
     }
     else
     {
-        switch (items.at(itemID).state)
+        switch (currentItem.state)
         {
         case FileState::IOUTSYNCED:
         case FileState::ICLOUD: {
@@ -756,23 +742,24 @@ void EventHandler::downloadFolder(vector<WebDAVItem> &items, int itemID)
             // 4. if first, renew file --> reset etag
             // 5. if second --> upload the local file; test if it has not been
             // update in the cloud
-            Log::writeInfoLog("started download of " + items.at(itemID).path + " to " + items.at(itemID).localPath);
-            if (_webDAV.get(items.at(itemID)))
+            Log::writeInfoLog("started download of " + currentItem.path + " to " + currentItem.localPath);
+            if (m_webDAV.get(currentItem))
             {
-                items.at(itemID).state = FileState::ISYNCED;
-                _sqllite.updateState(items.at(itemID).path, items.at(itemID).state);
+                currentItem.state = FileState::ISYNCED;
+                m_sqllite.updateState(currentItem.path, currentItem.state);
             }
             break;
         }
+        // TODO unify
         case FileState::ILOCAL: {
             CloseProgressbar();
-            const auto dialogResult{DialogSynchro(ICON_QUESTION, TEXT_MESSAGE_ACTION,
-                                                  ("The file " + items.at(itemID).localPath +
-                                                   " has been removed from the cloud. Do you want to delete it?")
-                                                      .c_str(),
-                                                  TEXT_DIALOG_YES, TEXT_DIALOG_NO, TEXT_DIALOG_CANCEL)};
+            const auto dialogResult{DialogSynchro(
+                ICON_QUESTION, TEXT_MESSAGE_ACTION,
+                ("The file " + currentItem.localPath + " has been removed from the cloud. Do you want to delete it?")
+                    .c_str(),
+                TEXT_DIALOG_YES, TEXT_DIALOG_NO, TEXT_DIALOG_CANCEL)};
             if (dialogResult == 1)
-                fs::remove(items.at(itemID).localPath);
+                fs::remove(currentItem.localPath);
             break;
             // OpenProgressbar(1, "Downloading...", "", 0, NULL);
         }
@@ -788,54 +775,55 @@ void EventHandler::startDownload()
 {
     OpenProgressbar(1, "Downloading...", "Starting Download.", 0, NULL);
 
-    if (_webDAVView->getCurrentEntry().type == Itemtype::IFILE)
+    if (m_webDAVView->getCurrentEntry().type == Itemtype::IFILE)
     {
-        Log::writeInfoLog("Started download of " + _webDAVView->getCurrentEntry().path + " to " +
-                          _webDAVView->getCurrentEntry().localPath);
-        if (_webDAV.get(_webDAVView->getCurrentEntry()))
+        Log::writeInfoLog("Started download of " + m_webDAVView->getCurrentEntry().path + " to " +
+                          m_webDAVView->getCurrentEntry().localPath);
+        if (m_webDAV.get(m_webDAVView->getCurrentEntry()))
         {
-            _webDAVView->getCurrentEntry().state = FileState::ISYNCED;
-            _sqllite.updateState(_webDAVView->getCurrentEntry().path, _webDAVView->getCurrentEntry().state);
+            m_webDAVView->getCurrentEntry().state = FileState::ISYNCED;
+            m_sqllite.updateState(m_webDAVView->getCurrentEntry().path, m_webDAVView->getCurrentEntry().state);
         }
     }
     else
     {
-        auto currentItems{_sqllite.getItemsChildren(_webDAVView->getCurrentEntry().path)};
-        this->downloadFolder(currentItems, 0);
-        _webDAVView->getCurrentEntry().state = FileState::IDOWNLOADED;
-        _sqllite.updateState(_webDAVView->getCurrentEntry().path, _webDAVView->getCurrentEntry().state);
+        auto currentItems{m_sqllite.getItemsChildren(m_webDAVView->getCurrentEntry().path)};
+        downloadFolder(currentItems, 0);
+        m_webDAVView->getCurrentEntry().state = FileState::IDOWNLOADED;
+        m_sqllite.updateState(m_webDAVView->getCurrentEntry().path, m_webDAVView->getCurrentEntry().state);
         UpdateProgressbar("Download completed", 100);
     }
 
     // TODO implement
     // Util::updatePBLibrary(15);
     CloseProgressbar();
-    _webDAVView->reDrawCurrentEntry();
+    m_webDAVView->reDrawCurrentEntry();
 }
 
-bool EventHandler::checkIfIsDownloaded(vector<WebDAVItem> &items, int itemID)
+bool EventHandler::checkIfIsDownloaded(std::vector<WebDAVItem> &p_items, int p_itemID)
 {
-    if (iv_access(items.at(itemID).localPath.c_str(), W_OK) != 0)
+    auto &currentItem{p_items.at(p_itemID)};
+
+    if (iv_access(currentItem.localPath.c_str(), W_OK) != 0)
     {
-        items.at(itemID).state = items.at(itemID).type == Itemtype::IFOLDER
-                                     ? items.at(itemID).state = FileState::ISYNCED
-                                     : items.at(itemID).state = FileState::IOUTSYNCED;
-        _sqllite.updateState(items.at(itemID).path, items.at(itemID).state);
+        currentItem.state = currentItem.type == Itemtype::IFOLDER ? currentItem.state = FileState::ISYNCED
+                                                                  : currentItem.state = FileState::IOUTSYNCED;
+        m_sqllite.updateState(currentItem.path, currentItem.state);
         return false;
     }
 
-    if (items.at(itemID).type == Itemtype::IFOLDER)
+    if (currentItem.type == Itemtype::IFOLDER)
     {
-        if (items.at(itemID).state != FileState::IDOWNLOADED)
+        if (currentItem.state != FileState::IDOWNLOADED)
             return false;
-        auto tempItems{_sqllite.getItemsChildren(items.at(itemID).path)};
+        auto tempItems{m_sqllite.getItemsChildren(currentItem.path)};
         // first item of the vector is the root path itself
         for (auto i = 1; i < tempItems.size(); i++)
         {
             if (!checkIfIsDownloaded(tempItems, i))
             {
-                items.at(itemID).state = FileState::ISYNCED;
-                _sqllite.updateState(items.at(itemID).path, items.at(itemID).state);
+                currentItem.state = FileState::ISYNCED;
+                m_sqllite.updateState(currentItem.path, currentItem.state);
                 return false;
             }
         }
@@ -843,12 +831,12 @@ bool EventHandler::checkIfIsDownloaded(vector<WebDAVItem> &items, int itemID)
     return true;
 }
 
-void EventHandler::updateItems(vector<WebDAVItem> &items)
+void EventHandler::updateItems(std::vector<WebDAVItem> &p_items)
 {
-    for (auto &item : items)
+    for (auto &item : p_items)
     {
         // returns ICloud if is not found
-        item.state = _sqllite.getState(item.path);
+        item.state = m_sqllite.getState(item.path);
 
         if (item.type == Itemtype::IFILE)
         {
@@ -857,19 +845,19 @@ void EventHandler::updateItems(vector<WebDAVItem> &items)
             else
             {
                 item.state = FileState::ISYNCED;
-                if (_sqllite.getEtag(item.path).compare(item.etag) != 0)
+                if (m_sqllite.getEtag(item.path).compare(item.etag) != 0)
                     item.state = FileState::IOUTSYNCED;
             }
         }
         else
         {
-            if (_sqllite.getEtag(item.path).compare(item.etag) != 0)
+            if (m_sqllite.getEtag(item.path).compare(item.etag) != 0)
                 item.state = (item.state == FileState::ISYNCED || item.state == FileState::IDOWNLOADED)
                                  ? FileState::IOUTSYNCED
                                  : FileState::ICLOUD;
             if (item.state == FileState::IDOWNLOADED)
             {
-                vector<WebDAVItem> currentItems = _sqllite.getItemsChildren(item.path);
+                auto currentItems = m_sqllite.getItemsChildren(item.path);
                 if (!checkIfIsDownloaded(currentItems, 0))
                     item.state = FileState::ISYNCED;
             }
@@ -878,18 +866,40 @@ void EventHandler::updateItems(vector<WebDAVItem> &items)
                 iv_mkdir(item.localPath.c_str(), 0777);
         }
     }
-    if (items.at(0).state != FileState::IDOWNLOADED)
-        items.at(0).state = FileState::ISYNCED;
-    _sqllite.saveItemsChildren(items);
+    if (p_items.at(0).state != FileState::IDOWNLOADED)
+        p_items.at(0).state = FileState::ISYNCED;
+    m_sqllite.saveItemsChildren(p_items);
 
     // TODO sync delete when not parentPath existend --> "select * from metadata
     // where parentPath NOT IN (Select DISTINCT(parentPath) from metadata; what
     // happens with the entries below?
 }
 
-void EventHandler::drawWebDAVItems(vector<WebDAVItem> &items)
+void EventHandler::drawWebDAVItems(std::vector<WebDAVItem> &p_items)
 {
-    _currentPath = items.at(0).path;
-    getLocalFileStructure(items);
-    _webDAVView.reset(new WebDAVView(_menu->getContentRect(), items, 1));
+    if (!p_items.empty())
+    {
+        m_currentPath = p_items.at(0).path;
+        getLocalFileStructure(p_items);
+        m_webDAVView.reset(new WebDAVView(m_menu->getContentRect(), p_items, 1));
+    }
+}
+
+void EventHandler::redrawItems()
+{
+    m_excludeFileView.reset(nullptr);
+    ShowHourglassForce();
+
+    FillAreaRect(&m_menu->getContentRect(), WHITE);
+    if (m_currentPath.empty())
+    {
+        auto currentWebDAVItems{m_webDAV.getDataStructure(WebDAV::getRootPath(true))};
+        updateItems(currentWebDAVItems);
+        drawWebDAVItems(currentWebDAVItems);
+    }
+    else
+    {
+        const auto currentFolder{FileBrowser::getFileStructure(m_currentPath, false, true)};
+        m_fileView.reset(new FileView(m_menu->getContentRect(), currentFolder, 1));
+    }
 }
