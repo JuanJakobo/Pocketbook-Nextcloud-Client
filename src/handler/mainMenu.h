@@ -43,6 +43,11 @@ class MainMenu
     };
 
     /**
+     * Draws the menu panel
+     */
+    void draw() const;
+
+    /**
      * Shows the menu on the screen, lets the user choose menu options and then
      * redirects the handler to the caller
      *
@@ -50,11 +55,11 @@ class MainMenu
      * @param loogedIn the status if the user is logged in
      * @param handler handles the clicks on the menu
      */
-    void drawMenu(bool p_filePicker, bool p_loggedIn, iv_menuhandler p_menu_handler) const;
+    void open(bool p_filePicker, bool p_loggedIn, iv_menuhandler p_menu_handler) const;
 
   private:
-    uint16_t m_menuPanelBeginX;
-    uint16_t m_menuPanelBeginY;
+    const std::string m_name;
+    irect m_menuRect;
     irect m_contentRect;
     irect m_menuButtonRect;
 

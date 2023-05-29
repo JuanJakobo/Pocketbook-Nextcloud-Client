@@ -58,10 +58,6 @@ EventHandler::EventHandler()
 
         auto path{WebDAV::getRootPath(true)};
         auto currentWebDAVItems{_webDAV.getDataStructure(path)};
-        /* if(!_menu) */
-        /* { */
-        /*     _menu = std::make_unique<MainMenu>(APPLICATION_NAME); */
-        /* } */
 
         if (currentWebDAVItems.empty())
         {
@@ -99,6 +95,7 @@ EventHandler::EventHandler()
     {
         _loginView = std::make_unique<LoginView>(_menu->getContentRect());
     }
+    _menu->draw();
 }
 
 int EventHandler::eventDistributor(int type, int par1, int par2)
@@ -353,7 +350,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     {
         if (IsInRect(par1, par2, &_menu->getMenuButtonRect()) == 1)
         {
-            _menu->drawMenu((_fileView != nullptr), (_webDAVView != nullptr), EventHandler::mainMenuHandlerStatic);
+            _menu->open((_fileView != nullptr), (_webDAVView != nullptr), EventHandler::mainMenuHandlerStatic);
         }
         else if (_webDAVView != nullptr)
         {
