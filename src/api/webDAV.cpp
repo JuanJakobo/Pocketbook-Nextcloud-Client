@@ -40,9 +40,6 @@ WebDAV::WebDAV()
 {
     _fileHandler = std::make_shared<FileHandler>();
 
-    if (iv_access(CONFIG_FOLDER_LOCATION, W_OK) != 0)
-        iv_mkdir(CONFIG_FOLDER_LOCATION, 0777);
-
     if (iv_access(CONFIG_FILE_LOCATION.c_str(), W_OK) == 0)
     {
         _username = Util::getConfig<string>(CONF_USERNAME);
@@ -72,8 +69,14 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
         uuid = Username;
     }
     Util::encodeUrl(uuid);
-    const auto tempPath{NEXTCLOUD_ROOT_PATH + uuid + "/"};
+    if (iv_access(CONFIG_FOLDER_LOCATION, W_OK) != 0)
+    {
+        iv_mkdir(CONFIG_FOLDER_LOCATION, 0777);
+    }
+
     Util::writeConfig<string>(CONF_STORAGE_LOCATION, DEFAULT_STORAGE_LOCATION);
+
+    const auto tempPath{NEXTCLOUD_ROOT_PATH + uuid + "/"};
     const auto tempItems = getDataStructure(tempPath);
     if (!tempItems.empty())
     {
@@ -96,27 +99,26 @@ std::vector<WebDAVItem> WebDAV::login(const string &Url, const string &Username,
 
 void WebDAV::logout(bool deleteFiles)
 {
+    _url = {};
+    _password = {};
+    _username = {};
+
     if (deleteFiles)
     {
         const auto filesPath{Util::getConfig<string>(CONF_STORAGE_LOCATION) + "/" + Util::getConfig<string>(CONF_UUID) +
                              '/'};
         if (fs::exists(filesPath))
+        {
             fs::remove_all(filesPath);
+        }
     }
-    try
+
+    const auto configPath{CONFIG_FOLDER_LOCATION + "/"s};
+
+    if (fs::exists(configPath))
     {
-        fs::remove(CONFIG_FILE_LOCATION);
-        fs::remove(CONFIG_FOLDER_LOCATION + ".back"s);
-        // TODO does not get deleted...
-        fs::remove(DB_LOCATION);
+        fs::remove_all(configPath);
     }
-    catch (std::exception e)
-    {
-        Log::writeErrorLog("Failed to delete files on logout "s + e.what());
-    }
-    _url = {};
-    _password = {};
-    _username = {};
 }
 
 vector<WebDAVItem> WebDAV::getDataStructure(const string &pathUrl)

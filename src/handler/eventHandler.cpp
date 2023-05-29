@@ -184,13 +184,14 @@ void EventHandler::mainMenuHandler(MainMenuOption p_mainMenuOption)
         case 1:
             _webDAV.logout(true);
             break;
-        case 3:
-            return;
-        default:
+        case 2:
             _webDAV.logout();
             break;
+        case 3:
+        default:
+            return;
         }
-        _webDAVView.reset();
+        _webDAVView.reset(nullptr);
         _loginView = std::make_unique<LoginView>(_menu->getContentRect());
         break;
     }
@@ -221,8 +222,7 @@ void EventHandler::mainMenuHandler(MainMenuOption p_mainMenuOption)
         {
             _currentPath = "";
         }
-
-        _webDAVView.reset();
+        _webDAVView.reset(nullptr);
         FillAreaRect(&_menu->getContentRect(), WHITE);
         _excludeFileView = std::make_unique<ExcludeFileView>(_menu->getContentRect());
         break;
