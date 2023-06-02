@@ -34,7 +34,7 @@ class Util
      * Saves the return of curl command
      *
      */
-    static size_t writeData(void *ptr, size_t size, size_t nmemb, FILE *stream);
+    static int writeData(void *ptr, int size, int nmemb, FILE *stream);
 
     /**
      * Checks if a network connection can be established
@@ -99,7 +99,7 @@ class Util
             }
             else
             {
-                returnValue = ReadString(config.get(), name.c_str(), ((std::string)defaultValue).c_str());
+                returnValue = ReadString(config.get(), name.c_str(), defaultValue.c_str());
             }
         }
         else if constexpr (std::is_same<T, int>::value)

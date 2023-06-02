@@ -19,6 +19,8 @@
 #include "inkview.h"
 #include "log.h"
 
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+
 namespace
 {
 constexpr auto SCANNER_APP_LOCATION{"/ebrmain/bin/scanner.app"};
@@ -41,9 +43,9 @@ size_t Util::writeCallback(void *contents, size_t size, size_t nmemb, void *user
     return size * nmemb;
 }
 
-size_t Util::writeData(void *ptr, size_t size, size_t nmemb, FILE *stream)
+int Util::writeData(void *ptr, int size, int nmemb, FILE *stream)
 {
-    size_t written = iv_fwrite(ptr, size, nmemb, stream);
+    auto written{iv_fwrite(ptr, size, nmemb, stream)};
     return written;
 }
 
@@ -154,7 +156,7 @@ void Util::updatePBLibrary(int seconds)
 
 tm Util::webDAVStringToTm(const std::string &timestring)
 {
-    tm t = {0};
+    tm t{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     std::istringstream ss(timestring);
     // format depends on nextcloud config?
     // weekday, day month year Hour Minute Second Timezone
