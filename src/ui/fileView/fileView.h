@@ -23,15 +23,15 @@ class FileView final : public ListView
      * @param Items items that shall be shown in the listview
      * @param page page that is shown, default is 1
      */
-    FileView(const irect &contentRect, const std::vector<FileItem> &files, int page = 1);
+    FileView(const irect &p_contentRect, const std::vector<FileItem> &p_files, uint8_t page = 1);
 
     FileItem &getCurrentEntry()
     {
-        return getEntry(_selectedEntry);
+        return getEntry(m_selectedEntry);
     };
 
-    FileItem &getEntry(int entryID)
+    FileItem &getEntry(size_t entryID)
     {
-        return std::dynamic_pointer_cast<FileViewEntry>(_entries.at(entryID))->get();
+        return std::dynamic_pointer_cast<FileViewEntry>(m_entries.at(entryID))->get();
     };
 };

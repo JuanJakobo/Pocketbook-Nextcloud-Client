@@ -169,12 +169,13 @@ int ExcludeFileView::excludeClicked(int x, int y)
             catch (std::regex_error err)
             {
                 Log::writeErrorLog("Unable to parse regex '" + _regex + "': " + err.what());
-                Message(ICON_ERROR, "Error", "Unable to parse the regex for the files.", 1200);
+                Message(ICON_ERROR, "Error", "Unable to parse the regex for the files.", TIMEOUT_MESSAGE);
                 return 1;
             }
             catch (...)
             {
-                Message(ICON_ERROR, "Error", "Unknown error occured while parsing the regex for the files.", 1200);
+                Message(ICON_ERROR, "Error", "Unknown error occured while parsing the regex for the files.",
+                        TIMEOUT_MESSAGE);
                 return 1;
             }
         }
@@ -188,12 +189,13 @@ int ExcludeFileView::excludeClicked(int x, int y)
             catch (std::regex_error err)
             {
                 Log::writeErrorLog("Unable to parse regex for folder '" + _folderRegex + "': " + err.what());
-                Message(ICON_ERROR, "Error", "Unable to parse the regex for the folders.", 1200);
+                Message(ICON_ERROR, "Error", "Unable to parse the regex for the folders.", TIMEOUT_MESSAGE);
                 return 1;
             }
             catch (...)
             {
-                Message(ICON_ERROR, "Error", "Unknown error occured while parsing the regex for the folders.", 1200);
+                Message(ICON_ERROR, "Error", "Unknown error occured while parsing the regex for the folders.",
+                        TIMEOUT_MESSAGE);
                 return 1;
             }
         }

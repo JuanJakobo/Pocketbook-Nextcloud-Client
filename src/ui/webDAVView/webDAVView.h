@@ -23,15 +23,15 @@ class WebDAVView final : public ListView
      * @param Items items that shall be shown in the listview
      * @param page page that is shown, default is 1
      */
-    WebDAVView(const irect &contentRect, std::vector<WebDAVItem> &items, int page = 1);
+    WebDAVView(const irect &p_contentRect, std::vector<WebDAVItem> &p_itemsUnfiltered, uint8_t p_page = 1);
 
     WebDAVItem &getCurrentEntry()
     {
-        return getEntry(_selectedEntry);
+        return getEntry(m_selectedEntry);
     };
 
-    WebDAVItem &getEntry(int entryID)
+    WebDAVItem &getEntry(size_t entryID)
     {
-        return std::static_pointer_cast<WebDAVViewEntry>(_entries.at(entryID))->get();
+        return std::static_pointer_cast<WebDAVViewEntry>(m_entries.at(entryID))->get();
     };
 };

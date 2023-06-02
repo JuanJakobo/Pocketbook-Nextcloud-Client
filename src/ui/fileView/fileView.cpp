@@ -8,36 +8,40 @@
 
 #include "fileView.h"
 
-#include <string>
 #include <vector>
 
 #include "fileModel.h"
 #include "fileViewEntry.h"
 
-using std::vector;
-
-FileView::FileView(const irect &contentRect, const vector<FileItem> &files, int page) : ListView(contentRect, page)
+namespace
 {
-    auto pageHeight = 0;
-    auto contentHeight = _contentRect.h - _footerHeight;
-    auto entrycount = files.size();
+constexpr auto PAGE_BEGIN{0};
+constexpr auto FONT_SIZE_MANIPULATOR{2.5};
+} // namespace
 
-    _entries.reserve(entrycount);
+FileView::FileView(const irect &p_contentRect, const std::vector<FileItem> &p_files, uint8_t p_page)
+    : ListView(p_contentRect, p_page)
+{
+    auto pageHeight{PAGE_BEGIN};
+    auto const contentHeight{p_contentRect.h - m_footerHeight};
+    auto const entrycount{p_files.size()};
 
-    auto i = 0;
-    while (i < entrycount)
+    m_entries.reserve(entrycount);
+
+    for (const auto file : p_files)
     {
-        auto entrySize = TextRectHeight(contentRect.w, files.at(i).name.c_str(), 0) + 2.5 * _entryFontHeight;
+        auto const entrySize{TextRectHeight(p_contentRect.w, file.name.c_str(), 0) +
+                             FONT_SIZE_MANIPULATOR * m_entryFontHeight};
         if ((pageHeight + entrySize) > contentHeight)
         {
-            pageHeight = 0;
-            _page++;
+            pageHeight = PAGE_BEGIN;
+            m_page++;
         }
-        irect rect = iRect(_contentRect.x, _contentRect.y + pageHeight, _contentRect.w, entrySize, 0);
+        auto const rect =
+            iRect(p_contentRect.x, p_contentRect.y + pageHeight, p_contentRect.w, entrySize, ALIGN_CENTER);
 
-        _entries.emplace_back(std::unique_ptr<FileViewEntry>(new FileViewEntry(_page, rect, files.at(i))));
+        m_entries.emplace_back(std::make_shared<FileViewEntry>(m_page, rect, file));
 
-        i++;
         pageHeight = pageHeight + entrySize;
     }
     draw();

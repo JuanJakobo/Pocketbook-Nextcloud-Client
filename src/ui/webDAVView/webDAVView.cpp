@@ -9,40 +9,46 @@
 #include "webDAVView.h"
 
 #include <algorithm>
-#include <string>
-#include <vector>
 
 #include "util.h"
 #include "webDAV.h"
 #include "webDAVModel.h"
 
+namespace
+{
+constexpr auto PAGE_BEGIN{0};
+constexpr auto FONT_SIZE_MANIPULATOR{2.5};
+} // namespace
+
 using std::vector;
 
-WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &itemsUnfiltered, int page)
-    : ListView(contentRect, page)
+WebDAVView::WebDAVView(const irect &p_contentRect, vector<WebDAVItem> &p_itemsUnfiltered, uint8_t p_page)
+    : ListView(p_contentRect, p_page)
 {
+    auto pageHeight{PAGE_BEGIN};
+    auto const contentHeight{p_contentRect.h - m_footerHeight};
+
     vector<WebDAVItem> items;
-    std::copy_if(itemsUnfiltered.begin(), itemsUnfiltered.end(), std::back_inserter(items),
-                 [](WebDAVItem i) { return i.hide != HideState::IHIDE; });
+    std::copy_if(p_itemsUnfiltered.begin(), p_itemsUnfiltered.end(), std::back_inserter(items),
+                 [](WebDAVItem p_item) { return p_item.hide != HideState::IHIDE; });
 
-    auto pageHeight = 0;
-    auto contentHeight = _contentRect.h - _footerHeight;
-    auto entrycount = items.size();
+    auto const entrycount{items.size()};
 
-    _entries.reserve(entrycount);
+    m_entries.reserve(entrycount);
 
     // resize item 1
-    std::string header = items.at(0).path;
+    auto header{items.at(0).path};
     header = header.substr(0, header.find_last_of("/"));
     header = header.substr(0, header.find_last_of("/") + 1);
     items.at(0).path = header;
     items.at(0).title += "\nclick to go back";
-    items.at(0).lastEditDate.tm_year = 2100;
+    items.at(0).lastEditDate.tm_year = 2200;
 
     std::vector<WebDAVItem>::iterator begin;
 
-    string rootPath = WebDAV::getRootPath(false);
-    string parentRootPath = rootPath.substr(0, rootPath.substr(0, rootPath.length() - 1).find_last_of("/") + 1);
+    auto const rootPath{WebDAV::getRootPath(false)};
+    auto const parentRootPath{rootPath.substr(0, rootPath.substr(0, rootPath.length() - 1).find_last_of("/") + 1)};
+
     if (items.at(0).path.compare(parentRootPath) == 0)
     {
         items.erase(items.begin());
@@ -53,44 +59,46 @@ WebDAVView::WebDAVView(const irect &contentRect, vector<WebDAVItem> &itemsUnfilt
         begin = items.begin() + 1;
     }
 
-    sort(begin, items.end(), [](WebDAVItem &w1, WebDAVItem &w2) -> bool {
+    sort(begin, items.end(), [](WebDAVItem &p_w1, WebDAVItem &p_w2) -> bool {
         if (Util::getConfig<int>("sortBy", -1) == 2)
         {
             // sort by lastmodified
-            time_t t1 = mktime(&w1.lastEditDate);
-            time_t t2 = mktime(&w2.lastEditDate);
-            return difftime(t1, t2) > 0 ? true : false;
+            auto const t1{mktime(&p_w1.lastEditDate)};
+            auto const t2{mktime(&p_w2.lastEditDate)};
+            return difftime(t1, t2) > 0;
         }
         else
         {
             // folders first then files
-            if (w1.type == Itemtype::IFILE && w2.type == Itemtype::IFOLDER)
+            if (p_w1.type == Itemtype::IFILE && p_w2.type == Itemtype::IFOLDER)
                 return false;
-            else if (w1.type == Itemtype::IFOLDER && w2.type == Itemtype::IFILE)
+            else if (p_w1.type == Itemtype::IFOLDER && p_w2.type == Itemtype::IFILE)
                 return true;
             else
-                return w1.title < w2.title;
+                return p_w1.title < p_w2.title;
         }
     });
 
-    for (auto item : items)
+    for (size_t i = 0; i < items.size(); i++)
     {
-        auto entrySize = TextRectHeight(contentRect.w, item.title.c_str(), 0);
+        auto entrySize{TextRectHeight(p_contentRect.w, items.at(i).title.c_str(), 0)};
 
-        if (item.type == Itemtype::IFILE)
-            entrySize += _entryFontHeight;
+        if (items.at(i).type == Itemtype::IFILE)
+        {
+            entrySize += m_entryFontHeight;
+        }
 
-        entrySize += (item.title.find("click to go back") != std::string::npos) ? 0.5 * _entryFontHeight
-                                                                                : 2.5 * _entryFontHeight;
+        entrySize += (i == 0) ? FONT_SIZE_MANIPULATOR * m_entryFontHeight : 0.5 * m_entryFontHeight;
 
         if ((pageHeight + entrySize) > contentHeight)
         {
-            pageHeight = 0;
-            _page++;
+            pageHeight = PAGE_BEGIN;
+            m_page++;
         }
-        irect rect = iRect(_contentRect.x, _contentRect.y + pageHeight, _contentRect.w, entrySize, 0);
 
-        _entries.emplace_back(std::make_unique<WebDAVViewEntry>(_page, rect, item));
+        auto const rect{iRect(p_contentRect.x, p_contentRect.y + pageHeight, p_contentRect.w, entrySize, ALIGN_CENTER)};
+
+        m_entries.emplace_back(std::make_shared<WebDAVViewEntry>(m_page, rect, items.at(i)));
 
         pageHeight = pageHeight + entrySize;
     }

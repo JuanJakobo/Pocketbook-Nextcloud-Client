@@ -122,7 +122,7 @@ int LoginView::logginClicked(int x, int y)
     {
         if (_username.empty() || _password.empty() || _url.empty())
         {
-            Message(ICON_ERROR, "Error", "Please set url, username and password.", 1200);
+            Message(ICON_ERROR, "Error", "Please set url, username and password.", TIMEOUT_MESSAGE);
             return 1;
         }
 
