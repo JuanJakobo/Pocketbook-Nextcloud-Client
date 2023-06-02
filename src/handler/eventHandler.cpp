@@ -387,7 +387,7 @@ int EventHandler::pointerHandler(int p_type, int p_point_x, int p_point_y)
         }
         else if (m_excludeFileView != nullptr)
         {
-            auto const click{m_excludeFileView->excludeClicked(p_point_x, p_point_y)};
+            const auto click{m_excludeFileView->excludeClicked(p_point_x, p_point_y)};
             if (click == 3)
             {
                 Util::writeConfig<string>(CONF_EXTENSION_LIST, m_excludeFileView->getExtensionList());
@@ -544,7 +544,7 @@ void EventHandler::openFolder()
     }
 }
 
-int EventHandler::keyHandler(int p_type, int p_clicked_button, int par2)
+int EventHandler::keyHandler(int p_type, int p_clicked_button, [[maybe_unused]] int par2)
 {
     auto const clicked_button{static_cast<PocketbookButtons>(p_clicked_button)};
     if (m_webDAVView != nullptr)
@@ -646,7 +646,7 @@ void EventHandler::getLocalFileStructure(std::vector<WebDAVItem> &p_tempItems)
     }
 }
 
-void EventHandler::downloadFolder(std::vector<WebDAVItem> &p_items, int p_itemID)
+void EventHandler::downloadFolder(std::vector<WebDAVItem> &p_items, size_t p_itemID)
 {
     auto &currentItem{p_items.at(p_itemID)};
     // Don't sync hidden files
@@ -800,7 +800,7 @@ void EventHandler::startDownload()
     m_webDAVView->reDrawCurrentEntry();
 }
 
-bool EventHandler::checkIfIsDownloaded(std::vector<WebDAVItem> &p_items, int p_itemID)
+bool EventHandler::checkIfIsDownloaded(std::vector<WebDAVItem> &p_items, size_t p_itemID)
 {
     auto &currentItem{p_items.at(p_itemID)};
 
@@ -818,7 +818,7 @@ bool EventHandler::checkIfIsDownloaded(std::vector<WebDAVItem> &p_items, int p_i
             return false;
         auto tempItems{m_sqllite.getItemsChildren(currentItem.path)};
         // first item of the vector is the root path itself
-        for (auto i = 1; i < tempItems.size(); i++)
+        for (size_t i = 1; i < tempItems.size(); i++)
         {
             if (!checkIfIsDownloaded(tempItems, i))
             {

@@ -23,12 +23,12 @@ constexpr auto MENU_TITLE{"Menu"};
 constexpr auto SORT_BY_TITLE{"Order items by"};
 constexpr auto SYNC_FOLDER_TITLE{"Actualize folder"};
 
-constexpr auto MENU_BUTTON_WIDTH_SCALE{2u};
+constexpr auto MENU_BUTTON_WIDTH_SCALE{2};
 constexpr auto MENU_POSITION{0u};
 
 constexpr auto SCREEN_BEGIN{0u};
-constexpr auto MENU_PANEL_HEIGHT_SCALE{18u};
-constexpr auto MENU_PANEL_WIDTH_SCALE{3u};
+constexpr auto MENU_PANEL_HEIGHT_SCALE{18};
+constexpr auto MENU_PANEL_WIDTH_SCALE{3};
 
 constexpr auto PANEL_OFF{0u};
 
@@ -81,20 +81,20 @@ void MainMenu::open(bool p_filePicker, bool p_loggedIn, iv_menuhandler p_handler
     imenu mainMenu[] = {
         {ITEM_HEADER, HEADER, const_cast<char *>(MENU_TITLE), NULL},
         // show logged in
-        {p_loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN,
+        {p_loggedIn ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN),
          static_cast<short>(MainMenuOption::ActualizeCurrentFolder), const_cast<char *>(SYNC_FOLDER_TITLE), NULL},
-        {p_loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, static_cast<short>(MainMenuOption::SortBy),
-         const_cast<char *>(SORT_BY_TITLE), NULL},
-        {p_loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, static_cast<short>(MainMenuOption::ExcludeFiles),
-         const_cast<char *>(EXCLUDE_FILES_TITLE), NULL},
+        {p_loggedIn ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN),
+         static_cast<short>(MainMenuOption::SortBy), const_cast<char *>(SORT_BY_TITLE), NULL},
+        {p_loggedIn ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN),
+         static_cast<short>(MainMenuOption::ExcludeFiles), const_cast<char *>(EXCLUDE_FILES_TITLE), NULL},
         // show if filePicker is shown
-        {p_filePicker ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, static_cast<short>(MainMenuOption::ChooseFolder),
-         const_cast<char *>(CHOOSE_FOLDER_TITLE), NULL},
+        {p_filePicker ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN),
+         static_cast<short>(MainMenuOption::ChooseFolder), const_cast<char *>(CHOOSE_FOLDER_TITLE), NULL},
         // show always
         {ITEM_ACTIVE, static_cast<short>(MainMenuOption::Info), const_cast<char *>(INFO_TITLE), NULL},
         // show logged in
-        {p_loggedIn ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, static_cast<short>(MainMenuOption::Logout),
-         const_cast<char *>(LOGOUT_TITLE), NULL},
+        {p_loggedIn ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN),
+         static_cast<short>(MainMenuOption::Logout), const_cast<char *>(LOGOUT_TITLE), NULL},
         // show always
         {ITEM_ACTIVE, static_cast<short>(MainMenuOption::Exit), const_cast<char *>(EXIT_TITLE), NULL},
         {0, 0, NULL, NULL}};

@@ -93,7 +93,7 @@ bool FileHandler::excludeFile(std::string filename)
     // check for file extensions
     if (!_extensions.empty())
     {
-        int indexOfDot = filename.find_last_of(".");
+        const auto indexOfDot{filename.find_last_of(".")};
         if (indexOfDot != std::string::npos && filename.length() > indexOfDot + 1)
         {
             string extension = filename.substr(filename.find_last_of(".") + 1);

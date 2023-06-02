@@ -87,6 +87,9 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/api/
 )
 
+target_compile_options(Nextcloud.app PRIVATE -Wall -Wextra -Wpedantic -Werror -pedantic -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror -Wno-unused)
+
+
 TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype curl sqlite3 stdc++fs)
 target_compile_definitions(Nextcloud.app PRIVATE DBVERSION=2 PROGRAMVERSION="1.05")
 

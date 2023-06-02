@@ -44,10 +44,10 @@ void SqliteConnector::runMigration(int currentVersion)
 {
     open();
 
-    char *log;
-    sprintf(log, "Running migration from db version %i to %i (Program version %s)", currentVersion, DBVERSION,
-            PROGRAMVERSION);
-    Log::writeInfoLog(log);
+    std::stringstream ss;
+    ss << "Running migration from db version " << currentVersion << " to " << DBVERSION << " (Program version "
+       << PROGRAMVERSION << ")";
+    Log::writeInfoLog(ss.str());
 
     // currently there are no migrations
 
@@ -151,7 +151,7 @@ string SqliteConnector::getEtag(const string &path)
     string etag = "not found";
 
     rs = sqlite3_prepare_v2(_db, "SELECT etag FROM 'metadata' WHERE path = ? LIMIT 1;", -1, &stmt, 0);
-    rs = sqlite3_bind_text(stmt, 1, path.c_str(), path.length(), NULL);
+    rs = sqlite3_bind_text(stmt, 1, path.c_str(), static_cast<int>(path.length()), NULL);
 
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
@@ -172,7 +172,7 @@ FileState SqliteConnector::getState(const string &path)
     FileState state = FileState::ICLOUD;
 
     rs = sqlite3_prepare_v2(_db, "SELECT state FROM 'metadata' WHERE path = ? LIMIT 1;", -1, &stmt, 0);
-    rs = sqlite3_bind_text(stmt, 1, path.c_str(), path.length(), NULL);
+    rs = sqlite3_bind_text(stmt, 1, path.c_str(), static_cast<int>(path.length()), NULL);
 
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
@@ -192,7 +192,7 @@ bool SqliteConnector::updateState(const string &path, FileState state)
 
     rs = sqlite3_prepare_v2(_db, "UPDATE 'metadata' SET state=? WHERE path=?", -1, &stmt, 0);
     rs = sqlite3_bind_int(stmt, 1, state);
-    rs = sqlite3_bind_text(stmt, 2, path.c_str(), path.length(), NULL);
+    rs = sqlite3_bind_text(stmt, 2, path.c_str(), static_cast<int>(path.length()), NULL);
     rs = sqlite3_step(stmt);
 
     if (rs != SQLITE_DONE)
@@ -221,8 +221,8 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
                             "type, state, hide FROM 'metadata' WHERE (path=? OR parentPath=?) AND "
                             "hide <> 2 ORDER BY parentPath;",
                             -1, &stmt, 0);
-    rs = sqlite3_bind_text(stmt, 1, parentPath.c_str(), parentPath.length(), NULL);
-    rs = sqlite3_bind_text(stmt, 2, parentPath.c_str(), parentPath.length(), NULL);
+    rs = sqlite3_bind_text(stmt, 1, parentPath.c_str(), static_cast<int>(parentPath.length()), NULL);
+    rs = sqlite3_bind_text(stmt, 2, parentPath.c_str(), static_cast<int>(parentPath.length()), NULL);
 
     const string storageLocation = NEXTCLOUD_ROOT_PATH + _fileHandler->getStorageUsername() + "/";
     while (sqlite3_step(stmt) == SQLITE_ROW)
@@ -265,8 +265,8 @@ void SqliteConnector::deleteChild(const string &path, const string &title)
     int rs;
     sqlite3_stmt *stmt = 0;
     rs = sqlite3_prepare_v2(_db, "DELETE FROM 'metadata' WHERE path = ? AND title = ?", -1, &stmt, 0);
-    rs = sqlite3_bind_text(stmt, 1, path.c_str(), path.length(), NULL);
-    rs = sqlite3_bind_text(stmt, 1, title.c_str(), title.length(), NULL);
+    rs = sqlite3_bind_text(stmt, 1, path.c_str(), static_cast<int>(path.length()), NULL);
+    rs = sqlite3_bind_text(stmt, 1, title.c_str(), static_cast<int>(path.length()), NULL);
 
     rs = sqlite3_step(stmt);
     if (rs != SQLITE_DONE)
@@ -289,7 +289,7 @@ void SqliteConnector::deleteItemsNotBeginsWith(string beginPath)
     int rs;
     sqlite3_stmt *stmt = 0;
     rs = sqlite3_prepare_v2(_db, "DELETE FROM 'metadata' WHERE path NOT LIKE ? ESCAPE '#'", -1, &stmt, 0);
-    rs = sqlite3_bind_text(stmt, 1, beginPath.c_str(), beginPath.length(), NULL);
+    rs = sqlite3_bind_text(stmt, 1, beginPath.c_str(), static_cast<int>(beginPath.length()), NULL);
 
     rs = sqlite3_step(stmt);
     if (rs != SQLITE_DONE)
@@ -331,7 +331,7 @@ void SqliteConnector::deleteChildren(const string &parentPath)
     int rs;
     sqlite3_stmt *stmt = 0;
     rs = sqlite3_prepare_v2(_db, "DELETE FROM 'metadata' WHERE parentPath like ?", -1, &stmt, 0);
-    rs = sqlite3_bind_text(stmt, 1, parentPath.c_str(), parentPath.length(), NULL);
+    rs = sqlite3_bind_text(stmt, 1, parentPath.c_str(), static_cast<int>(parentPath.length()), NULL);
 
     rs = sqlite3_step(stmt);
     if (rs != SQLITE_DONE)
@@ -365,16 +365,17 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
                                 "size, parentPath, etag, fileType, lastEditDate, "
                                 "type, state, hide) VALUES (?,?,?,?,?,?,?,?,?,?,?);",
                                 -1, &stmt, 0);
-        rs = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
-        rs = sqlite3_bind_text(stmt, 1, item.title.c_str(), item.title.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 2, item.localPath.c_str(), item.localPath.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 3, item.path.c_str(), item.path.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 4, item.size.c_str(), item.size.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 5, parent.c_str(), parent.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 6, item.etag.c_str(), item.etag.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 7, item.fileType.c_str(), item.fileType.length(), NULL);
-        string lastEditDateString = Util::webDAVTmToString(item.lastEditDate);
-        rs = sqlite3_bind_text(stmt, 8, lastEditDateString.c_str(), lastEditDateString.length(), NULL);
+        rs = sqlite3_exec(_db.get(), "BEGIN TRANSACTION;", NULL, NULL, NULL);
+        rs = sqlite3_bind_text(stmt, 1, item.title.c_str(), static_cast<int>(item.title.length()), NULL);
+        rs = sqlite3_bind_text(stmt, 2, item.localPath.c_str(), static_cast<int>(item.localPath.length()), NULL);
+        rs = sqlite3_bind_text(stmt, 3, item.path.c_str(), static_cast<int>(item.path.length()), NULL);
+        rs = sqlite3_bind_text(stmt, 4, item.size.c_str(), static_cast<int>(item.size.length()), NULL);
+        rs = sqlite3_bind_text(stmt, 5, parent.c_str(), static_cast<int>(parent.length()), NULL);
+        rs = sqlite3_bind_text(stmt, 6, item.etag.c_str(), static_cast<int>(item.etag.length()), NULL);
+        rs = sqlite3_bind_text(stmt, 7, item.fileType.c_str(), static_cast<int>(item.fileType.length()), NULL);
+        auto const lastEditDateString{Util::webDAVTmToString(item.lastEditDate)};
+        rs =
+            sqlite3_bind_text(stmt, 8, lastEditDateString.c_str(), static_cast<int>(lastEditDateString.length()), NULL);
         rs = sqlite3_bind_int(stmt, 9, item.type);
         rs = sqlite3_bind_int(stmt, 10, item.state);
         rs = sqlite3_bind_int(stmt, 11, item.hide);
@@ -390,11 +391,11 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
                                     "lastEditDate=?, size=? WHERE path=?",
                                     -1, &stmt, 0);
             rs = sqlite3_bind_int(stmt, 1, item.state);
-            rs = sqlite3_bind_text(stmt, 2, item.etag.c_str(), item.etag.length(), NULL);
-            string lastEditDateString = Util::webDAVTmToString(item.lastEditDate);
-            rs = sqlite3_bind_text(stmt, 3, lastEditDateString.c_str(), lastEditDateString.length(), NULL);
-            rs = sqlite3_bind_text(stmt, 4, item.size.c_str(), item.size.length(), NULL);
-            rs = sqlite3_bind_text(stmt, 5, item.path.c_str(), item.path.length(), NULL);
+            rs = sqlite3_bind_text(stmt, 2, item.etag.c_str(), static_cast<int>(item.etag.length()), NULL);
+            rs = sqlite3_bind_text(stmt, 3, lastEditDateString.c_str(), static_cast<int>(lastEditDateString.length()),
+                                   NULL);
+            rs = sqlite3_bind_text(stmt, 4, item.size.c_str(), static_cast<int>(item.size.length()), NULL);
+            rs = sqlite3_bind_text(stmt, 5, item.path.c_str(), static_cast<int>(item.path.length()), NULL);
             rs = sqlite3_step(stmt);
 
             if (rs != SQLITE_DONE)

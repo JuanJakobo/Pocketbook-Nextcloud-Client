@@ -27,10 +27,10 @@ void ContextMenu::createMenu(int p_yLocation, FileState p_fileState, iv_menuhand
 {
     imenu contextMenu[] = {
         {ITEM_HEADER, HEADER, const_cast<char *>(MENU_TITLE), NULL},
-        {(p_fileState != FileState::ICLOUD) ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN,
+        {(p_fileState != FileState::ICLOUD) ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN),
          static_cast<short>(ContextMenuOption::Open), const_cast<char *>(OPEN_TITLE), NULL},
         {ITEM_ACTIVE, static_cast<short>(ContextMenuOption::Sync), const_cast<char *>(SYNC_TITLE), NULL},
-        {(p_fileState != FileState::ICLOUD) ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN,
+        {(p_fileState != FileState::ICLOUD) ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN),
          static_cast<short>(ContextMenuOption::Remove), const_cast<char *>(REMOVE_TITLE), NULL},
         {0, 0, NULL, NULL}};
 

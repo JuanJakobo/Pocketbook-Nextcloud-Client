@@ -147,18 +147,18 @@ class EventHandler
      *
      * @param type event type
      * @param par1 first argument of the event (is the key)
-     * @param par2 second argument of the event
+     * @param par2 second argument of the event, unused
      * @return int returns if the event was handled
      */
-    int keyHandler(int p_type, int p_clicked_button, int p_par2);
+    int keyHandler(int p_type, int p_clicked_button, [[maybe_unused]] int p_par2);
 
     void getLocalFileStructure(std::vector<WebDAVItem> &p_tempItems);
 
-    void downloadFolder(std::vector<WebDAVItem> &p_items, int p_itemID);
+    void downloadFolder(std::vector<WebDAVItem> &p_items, size_t p_itemID);
 
     void startDownload();
 
-    bool checkIfIsDownloaded(std::vector<WebDAVItem> &p_items, int p_itemID);
+    bool checkIfIsDownloaded(std::vector<WebDAVItem> &p_items, size_t p_itemID);
 
     void updateItems(std::vector<WebDAVItem> &p_items);
 

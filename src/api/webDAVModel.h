@@ -40,7 +40,7 @@ struct WebDAVItem : Entry
     std::string localPath;
     FileState state{FileState::ICLOUD};
     Itemtype type;
-    tm lastEditDate = {0};
+    tm lastEditDate{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     std::string size;
     std::string fileType;
     HideState hide;

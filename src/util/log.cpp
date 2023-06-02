@@ -13,19 +13,30 @@
 
 #include "eventHandler.h"
 
+namespace
+{
+constexpr auto INFO_TEXT{"Info:"};
+constexpr auto ERROR_TEXT{"Error:"};
+constexpr auto LOGFILE_LOCATION{"/logfile.txt"};
+} // namespace
+
+// TODO use templates!
+
 void Log::writeInfoLog(const std::string &text)
 {
-    writeLog("Info:" + text);
+    writeLog(INFO_TEXT + text);
 }
 
 void Log::writeErrorLog(const std::string &text)
 {
-    writeLog("Error:" + text);
+    writeLog(ERROR_TEXT + text);
 }
 
 void Log::writeLog(const std::string &text)
 {
-    std::ofstream log(CONFIG_FOLDER_LOCATION + std::string("/logfile.txt"), std::ios_base::app | std::ios_base::out);
+    std::stringstream ss;
+    ss << CONFIG_FOLDER_LOCATION << LOGFILE_LOCATION;
+    std::ofstream log(ss.str(), std::ios_base::app | std::ios_base::out);
 
     time_t rawtime;
     struct tm *timeinfo;

@@ -43,7 +43,7 @@ std::vector<FileItem> FileBrowser::getFileStructure(const std::string &path, con
         items.push_back(temp);
     }
 
-    const int storageLocationLength = _fileHandler->getStorageLocation().length();
+    const auto storageLocationLength{_fileHandler->getStorageLocation().length()};
     if (iv_access(localPath.c_str(), R_OK) == 0)
     {
         for (const auto &entry : fs::directory_iterator(localPath))
