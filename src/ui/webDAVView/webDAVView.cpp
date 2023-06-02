@@ -22,7 +22,7 @@ constexpr auto FONT_SIZE_MANIPULATOR{2.5};
 
 using std::vector;
 
-WebDAVView::WebDAVView(const irect &p_contentRect, vector<WebDAVItem> &p_itemsUnfiltered, uint8_t p_page)
+WebDAVView::WebDAVView(const irect &p_contentRect, std::vector<WebDAVItem> &p_itemsUnfiltered, int p_page)
     : ListView(p_contentRect, p_page)
 {
     auto pageHeight{PAGE_BEGIN};

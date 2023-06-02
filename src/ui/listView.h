@@ -23,11 +23,11 @@ class ListView
      * @param ContentRect area of the screen where the list view is placed
      * @param Items items that shall be shown in the listview
      */
-    ListView(const irect &p_contentRect, uint8_t p_page);
+    ListView(const irect &p_contentRect, int p_page);
 
     virtual ~ListView();
 
-    uint8_t getShownPage()
+    int getShownPage()
     {
         return m_shownPage;
     };
@@ -96,8 +96,8 @@ class ListView
     ifont *m_footerFont;
     ifont *m_entryFont;
     ifont *m_entryFontBold;
-    uint8_t m_page{1};
-    uint8_t m_shownPage;
+    int m_page{1};
+    int m_shownPage;
     irect m_pageIcon;
     irect m_nextPageButton;
     irect m_prevPageButton;
@@ -128,5 +128,5 @@ class ListView
      *
      * @param pageToShow page that shall be shown
      */
-    void actualizePage(uint8_t p_pageToShow);
+    void actualizePage(int p_pageToShow);
 };

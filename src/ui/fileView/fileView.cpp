@@ -19,7 +19,7 @@ constexpr auto PAGE_BEGIN{0};
 constexpr auto FONT_SIZE_MANIPULATOR{2.5};
 } // namespace
 
-FileView::FileView(const irect &p_contentRect, const std::vector<FileItem> &p_files, uint8_t p_page)
+FileView::FileView(const irect &p_contentRect, const std::vector<FileItem> &p_files, int p_page)
     : ListView(p_contentRect, p_page)
 {
     auto pageHeight{PAGE_BEGIN};

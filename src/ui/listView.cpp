@@ -26,7 +26,7 @@ constexpr auto ENTRY_FONT_HEIGHT_MANIPULATOR{45};
 constexpr auto FOOTER_WIDTH_MANIPULATOR{20};
 } // namespace
 
-ListView::ListView(const irect &p_contentRect, uint8_t p_page) : m_contentRect(p_contentRect), m_shownPage(p_page)
+ListView::ListView(const irect &p_contentRect, int p_page) : m_contentRect(p_contentRect), m_shownPage(p_page)
 {
     m_entries.clear();
 
@@ -158,7 +158,7 @@ void ListView::updateEntry(size_t p_entryID)
                   m_entries.at(p_entryID)->getPosition().w, m_entries.at(p_entryID)->getPosition().h);
 }
 
-void ListView::actualizePage(uint8_t p_pageToShow)
+void ListView::actualizePage(int p_pageToShow)
 {
     if (p_pageToShow > m_page)
     {
