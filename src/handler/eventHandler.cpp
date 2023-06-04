@@ -30,9 +30,9 @@ namespace
 {
 enum class PocketbookButtons
 {
-    Back,
-    Forward,
-    Menu
+    Menu = 23,
+    Back = 24,
+    Forward = 25
 };
 } // namespace
 
