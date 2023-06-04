@@ -365,7 +365,7 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
                                 "size, parentPath, etag, fileType, lastEditDate, "
                                 "type, state, hide) VALUES (?,?,?,?,?,?,?,?,?,?,?);",
                                 -1, &stmt, 0);
-        rs = sqlite3_exec(_db.get(), "BEGIN TRANSACTION;", NULL, NULL, NULL);
+        rs = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
         rs = sqlite3_bind_text(stmt, 1, item.title.c_str(), static_cast<int>(item.title.length()), NULL);
         rs = sqlite3_bind_text(stmt, 2, item.localPath.c_str(), static_cast<int>(item.localPath.length()), NULL);
         rs = sqlite3_bind_text(stmt, 3, item.path.c_str(), static_cast<int>(item.path.length()), NULL);
