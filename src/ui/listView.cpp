@@ -38,10 +38,6 @@ ListView::ListView(const irect &p_contentRect, int p_page) : m_contentRect(p_con
     m_entryFont = OpenFont(ENTRY_FONT, m_entryFontHeight, FONT_BOLD);
     m_entryFontBold = OpenFont(ENTRY_FONT_BOLD, m_entryFontHeight, FONT_BOLD);
 
-    _footerFont = OpenFont(ENTRY_FONT, _footerFontHeight, FONT_BOLD);
-    _entryFont = OpenFont(ENTRY_FONT, _entryFontHeight, FONT_BOLD);
-    _entryFontBold = OpenFont(ENTRY_FONT_BOLD, _entryFontHeight, FONT_BOLD);
-
     SetFont(m_entryFont, BLACK);
 
     auto const footerWidth{m_contentRect.w / FOOTER_WIDTH_MANIPULATOR};
