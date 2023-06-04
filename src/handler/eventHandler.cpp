@@ -520,10 +520,10 @@ void EventHandler::openFolder()
     }
     case FileState::IOUTSYNCED:
     case FileState::ICLOUD:
-        ShowHourglassForce();
         currentWebDAVItems = m_webDAV.getDataStructure(m_webDAVView->getCurrentEntry().path);
     case FileState::ISYNCED:
     case FileState::IDOWNLOADED: {
+        ShowHourglassForce();
         if (currentWebDAVItems.empty() && m_webDAVView->getCurrentEntry().state != FileState::ICLOUD)
             currentWebDAVItems = m_sqllite.getItemsChildren(m_webDAVView->getCurrentEntry().path);
         updateItems(currentWebDAVItems);
