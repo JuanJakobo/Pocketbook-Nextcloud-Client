@@ -79,16 +79,16 @@ WebDAVView::WebDAVView(const irect &p_contentRect, std::vector<WebDAVItem> &p_it
         }
     });
 
-    for (size_t i = 0; i < items.size(); i++)
+    for (const auto item : items)
     {
-        auto entrySize{TextRectHeight(p_contentRect.w, items.at(i).title.c_str(), 0)};
+        auto entrySize{TextRectHeight(p_contentRect.w, item.title.c_str(), 0)};
 
-        if (items.at(i).type == Itemtype::IFILE)
+        if (item.type == Itemtype::IFILE)
         {
             entrySize += m_entryFontHeight;
         }
 
-        entrySize += (i == 0) ? FONT_SIZE_MANIPULATOR * m_entryFontHeight : 0.5 * m_entryFontHeight;
+        entrySize += FONT_SIZE_MANIPULATOR * m_entryFontHeight;
 
         if ((pageHeight + entrySize) > contentHeight)
         {
@@ -98,7 +98,7 @@ WebDAVView::WebDAVView(const irect &p_contentRect, std::vector<WebDAVItem> &p_it
 
         auto const rect{iRect(p_contentRect.x, p_contentRect.y + pageHeight, p_contentRect.w, entrySize, ALIGN_CENTER)};
 
-        m_entries.emplace_back(std::make_shared<WebDAVViewEntry>(m_page, rect, items.at(i)));
+        m_entries.emplace_back(std::make_shared<WebDAVViewEntry>(m_page, rect, item));
 
         pageHeight = pageHeight + entrySize;
     }
