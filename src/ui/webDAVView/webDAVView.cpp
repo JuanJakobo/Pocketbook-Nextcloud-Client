@@ -59,8 +59,10 @@ WebDAVView::WebDAVView(const irect &p_contentRect, std::vector<WebDAVItem> &p_it
         begin = items.begin() + 1;
     }
 
-    sort(begin, items.end(), [](WebDAVItem &p_w1, WebDAVItem &p_w2) -> bool {
-        if (Util::getConfig<int>("sortBy", -1) == 2)
+    auto const sortBy{Util::getConfig<int>("sortBy", -1) == 2};
+
+    sort(begin, items.end(), [&sortBy](WebDAVItem &p_w1, WebDAVItem &p_w2) -> bool {
+        if (sortBy)
         {
             // sort by lastmodified
             auto const t1{mktime(&p_w1.lastEditDate)};
