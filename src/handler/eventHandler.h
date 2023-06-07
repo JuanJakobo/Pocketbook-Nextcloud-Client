@@ -72,7 +72,6 @@ class EventHandler
   private:
     static std::unique_ptr<EventHandler> m_eventHandlerStatic;
 
-    std::unique_ptr<MainMenu> m_menu;
     std::unique_ptr<WebDAVView> m_webDAVView;
     std::unique_ptr<LoginView> m_loginView;
     std::unique_ptr<FileView> m_fileView;
@@ -80,6 +79,7 @@ class EventHandler
 
     std::shared_ptr<FileHandler> m_fileHandler;
 
+    MainMenu m_menu = MainMenu(APPLICATION_NAME);
     ContextMenu m_contextMenu = ContextMenu();
     WebDAV m_webDAV = WebDAV();
     SqliteConnector m_sqllite = SqliteConnector(DB_LOCATION);

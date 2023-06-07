@@ -47,7 +47,6 @@ EventHandler::EventHandler()
     m_eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
     m_fileHandler = std::make_shared<FileHandler>();
-    m_menu = std::make_unique<MainMenu>(APPLICATION_NAME);
 
     if (iv_access(CONFIG_FILE_LOCATION.c_str(), W_OK) == 0)
     {
@@ -85,7 +84,7 @@ EventHandler::EventHandler()
             {
             case 1:
                 m_webDAV.logout(true);
-                m_loginView = std::make_unique<LoginView>(m_menu->getContentRect());
+                m_loginView = std::make_unique<LoginView>(m_menu.getContentRect());
                 break;
             case 2:
             default:
@@ -100,9 +99,9 @@ EventHandler::EventHandler()
     }
     else
     {
-        m_loginView = std::make_unique<LoginView>(m_menu->getContentRect());
+        m_loginView = std::make_unique<LoginView>(m_menu.getContentRect());
     }
-    m_menu->draw();
+    m_menu.draw();
 }
 
 int EventHandler::eventDistributor(int p_type, int p_par1, int p_par2)
@@ -201,7 +200,7 @@ void EventHandler::mainMenuHandler(MainMenuOption p_mainMenuOption)
             return;
         }
         m_webDAVView.reset(nullptr);
-        m_loginView = std::make_unique<LoginView>(m_menu->getContentRect());
+        m_loginView = std::make_unique<LoginView>(m_menu.getContentRect());
         break;
     }
     case MainMenuOption::SortBy: {
@@ -225,15 +224,15 @@ void EventHandler::mainMenuHandler(MainMenuOption p_mainMenuOption)
         if (m_fileView != nullptr)
         {
             m_currentPath = m_fileView->getCurrentEntry().path;
-            m_fileView.reset();
+            m_fileView.reset(nullptr);
         }
         else
         {
             m_currentPath = {};
         }
         m_webDAVView.reset(nullptr);
-        FillAreaRect(&m_menu->getContentRect(), WHITE);
-        m_excludeFileView = std::make_unique<ExcludeFileView>(m_menu->getContentRect());
+        FillAreaRect(&m_menu.getContentRect(), WHITE);
+        m_excludeFileView = std::make_unique<ExcludeFileView>(m_menu.getContentRect());
         break;
     }
     case MainMenuOption::ChooseFolder: {
@@ -358,9 +357,9 @@ int EventHandler::pointerHandler(int p_type, int p_point_x, int p_point_y)
     }
     else if (p_type == EVT_POINTERUP)
     {
-        if (IsInRect(p_point_x, p_point_y, &m_menu->getMenuButtonRect()) == 1)
+        if (IsInRect(p_point_x, p_point_y, &m_menu.getMenuButtonRect()) == 1)
         {
-            m_menu->open((m_fileView != nullptr), (m_webDAVView != nullptr), EventHandler::mainMenuHandlerStatic);
+            m_menu.open((m_fileView != nullptr), (m_webDAVView != nullptr), EventHandler::mainMenuHandlerStatic);
         }
         else if (m_webDAVView != nullptr)
         {
@@ -433,8 +432,8 @@ int EventHandler::pointerHandler(int p_type, int p_point_x, int p_point_y)
                     case 1: {
                         const auto currentFolder{FileBrowser::getFileStructure(FLASHDIR, false, true)};
                         m_currentPath = FLASHDIR;
-                        FillAreaRect(&m_menu->getContentRect(), WHITE);
-                        m_fileView = std::make_unique<FileView>(m_menu->getContentRect(), currentFolder, 1);
+                        FillAreaRect(&m_menu.getContentRect(), WHITE);
+                        m_fileView = std::make_unique<FileView>(m_menu.getContentRect(), currentFolder, 1);
                     }
                     break;
                     case 2:
@@ -460,7 +459,7 @@ int EventHandler::pointerHandler(int p_type, int p_point_x, int p_point_y)
                 {
                     m_currentPath = m_fileView->getCurrentEntry().path;
                     const auto currentFolder{FileBrowser::getFileStructure(m_currentPath, false, true)};
-                    m_fileView.reset(new FileView(m_menu->getContentRect(), currentFolder, 1));
+                    m_fileView.reset(new FileView(m_menu.getContentRect(), currentFolder, 1));
                 }
             }
 
@@ -881,7 +880,7 @@ void EventHandler::drawWebDAVItems(std::vector<WebDAVItem> &p_items)
     {
         m_currentPath = p_items.at(0).path;
         getLocalFileStructure(p_items);
-        m_webDAVView.reset(new WebDAVView(m_menu->getContentRect(), p_items, 1));
+        m_webDAVView.reset(new WebDAVView(m_menu.getContentRect(), p_items, 1));
     }
 }
 
@@ -890,7 +889,7 @@ void EventHandler::redrawItems()
     m_excludeFileView.reset(nullptr);
     ShowHourglassForce();
 
-    FillAreaRect(&m_menu->getContentRect(), WHITE);
+    FillAreaRect(&m_menu.getContentRect(), WHITE);
     if (m_currentPath.empty())
     {
         auto currentWebDAVItems{m_webDAV.getDataStructure(WebDAV::getRootPath(true))};
@@ -900,6 +899,6 @@ void EventHandler::redrawItems()
     else
     {
         const auto currentFolder{FileBrowser::getFileStructure(m_currentPath, false, true)};
-        m_fileView.reset(new FileView(m_menu->getContentRect(), currentFolder, 1));
+        m_fileView.reset(new FileView(m_menu.getContentRect(), currentFolder, 1));
     }
 }
