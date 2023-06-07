@@ -26,7 +26,7 @@ Help()
 ############################################################
 Mount()
 {
-MOUNTPOINT=$(sudo blkid | awk '/PB632/ {print $1;}' | tr -d ':')
+MOUNTPOINT=$(sudo blkid | awk '/PB/ {print $1;}' | tr -d ':')
 if [ -n "$MOUNTPOINT" ]
 then
     if mount | grep $MOUNTPOINT > /dev/null; then
