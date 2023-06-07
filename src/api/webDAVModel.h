@@ -10,24 +10,24 @@
 
 #include "model.h"
 
-enum Itemtype
+enum class Itemtype
 {
-    IFILE,
+    IFILE = 0,
     IFOLDER
 };
 
-enum FileState
+enum class FileState
 {
-    ICLOUD,
+    ICLOUD = 0,
     ISYNCED,
     IOUTSYNCED,
     ILOCAL,
     IDOWNLOADED
 };
 
-enum HideState
+enum class HideState
 {
-    INOTDEFINED,
+    INOTDEFINED = 0,
     ISHOW,
     IHIDE
 };

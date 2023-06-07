@@ -191,7 +191,7 @@ bool SqliteConnector::updateState(const string &path, FileState state)
     sqlite3_stmt *stmt = 0;
 
     rs = sqlite3_prepare_v2(_db, "UPDATE 'metadata' SET state=? WHERE path=?", -1, &stmt, 0);
-    rs = sqlite3_bind_int(stmt, 1, state);
+    rs = sqlite3_bind_int(stmt, 1, static_cast<int>(state));
     rs = sqlite3_bind_text(stmt, 2, path.c_str(), static_cast<int>(path.length()), NULL);
     rs = sqlite3_step(stmt);
 
@@ -376,9 +376,9 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
         auto const lastEditDateString{Util::webDAVTmToString(item.lastEditDate)};
         rs =
             sqlite3_bind_text(stmt, 8, lastEditDateString.c_str(), static_cast<int>(lastEditDateString.length()), NULL);
-        rs = sqlite3_bind_int(stmt, 9, item.type);
-        rs = sqlite3_bind_int(stmt, 10, item.state);
-        rs = sqlite3_bind_int(stmt, 11, item.hide);
+        rs = sqlite3_bind_int(stmt, 9, static_cast<int>(item.type));
+        rs = sqlite3_bind_int(stmt, 10, static_cast<int>(item.state));
+        rs = sqlite3_bind_int(stmt, 11, static_cast<int>(item.hide));
 
         rs = sqlite3_step(stmt);
         if (rs == SQLITE_CONSTRAINT)
@@ -390,7 +390,7 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
                                     "UPDATE 'metadata' SET state=?, etag=?, "
                                     "lastEditDate=?, size=? WHERE path=?",
                                     -1, &stmt, 0);
-            rs = sqlite3_bind_int(stmt, 1, item.state);
+            rs = sqlite3_bind_int(stmt, 1, static_cast<int>(item.state));
             rs = sqlite3_bind_text(stmt, 2, item.etag.c_str(), static_cast<int>(item.etag.length()), NULL);
             rs = sqlite3_bind_text(stmt, 3, lastEditDateString.c_str(), static_cast<int>(lastEditDateString.length()),
                                    NULL);
