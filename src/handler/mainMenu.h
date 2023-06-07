@@ -62,9 +62,4 @@ class MainMenu
     irect m_menuRect;
     irect m_contentRect;
     irect m_menuButtonRect;
-
-    /**
-     * Functions needed to call C function, handles the panel
-     */
-    static void panelHandlerStatic();
 };

@@ -70,12 +70,6 @@ void MainMenu::draw() const
     PartialUpdate(SCREEN_BEGIN, m_menuRect.y, ScreenWidth(), m_menuRect.h);
 }
 
-void MainMenu::panelHandlerStatic()
-{
-    DrawPanel(NULL, "", NULL, -1);
-    SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
-}
-
 void MainMenu::open(bool p_filePicker, bool p_loggedIn, iv_menuhandler p_handler) const
 {
     imenu mainMenu[] = {
