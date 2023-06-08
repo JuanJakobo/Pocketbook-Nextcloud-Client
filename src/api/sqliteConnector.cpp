@@ -33,13 +33,6 @@ SqliteConnector::SqliteConnector(const string &DBpath) : _dbpath(DBpath)
     }
 }
 
-SqliteConnector::~SqliteConnector()
-{
-    sqlite3_close(_db);
-    _fileHandler.reset();
-    Log::writeInfoLog("closed DB");
-}
-
 void SqliteConnector::runMigration(int currentVersion)
 {
     open();
@@ -55,19 +48,18 @@ void SqliteConnector::runMigration(int currentVersion)
     int rs;
     sqlite3_stmt *stmt = 0;
 
-    rs = sqlite3_prepare_v2(_db, "INSERT INTO 'version' (dbversion) VALUES (?)", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db.get(), "INSERT INTO 'version' (dbversion) VALUES (?)", -1, &stmt, 0);
     rs = sqlite3_bind_int(stmt, 1, DBVERSION);
 
     rs = sqlite3_step(stmt);
     if (rs != SQLITE_DONE)
     {
         // this is critical
-        Log::writeErrorLog(std::string("error inserting into version") + sqlite3_errmsg(_db) +
+        Log::writeErrorLog(std::string("error inserting into version") + sqlite3_errmsg(_db.get()) +
                            std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
 
     sqlite3_finalize(stmt);
-    sqlite3_close(_db);
 }
 
 int SqliteConnector::getDbVersion()
@@ -78,7 +70,7 @@ int SqliteConnector::getDbVersion()
     sqlite3_stmt *stmt = 0;
 
     int version;
-    rs = sqlite3_prepare_v2(_db, "SELECT MAX(dbversion) FROM 'version'", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db.get(), "SELECT MAX(dbversion) FROM 'version'", -1, &stmt, 0);
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
         version = sqlite3_column_int(stmt, 0);
@@ -87,20 +79,19 @@ int SqliteConnector::getDbVersion()
     if (version != 0)
     {
         sqlite3_finalize(stmt);
-        sqlite3_close(_db);
         return version;
     }
     else
     {
         // this is probably the first start -> the version is up to date and insert
         // the current version
-        rs = sqlite3_prepare_v2(_db, "INSERT INTO 'version' (dbversion) VALUES (?)", -1, &stmt, 0);
+        rs = sqlite3_prepare_v2(_db.get(), "INSERT INTO 'version' (dbversion) VALUES (?)", -1, &stmt, 0);
         rs = sqlite3_bind_int(stmt, 1, DBVERSION);
 
         rs = sqlite3_step(stmt);
         if (rs != SQLITE_DONE)
         {
-            Log::writeErrorLog(std::string("error inserting into version") + sqlite3_errmsg(_db) +
+            Log::writeErrorLog(std::string("error inserting into version") + sqlite3_errmsg(_db.get()) +
                                std::string(" (Error Code: ") + std::to_string(rs) + ")");
         }
         rs = sqlite3_clear_bindings(stmt);
@@ -108,10 +99,9 @@ int SqliteConnector::getDbVersion()
 
         // for compatibility alter the table because at this point db migrations
         // doesn't exist
-        rs = sqlite3_exec(_db, "ALTER TABLE metadata ADD hide INT DEFAULT 0 NOT NULL", NULL, 0, NULL);
+        rs = sqlite3_exec(_db.get(), "ALTER TABLE metadata ADD hide INT DEFAULT 0 NOT NULL", NULL, 0, NULL);
 
         sqlite3_finalize(stmt);
-        sqlite3_close(_db);
 
         return DBVERSION;
     }
@@ -119,10 +109,14 @@ int SqliteConnector::getDbVersion()
 
 bool SqliteConnector::open()
 {
-    int rs;
+    if (_db)
+    {
+        return true;
+    }
 
-    auto temp_ptr = _db;
-    rs = sqlite3_open(_dbpath.c_str(), &_db);
+    sqlite3 *dbRaw = nullptr;
+    auto rs{sqlite3_open(_dbpath.c_str(), &dbRaw)};
+    _db.reset(dbRaw);
 
     if (rs)
     {
@@ -130,13 +124,13 @@ bool SqliteConnector::open()
         return false;
     }
 
-    rs = sqlite3_exec(_db,
+    rs = sqlite3_exec(_db.get(),
                       "CREATE TABLE IF NOT EXISTS metadata (title VARCHAR, localPath VARCHAR, "
                       "size VARCHAR, fileType VARCHAR, lasteditDate VARCHAR, type INT, state "
                       "INT, etag VARCHAR, path VARCHAR PRIMARY KEY, parentPath VARCHAR, hide "
                       "INT DEFAULT 0 NOT NULL)",
                       NULL, 0, NULL);
-    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS version (dbversion INT)", NULL, 0, NULL);
+    rs = sqlite3_exec(_db.get(), "CREATE TABLE IF NOT EXISTS version (dbversion INT)", NULL, 0, NULL);
 
     return true;
 }
@@ -150,7 +144,7 @@ string SqliteConnector::getEtag(const string &path)
     std::vector<WebDAVItem> items;
     string etag = "not found";
 
-    rs = sqlite3_prepare_v2(_db, "SELECT etag FROM 'metadata' WHERE path = ? LIMIT 1;", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db.get(), "SELECT etag FROM 'metadata' WHERE path = ? LIMIT 1;", -1, &stmt, 0);
     rs = sqlite3_bind_text(stmt, 1, path.c_str(), static_cast<int>(path.length()), NULL);
 
     while (sqlite3_step(stmt) == SQLITE_ROW)
@@ -159,7 +153,6 @@ string SqliteConnector::getEtag(const string &path)
     }
 
     sqlite3_finalize(stmt);
-    sqlite3_close(_db);
     return etag;
 }
 
@@ -171,7 +164,7 @@ FileState SqliteConnector::getState(const string &path)
     sqlite3_stmt *stmt = 0;
     FileState state = FileState::ICLOUD;
 
-    rs = sqlite3_prepare_v2(_db, "SELECT state FROM 'metadata' WHERE path = ? LIMIT 1;", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db.get(), "SELECT state FROM 'metadata' WHERE path = ? LIMIT 1;", -1, &stmt, 0);
     rs = sqlite3_bind_text(stmt, 1, path.c_str(), static_cast<int>(path.length()), NULL);
 
     while (sqlite3_step(stmt) == SQLITE_ROW)
@@ -180,7 +173,6 @@ FileState SqliteConnector::getState(const string &path)
     }
 
     sqlite3_finalize(stmt);
-    sqlite3_close(_db);
     return state;
 }
 
@@ -190,20 +182,19 @@ bool SqliteConnector::updateState(const string &path, FileState state)
     int rs;
     sqlite3_stmt *stmt = 0;
 
-    rs = sqlite3_prepare_v2(_db, "UPDATE 'metadata' SET state=? WHERE path=?", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db.get(), "UPDATE 'metadata' SET state=? WHERE path=?", -1, &stmt, 0);
     rs = sqlite3_bind_int(stmt, 1, static_cast<int>(state));
     rs = sqlite3_bind_text(stmt, 2, path.c_str(), static_cast<int>(path.length()), NULL);
     rs = sqlite3_step(stmt);
 
     if (rs != SQLITE_DONE)
     {
-        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+        Log::writeErrorLog(sqlite3_errmsg(_db.get()) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
 
     sqlite3_finalize(stmt);
-    sqlite3_close(_db);
 
     return true;
 }
@@ -216,7 +207,7 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
     sqlite3_stmt *stmt = 0;
     std::vector<WebDAVItem> items;
 
-    rs = sqlite3_prepare_v2(_db,
+    rs = sqlite3_prepare_v2(_db.get(),
                             "SELECT title, localPath, path, size, etag, fileType, lastEditDate, "
                             "type, state, hide FROM 'metadata' WHERE (path=? OR parentPath=?) AND "
                             "hide <> 2 ORDER BY parentPath;",
@@ -254,7 +245,6 @@ std::vector<WebDAVItem> SqliteConnector::getItemsChildren(const string &parentPa
     }
 
     sqlite3_finalize(stmt);
-    sqlite3_close(_db);
 
     return items;
 }
@@ -264,14 +254,14 @@ void SqliteConnector::deleteChild(const string &path, const string &title)
     open();
     int rs;
     sqlite3_stmt *stmt = 0;
-    rs = sqlite3_prepare_v2(_db, "DELETE FROM 'metadata' WHERE path = ? AND title = ?", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db.get(), "DELETE FROM 'metadata' WHERE path = ? AND title = ?", -1, &stmt, 0);
     rs = sqlite3_bind_text(stmt, 1, path.c_str(), static_cast<int>(path.length()), NULL);
     rs = sqlite3_bind_text(stmt, 1, title.c_str(), static_cast<int>(path.length()), NULL);
 
     rs = sqlite3_step(stmt);
     if (rs != SQLITE_DONE)
     {
-        Log::writeErrorLog(std::string("An error ocurred trying to delete the item ") + sqlite3_errmsg(_db) +
+        Log::writeErrorLog(std::string("An error ocurred trying to delete the item ") + sqlite3_errmsg(_db.get()) +
                            std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
@@ -288,14 +278,14 @@ void SqliteConnector::deleteItemsNotBeginsWith(string beginPath)
 
     int rs;
     sqlite3_stmt *stmt = 0;
-    rs = sqlite3_prepare_v2(_db, "DELETE FROM 'metadata' WHERE path NOT LIKE ? ESCAPE '#'", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db.get(), "DELETE FROM 'metadata' WHERE path NOT LIKE ? ESCAPE '#'", -1, &stmt, 0);
     rs = sqlite3_bind_text(stmt, 1, beginPath.c_str(), static_cast<int>(beginPath.length()), NULL);
 
     rs = sqlite3_step(stmt);
     if (rs != SQLITE_DONE)
     {
         Log::writeErrorLog(std::string("An error ocurred trying to delete the items that begins with " + beginPath) +
-                           sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+                           sqlite3_errmsg(_db.get()) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
@@ -307,18 +297,17 @@ bool SqliteConnector::resetHideState()
     int rs;
     sqlite3_stmt *stmt = 0;
 
-    rs = sqlite3_prepare_v2(_db, "UPDATE 'metadata' SET hide=0", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db.get(), "UPDATE 'metadata' SET hide=0", -1, &stmt, 0);
     rs = sqlite3_step(stmt);
 
     if (rs != SQLITE_DONE)
     {
-        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+        Log::writeErrorLog(sqlite3_errmsg(_db.get()) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
 
     sqlite3_finalize(stmt);
-    sqlite3_close(_db);
 
     return true;
 }
@@ -330,14 +319,14 @@ void SqliteConnector::deleteChildren(const string &parentPath)
     open();
     int rs;
     sqlite3_stmt *stmt = 0;
-    rs = sqlite3_prepare_v2(_db, "DELETE FROM 'metadata' WHERE parentPath like ?", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db.get(), "DELETE FROM 'metadata' WHERE parentPath like ?", -1, &stmt, 0);
     rs = sqlite3_bind_text(stmt, 1, parentPath.c_str(), static_cast<int>(parentPath.length()), NULL);
 
     rs = sqlite3_step(stmt);
     if (rs != SQLITE_DONE)
     {
-        Log::writeErrorLog(std::string("An error ocurred trying to delete items of the path ") + sqlite3_errmsg(_db) +
-                           std::string(" (Error Code: ") + std::to_string(rs) + ")");
+        Log::writeErrorLog(std::string("An error ocurred trying to delete items of the path ") +
+                           sqlite3_errmsg(_db.get()) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
@@ -352,7 +341,7 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
 
     // Sqlite version to old... is 3.18, require 3.24
     // Log::writeInfoLog(sqlite3_libversion());
-    // rs = sqlite3_prepare_v2(_db, "INSERT INTO 'metadata' (title,
+    // rs = sqlite3_prepare_v2(_db.get(), "INSERT INTO 'metadata' (title,
     // localPath, path, size, parentPath, etag, fileType, lastEditDate, type,
     // state, key) VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(key) DO UPDATE SET
     // etag=?, size=?, lastEditDate=? WHERE metadata.etag <> ?;", -1, &stmt, 0);
@@ -360,12 +349,12 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
 
     for (auto item : items)
     {
-        rs = sqlite3_prepare_v2(_db,
+        rs = sqlite3_prepare_v2(_db.get(),
                                 "INSERT INTO 'metadata' (title, localPath, path, "
                                 "size, parentPath, etag, fileType, lastEditDate, "
                                 "type, state, hide) VALUES (?,?,?,?,?,?,?,?,?,?,?);",
                                 -1, &stmt, 0);
-        rs = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+        rs = sqlite3_exec(_db.get(), "BEGIN TRANSACTION;", NULL, NULL, NULL);
         rs = sqlite3_bind_text(stmt, 1, item.title.c_str(), static_cast<int>(item.title.length()), NULL);
         rs = sqlite3_bind_text(stmt, 2, item.localPath.c_str(), static_cast<int>(item.localPath.length()), NULL);
         rs = sqlite3_bind_text(stmt, 3, item.path.c_str(), static_cast<int>(item.path.length()), NULL);
@@ -386,7 +375,7 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
             rs = sqlite3_clear_bindings(stmt);
             rs = sqlite3_reset(stmt);
 
-            rs = sqlite3_prepare_v2(_db,
+            rs = sqlite3_prepare_v2(_db.get(),
                                     "UPDATE 'metadata' SET state=?, etag=?, "
                                     "lastEditDate=?, size=? WHERE path=?",
                                     -1, &stmt, 0);
@@ -400,24 +389,24 @@ bool SqliteConnector::saveItemsChildren(const std::vector<WebDAVItem> &items)
 
             if (rs != SQLITE_DONE)
             {
-                Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+                Log::writeErrorLog(sqlite3_errmsg(_db.get()) + std::string(" (Error Code: ") + std::to_string(rs) +
+                                   ")");
             }
             rs = sqlite3_clear_bindings(stmt);
             rs = sqlite3_reset(stmt);
         }
         else if (rs != SQLITE_DONE)
         {
-            Log::writeErrorLog(std::string("error inserting into table ") + sqlite3_errmsg(_db) +
+            Log::writeErrorLog(std::string("error inserting into table ") + sqlite3_errmsg(_db.get()) +
                                std::string(" (Error Code: ") + std::to_string(rs) + ")");
         }
         rs = sqlite3_clear_bindings(stmt);
         rs = sqlite3_reset(stmt);
     }
 
-    sqlite3_exec(_db, "END TRANSACTION;", NULL, NULL, NULL);
+    sqlite3_exec(_db.get(), "END TRANSACTION;", NULL, NULL, NULL);
 
     sqlite3_finalize(stmt);
-    sqlite3_close(_db);
 
     return true;
 }
