@@ -10,6 +10,12 @@
 
 #include "inkview.h"
 
-ListViewEntry::ListViewEntry(int page, const irect &rect) : _page(page), _position(rect)
+ListViewEntry::ListViewEntry(int p_page, const irect &p_position) : m_page(p_page), m_position(p_position)
 {
+}
+
+void ListViewEntry::drawBottomLine() const
+{
+    auto const line{(m_position.y + m_position.h) - 1};
+    DrawLine(m_position.x, line, m_position.w, line, BLACK);
 }

@@ -12,24 +12,25 @@
 
 #include "fileModel.h"
 
-FileViewEntry::FileViewEntry(int page, const irect &position, const FileItem &entry)
-    : ListViewEntry(page, position), _entry(entry)
+FileViewEntry::FileViewEntry(int p_page, const irect &p_position, const FileItem &p_entry)
+    : ListViewEntry(p_page, p_position), m_entry(p_entry)
 {
 }
 
-void FileViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight)
+void FileViewEntry::draw([[maybe_unused]] const ifont *p_entryFont, const ifont *p_entryFontBold,
+                         int p_fontHeight) const
 {
-    SetFont(entryFontBold, BLACK);
-    int heightOfTitle = TextRectHeight(_position.w, _entry.name.c_str(), 0);
-    DrawTextRect(_position.x, _position.y, _position.w, heightOfTitle, _entry.name.c_str(), ALIGN_LEFT);
+    SetFont(p_entryFontBold, BLACK);
+    const auto heightOfTitle{TextRectHeight(m_position.w, m_entry.name.c_str(), 0)};
+    DrawTextRect(m_position.x, m_position.y, m_position.w, heightOfTitle, m_entry.name.c_str(), ALIGN_LEFT);
 
-    SetFont(entryFont, BLACK);
+    DrawTextRect(m_position.x, m_position.y, m_position.w, heightOfTitle, m_entry.name.c_str(), ALIGN_LEFT);
 
-    DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, _entry.path.c_str(),
-                 ALIGN_LEFT);
-    const char *type = _entry.type == Type::FFOLDER ? "Folder" : "File";
-    DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, type, ALIGN_RIGHT);
+    DrawTextRect(m_position.x, m_position.y + heightOfTitle + p_fontHeight, m_position.w, p_fontHeight,
+                 m_entry.path.c_str(), ALIGN_LEFT);
+    auto type{m_entry.type == Type::FFOLDER ? "Folder" : "File"};
+    DrawTextRect(m_position.x, m_position.y + heightOfTitle + p_fontHeight, m_position.w, p_fontHeight, type,
+                 ALIGN_RIGHT);
 
-    int line = (_position.y + _position.h) - 1;
-    DrawLine(0, line, ScreenWidth(), line, BLACK);
+    drawBottomLine();
 }

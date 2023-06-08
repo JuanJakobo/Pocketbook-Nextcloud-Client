@@ -19,7 +19,7 @@ class WebDAVViewEntry : public ListViewEntry
      * @param Rect area of the screen the item is positioned
      * @param entry entry that shall be drawn
      */
-    WebDAVViewEntry(int page, const irect &position, const WebDAVItem &entry);
+    WebDAVViewEntry(int p_page, const irect &p_position, const WebDAVItem &p_entry);
 
     /**
      * draws the WebDAVViewEntry to the screen
@@ -28,13 +28,13 @@ class WebDAVViewEntry : public ListViewEntry
      * @param entryFontBold bold font for the header
      * @param fontHeight height of the font
      */
-    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) override;
+    void draw(const ifont *p_entryFont, const ifont *p_entryFontBold, int p_fontHeight) const override;
 
     WebDAVItem &get()
     {
-        return _entry;
+        return m_entry;
     };
 
   private:
-    WebDAVItem _entry;
+    WebDAVItem m_entry;
 };

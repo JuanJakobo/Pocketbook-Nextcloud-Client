@@ -19,7 +19,7 @@ class FileViewEntry : public ListViewEntry
      * @param Rect area of the screen the item is positioned
      * @param entry entry that shall be drawn
      */
-    FileViewEntry(int page, const irect &position, const FileItem &entry);
+    FileViewEntry(int p_page, const irect &p_position, const FileItem &p_entry);
 
     /**
      * draws the FileViewEntry to the screen
@@ -28,13 +28,13 @@ class FileViewEntry : public ListViewEntry
      * @param entryFontBold bold font for the header
      * @param fontHeight height of the font
      */
-    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) override;
+    void draw(const ifont *p_entryFont, const ifont *p_entryFontBold, int p_fontHeight) const override;
 
-    FileItem &get()
+    const FileItem &get() const
     {
-        return _entry;
+        return m_entry;
     };
 
   private:
-    FileItem _entry;
+    FileItem m_entry;
 };

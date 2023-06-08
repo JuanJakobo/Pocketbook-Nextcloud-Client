@@ -18,17 +18,17 @@ class ListViewEntry
      * @param Page site of the listView the Entry is shown
      * @param Rect area of the screen the item is positioned
      */
-    ListViewEntry(int page, const irect &position);
+    ListViewEntry(int p_page, const irect &p_position);
 
     virtual ~ListViewEntry(){};
 
-    irect &getPosition()
+    const irect &getPosition() const
     {
-        return _position;
+        return m_position;
     }
     int getPage() const
     {
-        return _page;
+        return m_page;
     }
 
     /**
@@ -38,9 +38,11 @@ class ListViewEntry
      * @param entryFontBold bold font for the header
      * @param fontHeight height of the font
      */
-    virtual void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) = 0;
+    virtual void draw(const ifont *p_entryFont, const ifont *p_entryFontBold, int p_fontHeight) const = 0;
 
   protected:
-    int _page;
-    irect _position;
+    int m_page;
+    irect m_position;
+
+    void drawBottomLine() const;
 };

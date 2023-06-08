@@ -25,12 +25,12 @@ class FileView final : public ListView
      */
     FileView(const irect &p_contentRect, const std::vector<FileItem> &p_files, int page = 1);
 
-    FileItem &getCurrentEntry()
+    const FileItem &getCurrentEntry() const
     {
         return getEntry(m_selectedEntry);
     };
 
-    FileItem &getEntry(size_t entryID)
+    const FileItem &getEntry(size_t entryID) const
     {
         return std::dynamic_pointer_cast<FileViewEntry>(m_entries.at(entryID))->get();
     };
