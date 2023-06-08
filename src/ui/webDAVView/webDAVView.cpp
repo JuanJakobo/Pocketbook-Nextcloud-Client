@@ -29,33 +29,30 @@ WebDAVView::WebDAVView(const irect &p_contentRect, std::vector<WebDAVItem> &p_it
     auto const contentHeight{p_contentRect.h - m_footerHeight};
 
     vector<WebDAVItem> items;
+    auto const entrycount{items.size()};
+    m_entries.reserve(entrycount);
+
     std::copy_if(p_itemsUnfiltered.begin(), p_itemsUnfiltered.end(), std::back_inserter(items),
                  [](WebDAVItem p_item) { return p_item.hide != HideState::IHIDE; });
 
-    auto const entrycount{items.size()};
-
-    m_entries.reserve(entrycount);
-
     // resize item 1
-    auto header{items.at(0).path};
-    header = header.substr(0, header.find_last_of("/"));
-    header = header.substr(0, header.find_last_of("/") + 1);
-    items.at(0).path = header;
-    items.at(0).title += "\nclick to go back";
-    items.at(0).lastEditDate.tm_year = 2200;
-
+    auto const rootPath{WebDAV::getRootPath(false)};
     std::vector<WebDAVItem>::iterator begin;
 
-    auto const rootPath{WebDAV::getRootPath(false)};
-    auto const parentRootPath{rootPath.substr(0, rootPath.substr(0, rootPath.length() - 1).find_last_of("/") + 1)};
-
-    if (items.at(0).path.compare(parentRootPath) == 0)
+    if (items.at(0).path.compare(rootPath) == 0)
     {
         items.erase(items.begin());
         begin = items.begin();
     }
     else
     {
+        auto header{items.at(0).path};
+        header = header.substr(0, header.find_last_of("/"));
+        header = header.substr(0, header.find_last_of("/") + 1);
+        items.at(0).path = header;
+        std::stringstream ss;
+        ss << items.at(0).title << " - click here to go up";
+        items.at(0).title = ss.str();
         begin = items.begin() + 1;
     }
 
@@ -81,16 +78,15 @@ WebDAVView::WebDAVView(const irect &p_contentRect, std::vector<WebDAVItem> &p_it
         }
     });
 
-    for (const auto item : items)
+    for (const auto &item : items)
     {
-        auto entrySize{TextRectHeight(p_contentRect.w, item.title.c_str(), 0)};
+        auto entrySize{TextRectHeight(p_contentRect.w, item.title.c_str(), 0) +
+                       FONT_SIZE_MANIPULATOR * m_entryFontHeight};
 
         if (item.type == Itemtype::IFILE)
         {
             entrySize += m_entryFontHeight;
         }
-
-        entrySize += FONT_SIZE_MANIPULATOR * m_entryFontHeight;
 
         if ((pageHeight + entrySize) > contentHeight)
         {
