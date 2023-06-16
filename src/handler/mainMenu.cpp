@@ -51,7 +51,7 @@ MainMenu::MainMenu(const std::string &p_name) : m_name{p_name}
 
     auto contentRectHeight{ScreenHeight() - menuPanelHeight};
     auto textEnd{ScreenWidth() - (TEXT_MARGIN * 2)};
-    m_contentRect = iRect(TEXT_BEGIN, menuPanelHeight, textEnd, contentRectHeight, ALIGN_FIT);
+    m_contentRect = iRect(TEXT_BEGIN, menuPanelHeight, textEnd, contentRectHeight, ALIGN_CENTER);
 
     SetPanelType(PANEL_OFF);
 }
