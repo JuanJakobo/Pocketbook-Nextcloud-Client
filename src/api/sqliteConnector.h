@@ -15,14 +15,6 @@
 #include "sqlite3.h"
 #include "webDAVModel.h"
 
-struct sqlite3_deleter
-{
-    void operator()(sqlite3 *db)
-    {
-        sqlite3_close_v2(db);
-    }
-};
-
 class SqliteConnector
 {
   public:
@@ -31,7 +23,8 @@ class SqliteConnector
      */
     SqliteConnector(const std::string &DBpath);
 
-    ~SqliteConnector() = default;
+    ~SqliteConnector();
+    /* ~SqliteConnector() = default; */
 
     bool open();
 
@@ -59,7 +52,7 @@ class SqliteConnector
 
   private:
     std::string _dbpath;
-    std::unique_ptr<sqlite3, sqlite3_deleter> _db;
+    sqlite3 *_db;
 
     std::shared_ptr<FileHandler> _fileHandler;
 };
