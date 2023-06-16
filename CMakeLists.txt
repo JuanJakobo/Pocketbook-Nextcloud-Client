@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.1)
 
-PROJECT (Pocketbook-Nextcloud VERSION 1.05)
+PROJECT (Pocketbook-Nextcloud VERSION 1.10)
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_SYSTEM_NAME Linux)
@@ -91,7 +91,7 @@ target_compile_options(Nextcloud.app PRIVATE -Wall -Wextra -Wpedantic -Werror -p
 
 
 TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype curl sqlite3 stdc++fs)
-target_compile_definitions(Nextcloud.app PRIVATE DBVERSION=2 PROGRAMVERSION="1.05")
+target_compile_definitions(Nextcloud.app PRIVATE DBVERSION=2 PROGRAMVERSION="1.10")
 
 INSTALL (TARGETS Nextcloud.app)
 
