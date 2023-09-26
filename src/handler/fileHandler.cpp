@@ -118,7 +118,8 @@ bool FileHandler::excludeFile(std::string filename)
         }
     }
 
-    return _invertMatch;
+    // if regex is not filled, always show file
+    return false;
 }
 
 bool FileHandler::excludeFolder(std::string folderName)
@@ -145,7 +146,8 @@ bool FileHandler::excludeFolder(std::string folderName)
         }
     }
 
-    return _invertMatch;
+    // if regex is not filled, always show folder
+    return false;
 }
 
 HideState FileHandler::getHideState(Itemtype itemType, std::string prefix, std::string path, std::string title = "")

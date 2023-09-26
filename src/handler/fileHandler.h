@@ -18,8 +18,26 @@ class FileHandler
   public:
     FileHandler();
     ~FileHandler();
+
+    /**
+     * Determines if a file should be excluded
+     *
+     * @param filename name of the file to check
+     * @return bool returns true if file should be excluded, else false
+     */
     bool excludeFile(std::string filename);
+
+    /**
+     * Determines if a folder should be excluded
+     *
+     * @param foldername name of the folder to check
+     * @return bool returns true if folder should be excluded, else false
+     */
     bool excludeFolder(std::string foldername);
+
+    /**
+     * Returns the hide state for a given item
+     */
     HideState getHideState(Itemtype itemType, std::string prefixToStripe, std::string path, std::string title);
 
     std::string getStorageLocation();
