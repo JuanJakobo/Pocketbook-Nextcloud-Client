@@ -77,8 +77,8 @@ while getopts ":hclu" o; do
             ;;
         u)
             if mount | grep /mnt/Pocketbook > /dev/null; then
-                sudo umount /mnt/Pocketbook
-                echo "Pocketbook umounted"
+                sudo eject /mnt/Pocketbook
+                echo "Pocketbook ejected"
             else
                 echo "/mnt/Pocketbook not mounted."
             fi
