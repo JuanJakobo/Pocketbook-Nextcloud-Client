@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOGFILE="/mnt/Pocketbook/system/config/nextcloud/logfile.txt"
-APPLOCATION="bin/Nextcloud.app"
+APPLOCATION="build/Nextcloud.app"
 APPDIR="/mnt/Pocketbook/applications/"
 
 ############################################################
