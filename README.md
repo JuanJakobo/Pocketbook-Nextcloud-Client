@@ -38,22 +38,42 @@ Currently there are multiple methods to build the application. It is recommended
 ### Dockerimage
 The easiest way to build applications as of now to use the Dockerimage. (https://github.com/JuanJakobo/Pocketbook-dev-docker)
 
-conan install . --output-folder=build --build=missing -pr=pocketbook
-
 ### Setup Toolchain
-First you need to install the basic build tools for linux.
+First you need to install conan and the basic build tools for linux.
 
 Then you have to download the Pocketbook SDK (https://github.com/pocketbook/SDK_6.3.0/tree/5.19).
 
 In the CMakeLists.txt of this project you have to set the root of the TOOLCHAIN_PATH to the location where you saved the SDK.
 
-Then you have to setup cmake by:
+Furthmore you have to add an conan profile for pocketbook:
+`
+[settings]
+arch=armv7
+build_type=Release
+compiler=clang
+compiler.cppstd=gnu17
+compiler.version=7.0
+os=Linux
 
-`cmake .`
+[buildenv]
+CXX=arm-obreey-linux-gnueabi-clang++
+CC=arm-obreey-linux-gnueabi-clang
+LD=arm-obreey-linux-gnueabi-ld
+STRIP=arm-obreey-linux-gnueabi-strip
+AR=arm-obreey-linux-gnueabi-ar
+AS=arm-obreey-linux-gnueabi-as
+NM=arm-obreey-linux-gnueabi-nm
+RANLIB=arm-obreey-linux-gnueabi-ranlib
+`
+
+Then you have to setup conan by:
+
+`conan install . --build=missing -pr=pocketbook`
+`cmake --preset conan-release`
 
 To build the application run:
 
-`make`
+`cmake --build build/Release`
 
 ## Disclamer
 Use as your own risk!
