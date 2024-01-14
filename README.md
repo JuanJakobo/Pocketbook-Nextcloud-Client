@@ -69,6 +69,7 @@ RANLIB=arm-obreey-linux-gnueabi-ranlib
 Then you have to setup conan by:
 
 `conan install . --build=missing -pr=pocketbook`
+
 `cmake --preset conan-release`
 
 To build the application run:
