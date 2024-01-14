@@ -1,6 +1,7 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.27.5)
 PROJECT (Pocketbook-Nextcloud VERSION 1.10)
 
+find_package(CURL REQUIRED)
 
 add_compile_options(-std=c++17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -69,7 +70,7 @@ add_executable(Nextcloud.app ${SOURCES})
 
 target_compile_options(Nextcloud.app PRIVATE -Wall -Wextra -Wpedantic -Werror -pedantic -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused)
 
-TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype  sqlite3 stdc++fs curl)
+TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype sqlite3 stdc++fs CURL::libcurl)
 
 target_compile_definitions(Nextcloud.app PRIVATE DBVERSION=2 PROGRAMVERSION="1.10")
 

@@ -38,6 +38,8 @@ Currently there are multiple methods to build the application. It is recommended
 ### Dockerimage
 The easiest way to build applications as of now to use the Dockerimage. (https://github.com/JuanJakobo/Pocketbook-dev-docker)
 
+conan install . --output-folder=build --build=missing -pr=pocketbook
+
 ### Setup Toolchain
 First you need to install the basic build tools for linux.
 
