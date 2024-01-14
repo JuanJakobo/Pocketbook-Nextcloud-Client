@@ -46,7 +46,7 @@ Then you have to download the Pocketbook SDK (https://github.com/pocketbook/SDK_
 In the CMakeLists.txt of this project you have to set the root of the TOOLCHAIN_PATH to the location where you saved the SDK.
 
 Furthmore you have to add an conan profile for pocketbook:
-`
+```
 [settings]
 arch=armv7
 build_type=Release
@@ -64,7 +64,7 @@ AR=arm-obreey-linux-gnueabi-ar
 AS=arm-obreey-linux-gnueabi-as
 NM=arm-obreey-linux-gnueabi-nm
 RANLIB=arm-obreey-linux-gnueabi-ranlib
-`
+```
 
 Then you have to setup conan by:
 
