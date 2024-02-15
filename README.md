@@ -14,7 +14,25 @@ A basic client to access an existing nextcloud instance via Pocketbook.
 * Navigaten via keys and touch
 
 ## Installation
-Download and unzip the file from releases and place the nextcloud.app into the "applications" folder of your pocketbook. Once you disconnect the Pocketbook from the PC, the application should be visibile in the application launcher.
+
+1. **Download and Unzip:**
+   - Download the desired release from the repository's releases section.
+   - Unzip the downloaded file.
+
+2. **Placement:**
+   - Locate the `nextcloud.app` file from the unzipped folder.
+
+3. **Transfer to Pocketbook:**
+   - Connect your Pocketbook device to your PC.
+   - Navigate to the "applications" folder on your Pocketbook.
+
+4. **Move the App and Add `cacert.pem`:**
+   - Transfer the `nextcloud.app` file into the "applications" folder of your Pocketbook device.
+   - Additionally, download `cacert.pem` from [here](https://curl.se/ca/cacert.pem) and add it to the "applications" folder to ensure secure communication within the application.
+
+5. **Disconnect and Launch:**
+   - Safely disconnect your Pocketbook from the PC.
+   - The application should now be visible in the application launcher of your Pocketbook.
 
 ### Tested on
 * PocketBook Toch HD
@@ -28,9 +46,18 @@ Download and unzip the file from releases and place the nextcloud.app into the "
 * Pocketbook Inkpad Color 2 (PB743)
 
 ## Usage
-To login type the servername (e.g. https://domainname) or the WebDAV URL (e.g. htts://domainname/remote.php/dav/files/UUID) (You can look up the WebDAV URL in the files app->seetings.), Username and Password. If you have 2FA enabled, you have to set up an App specific password. (https://docs.nextcloud.com/server/latest/user_manual/en/user_2fa.html#using-client-applications-with-two-factor-authentication)
 
-Next you will be asked where you want to save the nextcloud files. To download a file, click on it. If you want to sync a folder click it until an menu appears. In this menu select "sync". The folder sync will only sync files that are "newer" on the server side. It ignores .sdr files.
+To log in, follow these steps:
+
+1. Enter the server name (e.g., `https://domainname`) or the WebDAV URL (e.g., `https://domainname/remote.php/dav/files/UUID`). You can find the WebDAV URL in the Files app under settings.
+   
+2. Provide your username and password. If you have 2FA (Two-Factor Authentication) enabled, you need to set up an App-specific password. You can learn more about this process [here](https://docs.nextcloud.com/server/latest/user_manual/en/user_2fa.html#using-client-applications-with-two-factor-authentication).
+
+After logging in, you'll be prompted to select a location to save the Nextcloud files. 
+
+- To download a file, simply click on it.
+  
+- To sync a folder, click on it until a menu appears. Then, select "sync" from the menu. The folder sync feature will only synchronize files that are "newer" on the server side, ignoring `.sdr` files.
 
 ## How to build
 Currently there are multiple methods to build the application. It is recommended to use the Dockerimage.
