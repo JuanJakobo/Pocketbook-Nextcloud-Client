@@ -328,6 +328,7 @@ void EventHandler::contextMenuHandler(ContextMenuOption p_contextMenuOption)
             }
             auto currentWebDAVItems{m_sqllite.getItemsChildren(m_currentPath)};
             updateItems(currentWebDAVItems);
+            Util::updatePBLibrary();
             drawWebDAVItems(currentWebDAVItems);
         }
         else
@@ -793,8 +794,7 @@ void EventHandler::startDownload()
         UpdateProgressbar("Download completed", 100);
     }
 
-    // TODO implement
-    //Log::writeInfoLog(std::to_string(Util::updatePBLibrary()));
+    Util::updatePBLibrary();
     CloseProgressbar();
     m_webDAVView->reDrawCurrentEntry();
 }

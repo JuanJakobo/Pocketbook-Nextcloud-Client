@@ -11,9 +11,11 @@
 #include <math.h>
 #include <signal.h>
 
+#include <experimental/filesystem>
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <fstream>
 #include <tuple>
 
 #include "inkview.h"
@@ -21,9 +23,13 @@
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
+namespace fs = std::experimental::filesystem;
+
 namespace
 {
-constexpr auto SCANNER_APP_LOCATION{"/ebrmain/bin/scanner.app"};
+constexpr auto UPDATE_FILE{"/mnt/ext1/system/config/nextcloud/updater"};
+const auto SCANNER_APP_CMD{"/ebrmain/bin/scanner.app 1> "s + UPDATE_FILE + " 2>&1"s};
+constexpr auto UPDATE_END{"Scan total"};
 
 constexpr auto TEXT_DOWNLOADING_FILE{"Downloading file"};
 constexpr auto TEXT_FAILED_TO_READ_IN_DATA{"Failed to read in data format."};
@@ -32,10 +38,6 @@ constexpr auto TEXT_NO_INTERNET_CONNECTION{"It was not possible to establish an 
 constexpr auto TEXT_UPDATING_PB_LIB{"Updating PB library"};
 
 } // namespace
-
-pid_t child_pid = -1; // Global
-
-using std::string;
 
 size_t Util::writeCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -127,29 +129,35 @@ void Util::encodeUrl(string &text)
     curl_easy_cleanup(curl);
 }
 
-void kill_child(int sig)
-{
-    // SIGKILL
-    kill(child_pid, SIGTERM);
-}
-
-void Util::updatePBLibrary(int seconds)
+void Util::updatePBLibrary()
 {
     UpdateProgressbar(TEXT_UPDATING_PB_LIB, 99);
-    // https://stackoverflow.com/questions/6501522/how-to-kill-a-child-process-by-the-parent-process
-    signal(SIGALRM, (void (*)(int))kill_child);
-    child_pid = fork();
+    auto child_pid{fork()};
     if (child_pid > 0)
     {
-        // parent
-        alarm(seconds);
-        wait(NULL);
+        //parent
+        std::string result;
+        auto counter{0};
+        while (result.find(UPDATE_END) == std::string::npos && counter <= 5)
+        {
+            sleep(2);
+            std::ifstream ifs(UPDATE_FILE);
+            std::ostringstream sstr;
+            sstr << ifs.rdbuf();
+            result = sstr.str();
+            counter++;
+
+        }
+        fs::remove(UPDATE_FILE);
+        //TODO does not kill
+        kill(child_pid, SIGKILL);
     }
     else if (child_pid == 0)
     {
-        // child
-        // TODO parse in response of exec to determine when to kill?
-        execlp(SCANNER_APP_LOCATION, SCANNER_APP_LOCATION, (char *)NULL);
+        //child
+        setpgid(getpid(), getpid());
+        std::system(SCANNER_APP_CMD.c_str());
+        //command runs forever, therefore use command above to kill it
         exit(1);
     }
 }
