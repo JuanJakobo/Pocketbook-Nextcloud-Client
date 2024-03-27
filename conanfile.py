@@ -7,6 +7,7 @@ class CompressorRecipe(ConanFile):
 
     def requirements(self):
         self.requires("libcurl/8.4.0")
+        self.requires("sqlite3/3.44.0")
         if self.settings.build_type == "Debug":
             self.requires("gtest/1.14.0")
 

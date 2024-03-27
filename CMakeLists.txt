@@ -2,6 +2,7 @@ CMAKE_MINIMUM_REQUIRED (VERSION 3.27.5)
 PROJECT (Pocketbook-Nextcloud VERSION 1.10)
 
 find_package(CURL REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 add_compile_options(-std=c++17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -12,15 +13,14 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 #Set if building with docker
-SET(PB_INCLUDE_DIRECTORIES /SDK/usr/arm-obreey-linux-gnueabi/sysroot/usr/local/include/)
-SET(FREETYPE_INCLUDE_DIRS /SDK/usr/arm-obreey-linux-gnueabi/sysroot/usr/include/freetype2/)
+SET(PB_INCLUDE_DIRECTORIES $ENV{SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/local/include/)
+SET(FREETYPE_INCLUDE_DIRS $ENV{SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/include/freetype2/)
 #Set if building without docker
-# SET(SDK_BASE <SDK-PATH>)
-# SET(PB_INCLUDE_DIRECTORIES ${SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/local/include/)
-# SET(FREETYPE_INCLUDE_DIRS ${SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/include/freetype2/)
-# SET(CMAKE_TOOLCHAIN_FILE ${SDK_BASE}/share/cmake/arm_conf.cmake)
+SET(PB_INCLUDE_DIRECTORIES ${SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/local/include/)
+SET(FREETYPE_INCLUDE_DIRS ${SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/include/freetype2/)
 
 # Include the SDK
+SET(CMAKE_TOOLCHAIN_FILE $ENV{SDK_BASE}/share/cmake/arm_conf.cmake)
 include("${CMAKE_TOOLCHAIN_FILE}")
 
 # Where to find pbres
@@ -70,7 +70,7 @@ add_executable(Nextcloud.app ${SOURCES})
 
 target_compile_options(Nextcloud.app PRIVATE -Wall -Wextra -Wpedantic -Werror -pedantic -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused)
 
-TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype sqlite3 stdc++fs CURL::libcurl)
+TARGET_LINK_LIBRARIES (Nextcloud.app PRIVATE inkview freetype stdc++fs CURL::libcurl sqlite3)
 
 target_compile_definitions(Nextcloud.app PRIVATE DBVERSION=2 PROGRAMVERSION="1.10")
 
