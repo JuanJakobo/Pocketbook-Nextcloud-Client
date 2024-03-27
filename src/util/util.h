@@ -139,7 +139,7 @@ class Util
      * Updates the library of the Pocketbook
      *
      */
-    static void updatePBLibrary(int seconds);
+    static void updatePBLibrary();
 
     /**
      * Convert string to tm

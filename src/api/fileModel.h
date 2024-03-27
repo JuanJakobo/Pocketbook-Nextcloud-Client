@@ -7,6 +7,7 @@
 // Description:
 //-------------------------------------------------------------------
 #include <string>
+#include <ctime>
 
 #include "model.h"
 
@@ -22,5 +23,5 @@ struct FileItem : Entry
     std::string path;
     Type type;
     // long long int size;
-    tm lastEditDate;
+    std::tm lastEditDate;
 };

@@ -288,6 +288,9 @@ string WebDAV::propfind(const string &pathUrl)
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
+        if (iv_access(CACERT_PATH, R_OK) == 0)
+            curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH);
+
         if (_ignoreCert)
         {
             Log::writeInfoLog("Cert ignored");
@@ -414,6 +417,10 @@ bool WebDAV::get(WebDAVItem &item)
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, Util::progress_callback);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+        if (iv_access(CACERT_PATH, R_OK) == 0)
+            curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH);
+
         if (_ignoreCert)
         {
             Log::writeInfoLog("Cert ignored");

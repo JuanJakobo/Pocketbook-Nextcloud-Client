@@ -19,6 +19,7 @@ using namespace std::string_literals;
 
 const auto NEXTCLOUD_ROOT_PATH{"/remote.php/dav/files/"s};
 constexpr auto NEXTCLOUD_START_PATH{"/remote.php/"};
+constexpr auto CACERT_PATH{"/mnt/ext1/applications/cacert.pem"};
 
 class WebDAV
 {
