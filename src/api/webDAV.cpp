@@ -29,6 +29,7 @@ namespace
 {
 constexpr auto BEGIN_XML_ITEM{"<d:response>"};
 const auto END_XML_ITEM{"</d:response>"s};
+constexpr auto TEXT_CACERT_FILE_NOT_FOUND{"CACert.pem not found. You can download it at 'https://curl.se/ca/cacert.pem'. Then place it into the application folder."};
 } // namespace
 
 using std::string;
@@ -289,7 +290,14 @@ string WebDAV::propfind(const string &pathUrl)
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
         if (iv_access(CACERT_PATH, R_OK) == 0)
+        {
             curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH);
+        }
+        else
+        {
+            downloadCaPem();
+            return {};
+        }
 
         if (_ignoreCert)
         {
@@ -419,7 +427,14 @@ bool WebDAV::get(WebDAVItem &item)
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
         if (iv_access(CACERT_PATH, R_OK) == 0)
+        {
             curl_easy_setopt(curl, CURLOPT_CAINFO, CACERT_PATH);
+        }
+        else
+        {
+            downloadCaPem();
+            return false;
+        }
 
         if (_ignoreCert)
         {
@@ -466,4 +481,18 @@ bool WebDAV::get(WebDAVItem &item)
         }
     }
     return false;
+}
+
+void WebDAV::downloadCaPem()
+{
+    //TODO ask for download and then download and save ca.pem in method
+    //https://curl.se/ca/cacert.pem
+    Log::writeErrorLog(TEXT_CACERT_FILE_NOT_FOUND);
+    auto dialogResult{DialogSynchro(ICON_QUESTION, TEXT_MESSAGE_ACTION,TEXT_CACERT_FILE_NOT_FOUND, TEXT_DIALOG_CLOSE_APP, NULL, NULL)};
+    switch (dialogResult)
+    {
+        default:
+            CloseApp();
+            break;
+    }
 }

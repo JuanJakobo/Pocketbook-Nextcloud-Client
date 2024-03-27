@@ -64,4 +64,6 @@ class WebDAV
     bool _ignoreCert;
 
     std::shared_ptr<FileHandler> _fileHandler;
+
+    void downloadCaPem();
 };
