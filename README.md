@@ -42,8 +42,9 @@ A basic client to access an existing nextcloud instance via Pocketbook.
 * PocketBook Touch Lux 5 (PB628)
 * PocketBook Aqua 2 (PB641)
 * PocketBook InkPad 3 Pro (PB740)
-* Pocketbook Era (PB700)
-* Pocketbook Inkpad Color 2 (PB743)
+* PocketBook Era (PB700)
+* PocketBook Inkpad Color 2 (PB743)
+* PocketBook Verse (PB629)
 
 ## Usage
 
